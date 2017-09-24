@@ -61,22 +61,14 @@ function ActionScenedGuaJi:GoTo()
 	end--]]
 
 	--先寻路
-	if(self.status == STATUS_NONE)then
-		-- 如果当前地图不是目标地图, 传送
-		local mapid = self.player:GetMapID()
-		if mapid ~= self.mapid then
-			if not self.isTeleport then
-				-- TODO:传送
-				self.player:call_teleport_map (self.mapid , 1)
-				self.isTeleport = true
-			end
-			return true
-		end
-		
+	if(self.status == STATUS_NONE)then		
 		local closeCallback = function ()
 			self.status = STATUS_GOTO
 		end
-		self:PushAction('robotd.action.scened.action_scened_pathfinding', self.mapid, self.to_x, self.to_y, closeCallback)
+		if not self.isFindPath then
+			self:PushAction('robotd.action.scened.action_scened_pathfinding', self.mapid, self.to_x, self.to_y, closeCallback)
+			self.isFindPath = true
+		end
 		return true
 	end
 	

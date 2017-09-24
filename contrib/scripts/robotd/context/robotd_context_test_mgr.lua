@@ -307,11 +307,11 @@ local FuncName = {
 
 
 function PlayerInfo:SendProtocol()
-	--[[
-	-- 先发送升级命令 升到31级
-	local cmd = "@Rank 50"
 	
-	self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+	-- 先发送升级命令 升到31级
+	--[[local cmd = "@Rank 50"
+	
+	self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)--]]
 	local indice = GetRandomIndexTable(#ProtocolsFunc, math.min(#ProtocolsFunc, 6))
 	for _, index in ipairs(indice) do
 		local callback = ProtocolsFunc[index]
@@ -320,7 +320,7 @@ function PlayerInfo:SendProtocol()
 	end
 	
 	return true
-	--]]
+	
 end
 
 function PlayerInfo:SendRobotRank()

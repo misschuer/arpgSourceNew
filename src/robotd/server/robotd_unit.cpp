@@ -65,7 +65,6 @@ void RobotdUnit::StartMoving(bool client_path, string from)
 	float to_x = 0.f;
 	float to_y = 0.f;
 
-	/**
 	bool fa = false;
 	string s_path;
 	for (uint32 i = 0; i < m_moving_path.size(); ++ (++ i)) {
@@ -78,10 +77,9 @@ void RobotdUnit::StartMoving(bool client_path, string from)
 	}
 	
 	if (fa) {
-		tea_pinfo("%s StartMoving from (%d, %d) to %s", this->GetGuid().c_str(), (uint16)this->GetPosX(), (uint16)this->GetPosY(), s_path.c_str());
-		return;
+		tea_perror("%s StartMoving from (%d, %d) to %s", this->GetGuid().c_str(), (uint16)this->GetPosX(), (uint16)this->GetPosY(), s_path.c_str());
+		//return;
 	}
-	*/
 
 	//计算前两点
 /*

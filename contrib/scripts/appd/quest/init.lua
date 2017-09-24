@@ -59,6 +59,7 @@ require("appd.quest.QuestQualifyWin")
 require("appd.quest.QuestActiveTask")
 require("appd.quest.QuestDailyTask")
 require("appd.quest.QuestGemTotalLevel")
+require("appd.quest.QuestWingsBlessTimes")
 
 -- 这个一定要放到最后
 require("appd.quest.QuestManager")

@@ -89,7 +89,9 @@ function AppdApp:InitCorn()
 		self.objMgr:foreachAllPlayer(function(player)	
 			player:DoResetDaily()
 		end)
+		-- 每日排行奖励
 		self:RankReward()
+		
 		self.objMgr:foreachAllFaction(function(faction)
 			faction:ResetFaction()
 		end)
@@ -104,12 +106,15 @@ function AppdApp:InitCorn()
 	end)
 	
 	-- 每周重置
-	self.cron:addCron("每周重置",'0 0 * * 1',function() 
+	self.cron:addCron("每周重置",'0 0 * * 2',function() 
 		Rank3v3kuafuWeek()
 		
 		self.objMgr:foreachAllFaction(function(faction)
 			faction:ResetFactionWeek()
 		end)
+		
+		-- 重置排位赛的名次
+		clearRankTask(RANK_TYPE_SINGLE_PVP)
 	end)
 	
 	--[[注释掉野外BOSS
@@ -337,6 +342,7 @@ function AppdApp:RankReward()
 	--RANK_TYPE_FACTION
 	--FIXME
 	local ranktype = {RANK_TYPE_POWER,RANK_TYPE_LEVEL,RANK_TYPE_MOUNT,RANK_TYPE_WINGS,RANK_TYPE_SINGLE_PVP,RANK_TYPE_FACTION}
+	local rankname = {"战力","等级","坐骑","翅膀","家族","排位赛"}
 	
 	for i,rt in ipairs(ranktype) do
 		local tab = GetRankGuidTable(rt)
@@ -355,18 +361,16 @@ function AppdApp:RankReward()
 			
 			if config then
 				local desc = config.desc
-				local name = config.name
+				local name = rankname[i]..config.name
 				local giftType = 3
 				if rt == RANK_TYPE_FACTION then
 					local faction = app.objMgr:getObj(v)
 					if faction then
 						local guid = faction:GetBangZhuGuid()
-						AddGiftPacksData(guid,0,giftType,os.time(),os.time() + 86400*30, name, desc, config.reward
-, SYSTEM_NAME)
+						AddGiftPacksData(guid,0,giftType,os.time(),os.time() + 86400*30, name, desc, config.reward, SYSTEM_NAME)
 					end
 				else
-					AddGiftPacksData(v,0,giftType,os.time(),os.time() + 86400*30, name, desc, config.reward
-, SYSTEM_NAME)
+					AddGiftPacksData(v,0,giftType,os.time(),os.time() + 86400*30, name, desc, config.reward, SYSTEM_NAME)
 				end
 				
 			end

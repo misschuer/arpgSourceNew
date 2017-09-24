@@ -892,15 +892,19 @@ end
 
 -- 完成当前主线
 function AppQuestMgr:FinishCurrentMainQuest()
+	local st = QUEST_FIELD_QUEST_START
 	for start = QUEST_FIELD_QUEST_START, QUEST_FIELD_QUEST_END - 1, MAX_QUEST_INFO_COUNT do
 		local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
 		if questId > 0 then
 			if tb_quest[questId].type == QUEST_TYPE_MAIN then
 				self:SetUInt16(start + QUEST_INFO_ID, 1, QUEST_STATUS_COMPLETE)
-				return
+				st = start
+				break
 			end
 		end
 	end
+	
+	self:OnInnerPickQuest(st)
 end
 
 -- 遍历任务是否需要更新

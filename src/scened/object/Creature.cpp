@@ -115,7 +115,7 @@ void Creature::Update(uint32 diff)
 	if(CheckCreateTimeOutDel(diff))
 		return;
 	//更新说话
-	UpdateSaySomething(diff);
+	//UpdateSaySomething(diff);
 	//更新所有者
 	UpdateOwnership(diff);
 	

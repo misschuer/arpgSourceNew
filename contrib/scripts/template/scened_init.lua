@@ -112,10 +112,6 @@ require("template.tables.tb_item_illusion")
 
 --家族Boss
 
-require("template.tables.tb_faction_boss")
-require("template.tables.tb_faction_boss_reward")
-require("template.tables.tb_faction_monster")
-
 require("template.tables.tb_faction_bossdefense_base")
 require("template.tables.tb_faction_bossdefense_point")
 require("template.tables.tb_faction_bossdefense_pool")
@@ -146,3 +142,12 @@ require("template.tables.tb_doujiantai_combat_win")
 
 --vip
 require("template.tables.tb_vip_base")
+
+for _, ctInfo in pairs(tb_creature_template) do
+	local ps = string.split(ctInfo.spell, ',')
+	local ss = {}
+	for i = 1, #ps, 5 do
+		table.insert(ss, {tonumber(ps[ i ]), tonumber(ps[i+1]), tonumber(ps[i+2]), tonumber(ps[i+3]), tonumber(ps[i+4])})
+	end
+	ctInfo.spell = ss
+end

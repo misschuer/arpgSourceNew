@@ -8,7 +8,7 @@ tb_map_teleport_detail = {
 	--  pos:array 信息
 	--  tomapid:int 到达地图
 	[1] = {id = 1, pos = {9,80}, tomapid = 1},
-	[2] = {id = 2, pos = {118,253}, tomapid = 1001},
+	[2] = {id = 2, pos = {141,163}, tomapid = 1001},
 	[3] = {id = 3, pos = {8,150}, tomapid = 1002},
 	[4] = {id = 4, pos = {11,64}, tomapid = 1003},
 	[5] = {id = 5, pos = {225,63}, tomapid = 1004},

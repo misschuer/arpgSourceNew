@@ -4,23 +4,32 @@ local protocols = require('share.protocols')
 InstanceWorldBoss.Name = "InstanceWorldBoss"
 InstanceWorldBoss.player_auto_respan = 5
 
--- 所有线的排名
-InstanceWorldBoss.rankList = {}
+function initWorldBoss()
+	-- 所有线的排名
+	if not InstanceWorldBoss.rankList then
+		InstanceWorldBoss.rankList = {}
+	end
 
---[[
--- 所有先的roll点最高值和获得者, 及开始时间和结束时间
-InstanceWorldBoss.rollList = {}
+	--[[
+	-- 所有先的roll点最高值和获得者, 及开始时间和结束时间
+	InstanceWorldBoss.rollList = {}
 
--- 所有roll过的名字列表
-InstanceWorldBoss.rollNameList = {}
---]]
+	-- 所有roll过的名字列表
+	InstanceWorldBoss.rollNameList = {}
+	--]]
 
--- BOSS的血量
-InstanceWorldBoss.boss_hp = {}
+	-- BOSS的血量
+	if not InstanceWorldBoss.boss_hp then
+		InstanceWorldBoss.boss_hp = {}
+	end
+	
+	-- 死亡次数
+	if not InstanceWorldBoss.deathList then
+		InstanceWorldBoss.deathList = {}
+	end
+end
 
--- 死亡次数
-InstanceWorldBoss.deathList = {}
-
+initWorldBoss()
 
 -- 获胜标志 (0:未结束, 1:结束胜利, 2:结束失败)
 InstanceWorldBoss.FLAG_WIN = 1

@@ -1053,9 +1053,11 @@ bool Load_creature_template (lua_State *L)
 		lua_getfield(L, -1, "attack_type");
 		info->attack_type = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
+		/**
 		lua_getfield(L, -1, "lockfaceto");
 		info->lockfaceto = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
+		*/
 		lua_getfield(L, -1, "attack_range");
 		info->attack_range = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
@@ -1077,6 +1079,7 @@ bool Load_creature_template (lua_State *L)
 			lua_pop(L,1);
 		}
 		lua_pop(L,1);
+		/**
 		lua_getfield(L, -1, "dialogue");
 		strncpy(info->dialogue ,LUA_TOSTRING(L, -1),50);
 		lua_pop(L,1);
@@ -1104,7 +1107,7 @@ bool Load_creature_template (lua_State *L)
 		lua_getfield(L, -1, "drop_belong");
 		info->drop_belong = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
-
+		*/
 		creature_template_db . insertVector(info);
 		lua_pop(L,1);
 	}

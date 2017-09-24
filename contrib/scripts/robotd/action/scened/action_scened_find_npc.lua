@@ -79,13 +79,13 @@ function ActionScenedFindNpc:Update(diff)
 	
 	--寻路没成功，使用失败
 	if(mapid ~= self.to_mapid or self.player.my_unit:GetDistanceByPos(self.to_x,self.to_y)>4)then
-		outFmtDebug("ActionScenedFindNpc:Update %s use object fail", self:ToString())
+		outFmtError("ActionScenedFindNpc:Update %s use object fail", self:ToString())
 		return false, 2
 	end
 
 	local unit = self.player:FindUnitByTemplateID(self.object_id)
 	if(unit == nil)then
-		outFmtDebug("not find unit by entry %d wait 1 second\n", self.object_id)
+		outFmtError("not find unit by entry %d wait 1 second\n", self.object_id)
 		self:SetWaitTimeInterval(1000)
 		-- outFmtDebug("ActionScenedFindNpc:Update object not find, %s, wait 1 second to retry", self:ToString())
 		--return false, 3

@@ -1,5 +1,5 @@
 
--- ½øĞĞÏÂÒ»¸öÈÎÎñ
+-- è¿›è¡Œä¸‹ä¸€ä¸ªä»»åŠ¡
 function PlayerInfo:DoNextQuest()
 	
 	if not self.quest then
@@ -7,7 +7,7 @@ function PlayerInfo:DoNextQuest()
 		return
 	end
 	
-	-- ÏÈÈÕ³£ÈÎÎñ
+	-- å…ˆæ—¥å¸¸ä»»åŠ¡
 	local questInfo = self.quest:GetQuestInfo()
 	if not questInfo then
 		outFmtDebug("		no available quest")
@@ -21,7 +21,7 @@ function PlayerInfo:DoNextQuest()
 	
 	local config = tb_quest[questInfo.questId]
 	local targets = config.targets
-	-- ÕÒÈÎÎñÄ¿±ê
+	-- æ‰¾ä»»åŠ¡ç›®æ ‡
 	for indx, target in ipairs(targets) do
 		local targetType = target[ 1 ]
 		local stepInfo	 = questInfo.steps[indx]
@@ -41,7 +41,7 @@ function PlayerInfo:DoNextQuest()
 	return 
 end
 
--- ×°±¸Éñ±ø
+-- è£…å¤‡ç¥å…µ
 function PlayerInfo:RobotEquipDivine(questId, indx)
 	if not self.spellMgr then
 		outFmtDebug("spellMgr not attach")
@@ -66,23 +66,23 @@ function PlayerInfo:RobotEquipDivine(questId, indx)
 		end
 	end
 	
-	-- ´æÔÚÉñ±ø ×°±¸
+	-- å­˜åœ¨ç¥å…µ è£…å¤‡
 	if need > 0 then
 		--divine_active ( id :number )
 		questOperate.callback = function()
 			outFmtDebug("call_divine_switch divineId = %d", need)
 			self:call_divine_switch(divineId)
-			-- ·¢ËÍÍê³ÉÈÎÎñÃüÁî
+			-- å‘é€å®Œæˆä»»åŠ¡å‘½ä»¤
 			self:AutoSendFinishQuest(questId)
 		end
 	else
-		-- ÅĞ¶ÏÊÇ·ñÒª¹ºÂò
+		-- åˆ¤æ–­æ˜¯å¦è¦è´­ä¹°
 		if divineId == 0 then
-			-- Ã»·¨¹ºÂò
+			-- æ²¡æ³•è´­ä¹°
 			outFmtDebug("not divineId to buy for questId = %d", questId)
 			return
 		else
-			-- ¼¤»îÉñ±ø
+			-- æ¿€æ´»ç¥å…µ
 			outFmtDebug("call_divine_active divineId = %d", need)
 			self:call_divine_active (divineId)
 			return
@@ -92,7 +92,7 @@ function PlayerInfo:RobotEquipDivine(questId, indx)
 	return questOperate
 end
 
--- ºÍNPC½²»°
+-- å’ŒNPCè®²è¯
 function PlayerInfo:TalkWithNPC(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -111,13 +111,13 @@ function PlayerInfo:TalkWithNPC(questId, indx)
 		self:call_talk_with_npc (questOperate.objcet_id ,questId)
 	end
 
-	-- Ñ°Â·
+	-- å¯»è·¯
 	self.questStart = true
 
 	return questOperate
 end
 
--- Ê¹ÓÃ²É¼¯Îï
+-- ä½¿ç”¨é‡‡é›†ç‰©
 function PlayerInfo:RobotUseGameObject(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -130,13 +130,13 @@ function PlayerInfo:RobotUseGameObject(questId, indx)
 	questOperate.objcet_id	= stepParams[ 5 ]
 	questOperate.questId = questId
 	
-	-- Ñ°Â·
+	-- å¯»è·¯
 	self.questStart = true
 	
 	return questOperate
 end
 
--- É±¹Ö
+-- æ€æ€ª
 function PlayerInfo:RobotKillMonster(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -153,7 +153,7 @@ function PlayerInfo:RobotKillMonster(questId, indx)
 		questOperate.y			= stepParams[ 4 ]
 		questOperate.questId = questId
 		
-		-- ÅĞ¶ÏÈÎÎñÊÇ·ñÍê³É
+		-- åˆ¤æ–­ä»»åŠ¡æ˜¯å¦å®Œæˆ
 		questOperate.IsFinishMethod = function()
 			local questIndx = self.quest:GetQuestIndxById(questId)
 			local vist = not questIndx
@@ -165,7 +165,7 @@ function PlayerInfo:RobotKillMonster(questId, indx)
 			return vist
 		end
 		
-		-- Ñ°Â·
+		-- å¯»è·¯
 		self.questStart = true
 	elseif targetPosType == 8 then
 		local afterInfo = config.afterAccept
@@ -179,7 +179,7 @@ function PlayerInfo:RobotKillMonster(questId, indx)
 			questOperate.y			= afterInfo[ 7 ]
 			questOperate.questId = questId
 			
-			-- ÅĞ¶ÏÈÎÎñÊÇ·ñÍê³É
+			-- åˆ¤æ–­ä»»åŠ¡æ˜¯å¦å®Œæˆ
 			questOperate.IsFinishMethod = function()
 				local questIndx = self.quest:GetQuestIndxById(questId)
 				local vist = not questIndx
@@ -199,7 +199,7 @@ function PlayerInfo:RobotKillMonster(questId, indx)
 	return questOperate
 end
 
--- Ê¹ÓÃÎïÆ·
+-- ä½¿ç”¨ç‰©å“
 function PlayerInfo:RobotUseItem(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -215,7 +215,7 @@ function PlayerInfo:RobotUseItem(questId, indx)
 		if item_guid then
 			outFmtDebug("call_bag_item_user entry = %d, item_guid = %s, questId = %d", entry, item_guid, questId)
 			self:call_bag_item_user (item_guid, 1)
-			-- ·¢ËÍÍê³ÉÈÎÎñÃüÁî
+			-- å‘é€å®Œæˆä»»åŠ¡å‘½ä»¤
 			self:AutoSendFinishQuest(questId)
 		else
 			outFmtDebug("not find entry %d in bag", entry)
@@ -225,7 +225,7 @@ function PlayerInfo:RobotUseItem(questId, indx)
 	return questOperate
 end
 
--- ´©´÷×°±¸
+-- ç©¿æˆ´è£…å¤‡
 function PlayerInfo:RobotSuit(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -242,7 +242,7 @@ function PlayerInfo:RobotSuit(questId, indx)
 			local dst_pos = tb_item_template[entry].pos
 			outFmtDebug("call_bag_exchange_pos entry = %d, %d, %d, %d", BAG_TYPE_MAIN_BAG, src_pos, BAG_TYPE_EQUIP, dst_pos)
 			self:call_bag_exchange_pos (BAG_TYPE_MAIN_BAG, src_pos, BAG_TYPE_EQUIP, dst_pos)
-			-- ·¢ËÍÍê³ÉÈÎÎñÃüÁî
+			-- å‘é€å®Œæˆä»»åŠ¡å‘½ä»¤
 			self:AutoSendFinishQuest(questId)
 		else
 			outFmtDebug("not find suitPos %d, suitEntry %d in bag", suitPos, suitEntry)
@@ -252,7 +252,7 @@ function PlayerInfo:RobotSuit(questId, indx)
 	return questOperate
 end
 
---ÌôÕ½×ÊÔ´¸±±¾
+--æŒ‘æˆ˜èµ„æºå‰¯æœ¬
 function PlayerInfo:RobotJoinResourceInstance(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -267,7 +267,7 @@ function PlayerInfo:RobotJoinResourceInstance(questId, indx)
 	questOperate.callback = function()
 		outFmtDebug("RobotJoinResourceInstance callback")
 
-		self:call_res_instance_enter(4) -- Òø±Ò¸±±¾
+		self:call_res_instance_enter(4) -- é“¶å¸å‰¯æœ¬
 		--self:call_instance_exit(0)
 		self:AutoSendFinishQuest(questId)
 	end
@@ -276,7 +276,7 @@ function PlayerInfo:RobotJoinResourceInstance(questId, indx)
 end
 
 
---ÌôÕ½¶·½£Ì¨¸±±¾
+--æŒ‘æˆ˜æ–—å‰‘å°å‰¯æœ¬
 function PlayerInfo:RobotJoinDoujiantai(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -290,7 +290,7 @@ function PlayerInfo:RobotJoinDoujiantai(questId, indx)
 	questOperate.callback = function()
 		outFmtDebug("RobotJoinDoujiantai callback")
 
-		self:call_doujiantai_fight(0) -- ¶·½£Ì¨
+		self:call_doujiantai_fight(0) -- æ–—å‰‘å°
 		--self:call_instance_exit(0)
 		self:AutoSendFinishQuest(questId)
 	end
@@ -298,7 +298,7 @@ function PlayerInfo:RobotJoinDoujiantai(questId, indx)
 	return questOperate
 end
 
---Éı¼¶×°±¸²¿Î»
+--å‡çº§è£…å¤‡éƒ¨ä½
 function PlayerInfo:RobotStrengthSuit(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -314,7 +314,8 @@ function PlayerInfo:RobotStrengthSuit(questId, indx)
 	questOperate.callback = function()
 		outFmtDebug("RobotStrengthSuit callback")
 
-		self:call_strength(1) -- ²¿Î»
+		--self:call_strength(1) -- éƒ¨ä½
+		self:call_equipdevelop_operate (EQUIPDEVELOP_TYPE_STRENGTH_LVUP ,1 ,1 ,"" ,"")
 		self:AutoSendFinishQuest(questId)
 	end
 	
@@ -322,7 +323,7 @@ function PlayerInfo:RobotStrengthSuit(questId, indx)
 end
 
 
---Éı¼¶¼¼ÄÜ
+--å‡çº§æŠ€èƒ½
 function PlayerInfo:RobotRaiseSkill(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -333,12 +334,13 @@ function PlayerInfo:RobotRaiseSkill(questId, indx)
 	
 	local part = config.targets[indx][ 2 ]
 	local count = config.targets[indx][ 3 ]
-
+	local skillIdInfo, _ = self:GetSkillInfo()
+	local skillId = skillIdInfo[1][1]
 	
 	questOperate.callback = function()
 		outFmtDebug("RobotRaiseSkill callback")
-		self:call_raise_base_spell(RAISE_BASE_SKILL,10005)
-		self:call_raise_base_spell(RAISE_BASE_SKILL,10008)
+		
+		self:call_raise_base_spell(RAISE_BASE_SKILL,skillId)
 		
 		self:AutoSendFinishQuest(questId)
 	end
@@ -346,7 +348,7 @@ function PlayerInfo:RobotRaiseSkill(questId, indx)
 	return questOperate
 end
 
---Éı¼¶×øÆï
+--å‡çº§åéª‘
 function PlayerInfo:RobotTrainMount(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -369,7 +371,7 @@ function PlayerInfo:RobotTrainMount(questId, indx)
 end
 
 
---Éılv
+--å‡lv
 function PlayerInfo:RobotLvUp(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -384,7 +386,7 @@ end
 
 function PlayerInfo:AutoSendFinishQuest(questId)
 	local config = tb_quest[questId]
-	-- ·¢ËÍÍê³ÉÈÎÎñÃüÁî
+	-- å‘é€å®Œæˆä»»åŠ¡å‘½ä»¤
 	if config.popup ~= 0 then
 		local questIndx = self.quest:GetQuestIndxById(questId)
 		if questIndx then
@@ -392,6 +394,85 @@ function PlayerInfo:AutoSendFinishQuest(questId)
 			self:call_pick_quest_reward(questIndx)
 		end
 	end
+end
+
+function PlayerInfo:RobotSmelt(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotSmelt callback")
+		local cmd = "@åˆ¶é€  233 100"
+		self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+		self:call_smelting_equip("1")
+		
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotPassWorldRisk(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotPassWorldRisk callback")
+		local cmd = "@å®Œæˆå½“å‰ä¸»çº¿"
+		self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+		
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotGemLvUp(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotGemLvUp callback")
+		local cmd = "@åˆ¶é€  211 10"
+		self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+		self:call_equipdevelop_operate (EQUIPDEVELOP_TYPE_GEM_ACTIVE ,1 ,1 ,"" ,"")
+		self:call_equipdevelop_operate (EQUIPDEVELOP_TYPE_GEM_LVUP ,1 ,1 ,"" ,"")
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotWingsUpgradeTimes(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotWingsUpgradeTimes callback")
+		self:call_wings_active()
+		self:call_wings_bless()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
 end
 
 Quest_Function = {
@@ -419,22 +500,26 @@ Quest_Function = {
 	[QUEST_TARGET_TYPE_KILL_MONSTER] 		= PlayerInfo.RobotKillMonster,
 	[QUEST_TARGET_TYPE_USE_ITEM] 			= PlayerInfo.RobotUseItem,
 	[QUEST_TARGET_TYPE_SUIT]				= PlayerInfo.RobotSuit,
---	QUEST_TARGET_TYPE_MOUNT_LEVEL = 25	-- ×øÆï´ïµ½x
---	QUEST_TARGET_TYPE_FRIEND_NUM = 26	-- ÓµÓĞºÃÓÑx
---	QUEST_TARGET_TYPE_KILL_MONSTER_NUM = 27	-- »÷É±¹ÖÎïx
---	QUEST_TARGET_TYPE_DIVINE_NUM = 28	-- ÓµÓĞÉñ±øx
---	QUEST_TARGET_TYPE_DIVINE_LEV = 29	-- Éñ±øµÈ¼¶x
---	QUEST_TARGET_TYPE_DOUJIANTAI = 30	-- ¶·½£Ì¨Ê¤Àûx
---	QUEST_TARGET_TYPE_TITLE_NUMBER = 31	-- ³ÆºÅÊıÁ¿´ïµ½x¸ö
---	QUEST_TARGET_TYPE_FASHION_NUMBER = 32	-- Ê±×°ÊıÁ¿´ïµ½x¸ö
---	QUEST_TARGET_TYPE_ACHIEVE = 40	-- ³É¾ÍµãÊı´ïµ½Xµã
---	QUEST_TARGET_TYPE_SUIT_TITLE = 41	-- Åå´÷X³ÆºÅ
---	QUEST_TARGET_TYPE_SUIT_FASHION = 42	-- ´©ÉÏÊ±×°X
+--	QUEST_TARGET_TYPE_MOUNT_LEVEL = 25	-- åéª‘è¾¾åˆ°x
+--	QUEST_TARGET_TYPE_FRIEND_NUM = 26	-- æ‹¥æœ‰å¥½å‹x
+--	QUEST_TARGET_TYPE_KILL_MONSTER_NUM = 27	-- å‡»æ€æ€ªç‰©x
+--	QUEST_TARGET_TYPE_DIVINE_NUM = 28	-- æ‹¥æœ‰ç¥å…µx
+--	QUEST_TARGET_TYPE_DIVINE_LEV = 29	-- ç¥å…µç­‰çº§x
+--	QUEST_TARGET_TYPE_DOUJIANTAI = 30	-- æ–—å‰‘å°èƒœåˆ©x
+--	QUEST_TARGET_TYPE_TITLE_NUMBER = 31	-- ç§°å·æ•°é‡è¾¾åˆ°xä¸ª
+--	QUEST_TARGET_TYPE_FASHION_NUMBER = 32	-- æ—¶è£…æ•°é‡è¾¾åˆ°xä¸ª
+--	QUEST_TARGET_TYPE_ACHIEVE = 40	-- æˆå°±ç‚¹æ•°è¾¾åˆ°Xç‚¹
+--	QUEST_TARGET_TYPE_SUIT_TITLE = 41	-- ä½©æˆ´Xç§°å·
+--	QUEST_TARGET_TYPE_SUIT_FASHION = 42	-- ç©¿ä¸Šæ—¶è£…X
 	[QUEST_TARGET_TYPE_JOIN_DOUJIANTAI]		= PlayerInfo.RobotJoinDoujiantai,
---	QUEST_TARGET_TYPE_JOIN_KUAFU_3V3 = 44	-- ²ÎÓëX´Î3V3
---	QUEST_TARGET_TYPE_WIN_KUAFU_3V3 = 45	-- 3v3»ñÊ¤x´Î
---	QUEST_TARGET_TYPE_JOIN_XIANFU = 46	-- ²ÎÓëX´ÎÏÉ¸®¶á±¦
---	QUEST_TARGET_TYPE_WIN_XIANFU = 47	-- ÏÉ¸®¶á±¦»ñÊ¤X´Î
---	QUEST_TARGET_TYPE_KILL_MONSTER_COLLECT = 48	-- É±¹ÖÊÕ¼¯ÎïÆ·
---	QUEST_TARGET_TYPE_TURN_ITEM_IN = 49	-- ÉÏ½»ÎïÆ·
+--	QUEST_TARGET_TYPE_JOIN_KUAFU_3V3 = 44	-- å‚ä¸Xæ¬¡3V3
+--	QUEST_TARGET_TYPE_WIN_KUAFU_3V3 = 45	-- 3v3è·èƒœxæ¬¡
+--	QUEST_TARGET_TYPE_JOIN_XIANFU = 46	-- å‚ä¸Xæ¬¡ä»™åºœå¤ºå®
+--	QUEST_TARGET_TYPE_WIN_XIANFU = 47	-- ä»™åºœå¤ºå®è·èƒœXæ¬¡
+--	QUEST_TARGET_TYPE_KILL_MONSTER_COLLECT = 48	-- æ€æ€ªæ”¶é›†ç‰©å“
+--	QUEST_TARGET_TYPE_TURN_ITEM_IN = 49	-- ä¸Šäº¤ç‰©å“
+	[QUEST_TARGET_TYPE_PASS_WORLD_RISK]		= PlayerInfo.RobotPassWorldRisk,
+	[QUEST_TARGET_TYPE_SMELT]				= PlayerInfo.RobotSmelt,
+	[QUEST_TARGET_TYPE_GEM_TOTAL_LEVEL]		= PlayerInfo.RobotGemLvUp,
+	[QUEST_TARGET_TYPE_WINGS_UPDRADE_TIMES]	= PlayerInfo.RobotWingsUpgradeTimes,
 }

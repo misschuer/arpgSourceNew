@@ -5,6 +5,6 @@
 
 tb_welfare_shouchong = {
 	--  id:int ID
-	--  item:array 道具列表
+	--  item:array 首冲道具列表
 	[1] = {id = 1, item = {{1,1000},{1405,1},{2005,1}}},
 }

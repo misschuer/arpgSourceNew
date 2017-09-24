@@ -87,7 +87,8 @@ AI_Base = {
 		function (self,owner)
 			local ownerInfo = UnitInfo:new{ptr = owner}
 			local entry = ownerInfo:GetEntry()
-			local say_str = tb_creature_template[entry].dialogue
+			local say_str = ''
+			--tb_creature_template[entry].dialogue
 			--允许怪物不说话
 			if(say_str == "")then
 				return 999999999
@@ -165,11 +166,13 @@ AI_Base = {
 		
 	--处理铜钱掉落
 	SilverLoot = function( self, info )
+		--[[
 		local min_silver, max_silver, percent = info.money_min, info.money_max, info.money_percent
 		if min_silver == 0 or max_silver == 0 or percent == 0 then return 0 end
 		if randIntD(1, 100) <= percent then
 			return randIntD(min_silver, max_silver)
 		end
+		--]]
 		return 0
 	end,
 	--处理道具掉落
@@ -243,6 +246,7 @@ AI_boss = class("AI_boss", AI_Base)
 AI_boss.ainame = "AI_boss"
 -- 有BUG 需要处理
 function AI_boss:DamageTaken( owner,unit,damage )
+	--[[
 	local map_ptr = unitLib.GetMap(owner)
 	local createInfo = UnitInfo:new{ptr = owner}	
 	--当被玩家攻击时
@@ -309,12 +313,13 @@ function AI_boss:DamageTaken( owner,unit,damage )
 			InstanceBoss:AddDamageCache(creature_entry, playerInfo:GetPlayerGuid(), damage)
 		end		
 	end
-
+-	-]]
 	return 0
 end
 
 --世界boss被杀了
 function AI_boss:JustDied( map_ptr,owner,killer_ptr )
+	--[[
 	AI_Base.JustDied(self, map_ptr, owner, killer_ptr)
 	local creatureInfo = UnitInfo:new{ptr = owner}
 	local creature_entry = creatureInfo:GetEntry()
@@ -367,10 +372,12 @@ function AI_boss:JustDied( map_ptr,owner,killer_ptr )
 			end
 		end
 	end
+	--]]
 end
 
 --boss掉落处理
 function AI_boss:BossLoot( mapInfo, creatureInfo, killInfo )
+	--[[
 	local player_guid = killInfo:GetPlayerGuid()
 	local player_name = killInfo:GetName()
 	local player_lv = killInfo:GetLevel()
@@ -421,7 +428,8 @@ function AI_boss:BossLoot( mapInfo, creatureInfo, killInfo )
 				globalCounter:AddBossDropRecordInfo( player_guid, player_name, loot_entry, creature_entry, mapInfo:GetMapId(),creature_level,map_cs )
 			end
 		end
-	end		
+	end
+	--]]
 end
 
 

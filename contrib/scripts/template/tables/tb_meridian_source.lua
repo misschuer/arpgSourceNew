@@ -7,7 +7,7 @@ tb_meridian_source = {
 	--  id:int 来源id
 	--  exp:int 每次经验
 	--  limit:int 每天最大次数
-	[1] = {id = 1, exp = 20, limit = 2},
-	[2] = {id = 2, exp = 8, limit = 10},
-	[3] = {id = 3, exp = 10, limit = 20},
+	[1] = {id = 1, exp = 500, limit = 2},
+	[2] = {id = 2, exp = 500, limit = 2},
+	[3] = {id = 3, exp = 500, limit = 2},
 }

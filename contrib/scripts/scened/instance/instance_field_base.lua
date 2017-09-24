@@ -11,13 +11,20 @@ end
 
 --初始化脚本函数
 function InstanceFieldBase:OnInitScript(  )
+	-- 不让重复初始化
+	if self:isInstanceInit() then
+		return
+	end
+	self:SetInstanceInited()
 	Instance_base.OnInitScript(self) --调用基类
 	
 	--添加boss刷新器
+	--[[
 	if self:IsFieldBossMap() then
 		mapLib.DelTimer(self.ptr, 'OnTimer_CheckRefresh')
 		mapLib.AddTimer(self.ptr, 'OnTimer_CheckRefresh', self.REFRESH_CREATURE_INTERNAL)
 	end
+	--]]
 end
 
 -- 是否是野外boss刷新地图
@@ -324,6 +331,7 @@ function InstanceFieldBase:OnLeavePlayer( player, is_offline)
 end
 
 -------------------------野外boss---------------------------
+--[[
 AI_FieldBoss = class("AI_FieldBoss", AI_Base)
 AI_FieldBoss.ainame = "AI_FieldBoss"
 
@@ -396,5 +404,6 @@ function AI_FieldBoss:DamageDeal( owner, unit, damage)
 		mapLib.ClearFieldBossDamage(map_ptr)
 	end
 end
+--]]
 
 return InstanceFieldBase

@@ -1037,6 +1037,7 @@ class SharedDef
 		public static QUEST_TARGET_TYPE_ACTIVE_TASK			:number = 70;	// 完成X个活跃任务
 		public static QUEST_TARGET_TYPE_DAILY_TASK			:number = 71;	// 完成X轮日常任务
 		public static QUEST_TARGET_TYPE_GEM_TOTAL_LEVEL			:number = 72;	// 所有宝石总等级升到X级
+		public static QUEST_TARGET_TYPE_WINGS_BLESS_TIMES			:number = 73;	// 翅膀祝福X次
 		// 货币处理类型
 		public static CURRENCY_HANDLE_TYPE_ADD			:number = 0;	// 增加
 		public static CURRENCY_HANDLE_TYPE_SUB			:number = 1;	// 减少
@@ -1119,7 +1120,7 @@ class SharedDef
 		public static BAG_TYPE_MAIN_BAG			:number = 0;	// 主包裹
 		public static BAG_TYPE_EQUIP			:number = 1;	// 穿戴的装备包裹
 		public static BAG_TYPE_EQUIP_BAG			:number = 2;	// 放装备的包裹
-		public static BAG_TYPE_GEM			:number = 3;	// 穿戴宝石的包裹
+		public static BAG_TYPE_GEM			:number = 3;	// 消耗品的包裹
 		public static BAG_TYPE_GEM_BAG			:number = 4;	// 放宝石的包裹
 		public static MAX_BAG			:number = 20;	// 预留20个
 		// 背包扩展类型
@@ -2490,8 +2491,8 @@ class SharedDef
 		public static TRIAL_INSTANCE_FIELD_CURSOR			:number = 43;	// 当前已经刷了多少波了
 		public static TRIAL_INSTANCE_FIELD_SECTION_ID			:number = 44;	// 关卡id
 		public static TRIAL_INSTANCE_FIELD_ORDER			:number = 45;	// 刷怪优先级序号(1个byte存一个数据)
-		public static TRIAL_INSTANCE_FIELD_BOSS_REFRESHED			:number = 46;	// 是否已经刷怪
-		public static TRIAL_INSTANCE_FIELD_LAST_RANDOM_TIMESTAMP			:number = 47;	// 最近随机刷怪时间戳
+		public static TRIAL_INSTANCE_FIELD_BOSS_REFRESHED			:number = 47;	// 是否已经刷怪
+		public static TRIAL_INSTANCE_FIELD_LAST_RANDOM_TIMESTAMP			:number = 48;	// 最近随机刷怪时间戳
 		// 家族场景
 		public static FACTION_INSTANCE_FIELD_GUID			:number = 6;	//  家族GUID string
 		// 家族首领挑战场景

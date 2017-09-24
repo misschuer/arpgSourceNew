@@ -25,7 +25,7 @@ function ActionScened:Update(diff)
 		return true
 	end
 		
-	if self.player.vist then
+--[[	if self.player.vist then
 		return true
 	end
 	
@@ -41,10 +41,10 @@ function ActionScened:Update(diff)
 	local x = pos[1] + randInt(-2,2)
 	local y = pos[2] + randInt(-2,2)
 	self:PushAction('robotd.action.scened.action_scened_guaji', 0, mapid, x, y, 0)
-	self.player.vist = true
+	self.player.vist = true--]]
 	
 	--tb_test_robot_info
-	--[[outFmtDebug("	ActionScened:Update")
+	outFmtDebug("	ActionScened:Update")
 	local questOperate = self.player:DoNextQuest()
 	if questOperate then
 		local callback = questOperate.callback
@@ -118,8 +118,28 @@ function ActionScened:Update(diff)
 				callback()
 			end
 			self:SetWaitTimeInterval(2000)
+		elseif QUEST_TARGET_TYPE_SMELT == questOperate.type then
+			if callback then
+				callback()
+			end
+			self:SetWaitTimeInterval(2000)
+		elseif QUEST_TARGET_TYPE_PASS_WORLD_RISK == questOperate.type then
+			if callback then
+				callback()
+			end
+			self:SetWaitTimeInterval(2000)
+		elseif QUEST_TARGET_TYPE_GEM_TOTAL_LEVEL == questOperate.type then
+			if callback then
+				callback()
+			end
+			self:SetWaitTimeInterval(2000)
+		elseif QUEST_TARGET_TYPE_WINGS_UPDRADE_TIMES == questOperate.type then
+			if callback then
+				callback()
+			end
+			self:SetWaitTimeInterval(2000)
 		end
-	end--]]
+	end
 	
 	self:SetWaitTimeInterval(1000)
 	

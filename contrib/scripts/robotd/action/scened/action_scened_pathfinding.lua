@@ -69,7 +69,11 @@ function ActionScenedPathfinding:Update(diff)
 	end
 	self.isTeleport = true
 	
-	--- TODO:如果是一个长路径 如何表示
+	-- 如果当前地图不是目标地图, 传送
+	-- TODO:传送
+	self.player:call_teleport_map (self.to_mapid , 1)
+	
+--[[	--- TODO:如果是一个长路径 如何表示
 	
 	--跨图寻路,先找到传送点，然后使用游戏对象
 	local tele_pos = self:FindTeleObject()
@@ -88,7 +92,7 @@ function ActionScenedPathfinding:Update(diff)
 	end
 	
 	self:PushAction('robotd.action.scened.action_scened_use_teleport', TELEPORT_ENTRY, mapid, tele_pos[ 1 ], tele_pos[ 2 ], closeCallback)
-
+	--]]
 	return true
 end
 

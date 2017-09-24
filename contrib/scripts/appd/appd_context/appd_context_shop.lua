@@ -31,11 +31,12 @@ function PlayerInfo:shopBuyItem(id, count, timeid)
 	
 	local entry = config.itemId
 	local added = count * config.count
-	
-	-- ÅÐ¶Ï±³°üÊÇ·ñ×ã¹»
-	if not itemMgr:canHold(BAG_TYPE_MAIN_BAG, entry, added, 1, 0) then
-		self:CallOptResult(OPRATE_TYPE_BAG, BAG_RESULT_BAG_FULL)
-		return
+	if not IsResource(entry) then
+		-- ÅÐ¶Ï±³°üÊÇ·ñ×ã¹»
+		if not itemMgr:canHold(BAG_TYPE_MAIN_BAG, entry, added, 1, 0) then
+			self:CallOptResult(OPRATE_TYPE_BAG, BAG_RESULT_BAG_FULL)
+			return
+		end
 	end
 	
 	--ÏÞ¹º
@@ -44,7 +45,7 @@ function PlayerInfo:shopBuyItem(id, count, timeid)
 	if limtype ~= 0 then--ÏÞ¹º
 		local hasShopNum = self:getShopLimtNum(config.id)
 		outFmtDebug("hasShopNum %d",hasShopNum)
-		hasShopNum = hasShopNum + added
+		hasShopNum = hasShopNum + count
 		if hasShopNum > config.limdata then
 			self:CallOptResult(OPERTE_TYPE_NPCBUY, NPC_BUY_SELL_OUT)
 			return
@@ -112,7 +113,7 @@ function PlayerInfo:shopBuyItem(id, count, timeid)
 		costTable = baseCostTable
 	end
 	
-	if not self:costMoneys(MONEY_CHANGE_TYPE_MALL_BUY, costTable, added) then
+	if not self:costMoneys(MONEY_CHANGE_TYPE_MALL_BUY, costTable, count) then
 		self:CallOptResult(OPERTE_TYPE_NPCBUY, NPC_BUY_MONEY_NO_ENOUGH)
 		return
 	end
@@ -122,7 +123,7 @@ function PlayerInfo:shopBuyItem(id, count, timeid)
 	self:AppdAddItems(buyDic,MONEY_CHANGE_TYPE_MALL_BUY,LOG_ITEM_OPER_TYPE_SHOP_BUY,1,itemendtime)
 	
 	if limtype ~= 0 then--ÏÞ¹º
-		self:addShopLimtNum(config.id,added)
+		self:addShopLimtNum(config.id,count)
 	end
 	
 end

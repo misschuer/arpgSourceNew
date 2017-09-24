@@ -1,5 +1,5 @@
 InstanceFaction = class("InstanceFaction", Instance_base)
-
+--[[
 InstanceFaction.Name = "InstanceFaction"
 InstanceFaction.REFRESH_CREATURE_INTERNAL = 1000	--1s检测一次
 InstanceFaction.RESPAWN_TIME = 10000				--10秒复活时间
@@ -251,7 +251,6 @@ function InstanceFaction:OnRefreshMonster()
 	)
 		
 	end
-	--[[
 	local config = tb_bangpai_boss[self:GetFactionMapID()]
 	if config == nil then 
 		--直接结束副本
@@ -270,7 +269,6 @@ function InstanceFaction:OnRefreshMonster()
 		end	
 	end
 	return true
-	--]]
 end
 
 --挑战成功处理
@@ -427,6 +425,6 @@ function AI_faction_target:JustDied( map_ptr,owner,killer_ptr )
 end
 
 
-
+--]]
 
 return InstanceFaction

@@ -325,6 +325,7 @@ end
 function PlayerInfo:Handle_Use_Moneytree(pkt)
 	
 	if not self:GetOpenMenuFlag(MODULE_MONEYTREE, MODULE_MONEYTREE_ALL) then
+		outFmtDebug("MODULE_MONEYTREE not unlock ")
 		return
 	end
 	

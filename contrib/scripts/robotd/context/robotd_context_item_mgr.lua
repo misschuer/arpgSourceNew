@@ -90,7 +90,7 @@ function PlayerInfo:Send_Mall_Buy()
 	local time = 0
 	if tb_shop[ id ] then
 		count = self:RandomInt(tb_shop[id].count)
-		time = self:RandomInt(#tb_shop[id].timeCostResource)
+		time = self:RandomInt(#tb_shop[id].costResource)
 	end
 	self:call_mall_buy (id ,count ,time)
 end

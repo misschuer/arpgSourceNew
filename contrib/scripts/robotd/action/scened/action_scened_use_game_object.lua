@@ -68,13 +68,13 @@ function ActionScenedUseGameObject:Update(diff)
 	
 	--寻路没成功，使用失败
 	if(mapid ~= self.to_mapid or self.player.my_unit:GetDistanceByPos(self.to_x,self.to_y)>3)then
-		outFmtDebug("ActionScenedUseGameObject:Update %s use object fail", self:ToString())
+		outFmtError("ActionScenedUseGameObject:Update %s use object fail", self:ToString())
 		return false, 2
 	end
 
 	local unit = self.player:FindGameObject(self.object_id)
 	if(unit == nil)then
-		outFmtDebug("ActionScenedUseGameObject:Update object not find, %s", self:ToString())
+		outFmtError("ActionScenedUseGameObject:Update object not find, %s", self:ToString())
 		return false, 3
 	else
 		self.player:call_use_gameobject(unit:GetUIntGuid())

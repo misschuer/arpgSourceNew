@@ -24,19 +24,19 @@ function PlayerInfo:Handle_Raise_BaseSpell(pkt)
 	
 	-- 判断技能是否存在
 	if not self:isSpellExist(spellId) then
-		outFmtError("spellId %d not exist", spellId)
+		--outFmtError("spellId %d not exist", spellId)
 		return
 	end
 	
 	-- 判断玩家是否拥有这个技能
 	if not self:hasSpell(spellId) then
-		outFmtError("player has no spellId %d", spellId)
+		--outFmtError("player has no spellId %d", spellId)
 		return
 	end
 	
 	-- 判断是否满级了
 	if self:isTopLevel(spellId) then
-		outFmtError("spellId %d is in topLevel", spellId)
+		--outFmtError("spellId %d is in topLevel", spellId)
 		return
 	end
 	

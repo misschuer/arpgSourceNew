@@ -7,8 +7,9 @@ tb_box = {
 	--  id:int 宝箱道具id
 	--  dropids:array 掉落id
 	--  cost:array 消耗
-	[1501] = {id = 1501, dropids = {1}, cost = {}},
-	[1502] = {id = 1502, dropids = {2}, cost = {}},
-	[1503] = {id = 1503, dropids = {3}, cost = {}},
-	[1504] = {id = 1504, dropids = {15,16}, cost = {}},
+	[1501] = {id = 1501, dropids = {10001}, cost = {}},
+	[1502] = {id = 1502, dropids = {10001}, cost = {}},
+	[1503] = {id = 1503, dropids = {10001}, cost = {}},
+	[1504] = {id = 1504, dropids = {10001}, cost = {}},
+	[1505] = {id = 1505, dropids = {10203}, cost = {}},
 }

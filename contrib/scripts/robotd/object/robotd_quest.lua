@@ -56,6 +56,12 @@ function RobotdQuest:IsAvailableQuest(questInfo)
 	-- 如果是提升等级/战力/荣誉点的就不做
 	local config = tb_quest[questInfo.questId]
 	local targets = config.targets
+
+	-- 如果是主线的最后一个就不做
+	if config.type == QUEST_TYPE_MAIN and config.nextid == 0 then
+		return false
+	end
+	
 	-- 找任务目标
 	for i, target in ipairs(targets) do
 		local targetType = target[ 1 ]

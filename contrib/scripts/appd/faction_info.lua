@@ -860,7 +860,7 @@ function FactionInfo:FactionApply( player)
 	if player:GetFactionId() ~= "" then
 		--玩家已有帮派
 		--player:CallOptResult(OPERTE_TYPE_FACTION, OPRATE_TYPE_FACTION_IS_HAVE)
-		outFmtDebug("you cannot join other, have faction = %s",faction_guid)
+		outFmtDebug("you cannot join other, have faction = %s",player:GetFactionId())
 		return 
 	end
 	--if player:GetLevel() < tb_bangpai[1].need_level then
@@ -1421,7 +1421,7 @@ function FactionInfo:FactionChangeFlags(player ,index)
 		player:CallOptResult(OPERTE_TYPE_FACTION, OPRATE_TYPE_FACTION_RANK_ERR)
 		return
 	end
-	if money < need_money then
+	if has_money < need_money then
 		player:CallOptResult(OPERTE_TYPE_FACTION, OPEATE_TYPE_FACTION_MONEY_ERR)
 		return
 	end
@@ -1590,7 +1590,8 @@ function FactionInfo:ShopItem(player,item,num)
 			curNum = curNum - num
 			--self:SetShopItemNum(idx,curNum)
 			player:AddBuyedFactionShopItem(item,num)
-			player:AddItemByEntry(config.itemId, num, nil, 9, true)--FIXME
+			--player:AddItemByEntry(config.itemId, num* config.itemNum, nil, 9, true)--FIXME
+			player:AppdAddItems({{config.itemId, num* config.itemNum}},MONEY_CHANGE_TYPE_STORE_BUY,LOG_ITEM_OPER_TYPE_SHOP_BUY)
 		end
 	end
 end
@@ -1604,7 +1605,9 @@ function FactionInfo:RefreshShop()
 	end
 	local num = config.shop
 	
-	local list = tb_faction_shop_list[lev]
+	--local list = tb_faction_shop_list[lev]
+	local list = tb_faction_shop_list[1]
+
 	
 	local item_list = {}
 	for _,group_info in pairs(num) do
@@ -1615,8 +1618,10 @@ function FactionInfo:RefreshShop()
 		end
 		local idxTab = GetRandomIndexTable(#list[group_id],group_num)
 		
-		for _,index in pairs(idxTab) do
-			local randomResult = randIntD(1,100)
+		table.sort(idxTab)
+		
+		for _,index in ipairs(idxTab) do
+			local randomResult = randInt(1,100)
 			for _,info in ipairs(list[group_id][index]) do
 				if info.total_weight >= randomResult then
 					table.insert(item_list,info.config)
@@ -1703,7 +1708,7 @@ function FactionInfo:SelfUpdate()
 			local zhiwei = FACTION_MEMBER_IDENTITY_QUNZHONG
 			for i = 0, MAX_FACTION_MAMBER_COUNT - 1 do		
 				local guid = self:GetFactionMemberGuid(i)
-				if guid ~= "" and guid ~= player_guid then
+				if guid ~= "" and guid ~= manager_guid then
 					if zhiwei > self:GetFactionMemberIdentity(i) then
 						zhiwei = self:GetFactionMemberIdentity(i)
 						index_ass = i
@@ -2023,7 +2028,7 @@ function FactionInfo:FactionLqHongBao(player,guid)
 		get_money = money
 		self:DelFactionHongBao(index)
 	else
-		get_money = randIntD(1,money - count)
+		get_money = randInt(1,money - count)
 		self:SetFactionHongBaoCount(index,count-1)
 		self:SetFactionHongBao(index,money-get_money)
 	end
@@ -2045,11 +2050,11 @@ function FactionInfo:FactionShangXiang(player,pos,type)
 	player:CallScenedDoSomething(APPD_SCENED_FACTION_SHANGXIANG,type,tostring(lv))
 	--获得基础绑元
 	if config.yuanbao > 0 then
-		local yuanbao = config.yuanbao * randIntD(2,4)
+		local yuanbao = config.yuanbao * randInt(2,4)
 		player:AddMoney(MONEY_TYPE_BIND_GOLD, MONEY_CHANGE_FACTION_SHANGXIANG, yuanbao)
 	end
 	--增加帮贡
-	local banggong = config.banggong * randIntD( math.floor((lv-1)/3+1) ,5)
+	local banggong = config.banggong * randInt( math.floor((lv-1)/3+1) ,5)
 	self:AddFactionMemberDayGongXian(pos,banggong)
 	self:AddFactionMemberTotalGongXian(pos,banggong)
 	--增加灵气
@@ -4635,7 +4640,7 @@ end
 
 --领取福利宝箱 (player, chest_index)
 function FactionInfo:OpenTowerChest(player, chest_index)
-	if index <= 0 or index >= 32 then
+	if chest_index <= 0 or chest_index >= 32 then
 		return
 	end
 	if player:GetFactionTowerChestFlag(chest_index) then

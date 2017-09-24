@@ -8,7 +8,7 @@ local Packet = require 'util.packet'
 function UseItem(player, item_guid, count)
 	if count <= 0 then return end		--数量不能小于等于0
 	local itemMgr = player:getItemMgr()	
-	local item = itemMgr:getItemByGuid(item_guid, BAG_TYPE_MAIN_BAG)		--只有主包裹的物品才能使用
+	local item = itemMgr:getItemByGuid(item_guid, BAG_TYPE_GEM)		--只有主包裹的物品才能使用
 	if not item then
 		outFmtError("UseItem: not find item_id %s ", item_guid)
 		--没找到这个物品

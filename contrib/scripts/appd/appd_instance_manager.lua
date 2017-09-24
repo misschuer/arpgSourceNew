@@ -243,7 +243,17 @@ function AppInstanceMgr:sweepResInstance(id)
 		local playerInfo = self:getOwner()
 		local idx = id * 1000 + playerInfo:GetLevel()
 		local config = tb_instance_reward[idx]
-		local tab = rewardsAddExtraAndClone(config.reward, tb_vip_base[vip].resReward / 100)
+		
+		local tab = {}
+		for _, rewardInfo in pairs(config.reward) do
+			table.insert(tab, rewardInfo)
+		end
+		local randomReward = config.randomreward
+		if #randomReward > 0 then
+			local rewardIdx = randInt(1, #randomReward)
+			table.insert(tab,randomReward[rewardIdx])
+		end
+		tab = rewardsAddExtraAndClone(tab, tb_vip_base[vip].resReward / 100)
 		
 		local list = {}
 		

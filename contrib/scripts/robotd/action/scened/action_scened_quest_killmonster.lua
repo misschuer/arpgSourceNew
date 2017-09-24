@@ -24,25 +24,33 @@ function ActionScenedQuestKillMonster:Initialize(object_id, mapid, x, y, IsFinis
 	
 	self.is_goto = false
 	
-	local skillIdInfo, skillLevelInfo = self.player:GetSkillInfo()
-	self.normalAttackInfo = skillIdInfo[ 1 ]
-	self.skillLevel = skillLevelInfo[ 1 ]
+	self.skillIdInfo, self.skillLevelInfo = self.player:GetSkillInfo()
+end
+
+--获取当前技能
+function ActionScenedQuestKillMonster:GetCurrentSkillId()
+	local slotList = {}
+	for slot, _ in pairs(self.skillIdInfo) do
+		table.insert(slotList, slot)
+	end
+	self.slot = slotList[randInt(1, #slotList)]
+	return self.skillIdInfo[self.slot][ 1 ]
+end
+
+function ActionScenedQuestKillMonster:GetCurrentSkillLevel()
+	return self.skillLevelInfo[self.slot]
+end
+
+function ActionScenedQuestKillMonster:SkillMoveToTail()
+	local normalAttackInfo = self.skillIdInfo[self.slot]
+	local skillId = normalAttackInfo[ 1 ]
+	table.remove(normalAttackInfo, 1)
+	table.insert(normalAttackInfo, skillId)
 end
 
 --获取类型名
 function ActionScenedQuestKillMonster:GetName()
 	return 'ActionScenedQuestKillMonster'
-end
-
---获取当前技能
-function ActionScenedQuestKillMonster:GetCurrentSkillId()
-	return self.normalAttackInfo[ 1 ]
-end
-
-function ActionScenedQuestKillMonster:SkillMoveToTail()
-	local skillId = self.normalAttackInfo[ 1 ]
-	table.remove(self.normalAttackInfo, 1)
-	table.insert(self.normalAttackInfo, skillId)
 end
 
 --寻路到挂机点
@@ -62,7 +70,7 @@ function ActionScenedQuestKillMonster:GoTo()
 	local x, y = self.player:GetPos()
 	--寻路没成功，使用失败
 	if(mapid ~= self.mapid or self.player.my_unit:GetDistanceByPos(self.to_x,self.to_y)>4)then
-		outFmtDebug("ActionScenedQuestKillMonster:Update %s goto destination fail,from: %s %s %s", self:ToString(), mapid, x, y)
+		outFmtError("ActionScenedQuestKillMonster:Update %s goto destination fail,from: %s %s %s", self:ToString(), mapid, x, y)
 		return false
 	else
 		self.status = STATUS_FIND_CREATE
@@ -75,7 +83,7 @@ function ActionScenedQuestKillMonster:AttectCreate(slot, attack_create)
 	local x, y = attack_create:GetPos()
 	local caster = self.player.my_unit:GetUIntGuid()
 	local target = attack_create:GetUIntGuid()
-	self.player:CastSpell(1, x, y, caster, target)
+	self.player:CastSpell(slot, x, y, caster, target)
 end
 
 local oldtime = 0
@@ -105,6 +113,7 @@ function ActionScenedQuestKillMonster:Update(diff)
 	local mapid = self.player:GetMapID()
 	--不再目标地图了，一切都难以继续了，本次挂机算了吧
 	if(mapid ~= self.mapid)then
+		outFmtError("ActionScenedQuestKillMonster:Update mapid ~= self.mapid, guid = %s currmapid = %d, tomapid = %d", self.player:GetGuid(), mapid, self.mapid)
 		return false, 2
 	end
 	
@@ -113,8 +122,10 @@ function ActionScenedQuestKillMonster:Update(diff)
 		--object_id
 		local unit = self.player:FindUnitByTemplateID(self.object_id)
 		if(unit == nil)then
-			outFmtDebug("there is no unit for entry %d wait 1 second", self.object_id)
+			outFmtInfo("there is no unit for entry %d wait 1 second", self.object_id)
 			self:SetWaitTimeInterval(1000)
+			self.status = STATUS_GOTO
+			self.is_goto = false
 			return true
 		end
 		self.attack_create_guid = unit:GetGuid()
@@ -133,7 +144,8 @@ function ActionScenedQuestKillMonster:Update(diff)
 	-- 进行简单的普通攻击
 
 	local skillId = self:GetCurrentSkillId()
-	local skillLevelIndx = tb_skill_base[skillId].uplevel_id[ 1 ] + self.skillLevel - 1
+	local skillLevel = self:GetCurrentSkillLevel()
+	local skillLevelIndx = tb_skill_base[skillId].uplevel_id[ 1 ] + skillLevel - 1
 	local range = tb_skill_uplevel[skillLevelIndx].distance
 	--已经到攻击范围内，攻击
 	if(self.player.my_unit:GetDistance(attack_create) <= range)then
@@ -166,8 +178,9 @@ function ActionScenedQuestKillMonster:Update(diff)
 
 	--仍然是障碍点
 	if(is_canRun == false)then
-		outFmtInfo("%s  -----Can`t Run %f %u %u %u %u", self:ToString(), self.player.my_unit:GetDistance(attack_create), x, y, self.player:GetPos())
+		outFmtError("%s  -----Can`t Run %f %u %u %u %u", self:ToString(), self.player.my_unit:GetDistance(attack_create), x, y, self.player:GetPos())
 		assert(false)
+		
 		return false,4
 	end
 

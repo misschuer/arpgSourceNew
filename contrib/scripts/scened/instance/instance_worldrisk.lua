@@ -99,7 +99,8 @@ end
 function InstanceWorldRisk:nextMonsterInfoIndx()
 	local cursor = self:getRefreshCount()
 	self:oneRefreshed()
-	return self:GetByte(TRIAL_INSTANCE_FIELD_ORDER, cursor)
+	--return self:GetByte(TRIAL_INSTANCE_FIELD_ORDER, cursor)
+	return cursor+1
 end
 
 function InstanceWorldRisk:oneRefreshed()
@@ -169,6 +170,7 @@ function InstanceWorldRisk:refresh()
 			local indx = self:nextMonsterInfoIndx()
 			local seciontId = self:getSectionId()
 			local monsters = tb_risk_data[seciontId].monsters
+			outFmtDebug("--------- %s seciontId %d indx %d",self:GetMapGeneralId(),seciontId,indx)
 			local info = monsters[indx]
 			
 			local cx = info[ 3 ]
@@ -199,6 +201,8 @@ function InstanceWorldRisk:refresh()
 					})
 				end
 				curr = curr + 1
+			else
+				--outFmtError("############# InstanceWorldRisk:refresh every wave cannot be same entry")
 			end
 		end
 	end

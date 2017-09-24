@@ -182,13 +182,12 @@ function AppItemMgr:exchangePos(src_bag, src_pos, dst_bag, dst_pos)
 				return false
 			end
 			
-			--[[
+			
 			--校验性别
 			if not table.find(src_temp.availableGender, owner:GetGender()) then
-				outFmtError("exchangePos: player gender %d not fit", owner:GetGender())
+				--outFmtError("exchangePos: player gender %d not fit", owner:GetGender())
 				return false
 			end
-			--]]
 			
 			--[[ 无负重相关属性
 			if not self:isCanBear(src_item, dst_item) then

@@ -454,7 +454,8 @@ function PlayerInfo:DoHandleRaiseMount()
 	local addExp = multi * trainConfig.addTrainExp
 	local limit = trainConfig.exp
 	
-	self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_MOUNT_EXP, {addExp, multi})
+	self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_MOUNT_EXP, {addExp})
+	--self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_MOUNT_EXP, {addExp, multi})
 	--if multi > 1 then
 	--	self:call_operate_result_tip(MODULE_MOUNT,MODULE_MOUNT_UPGRADE,0,0,multi)
 	--end
@@ -743,7 +744,7 @@ function PlayerInfo:raiseMountLevelBase()
 	local spellMgr = self:getSpellMgr()
 	local levelBase = spellMgr:getMountLevelBase()
 	if tb_mount_raise_level[levelBase+1] then
-		if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, tb_mount_raise_level[levelBase+1].cost) then
+		if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, tb_mount_raise_level[levelBase].cost) then
 			return
 		end
 		spellMgr:addMountLevelBase()
@@ -1285,6 +1286,8 @@ function PlayerInfo:WingsBless()
 				spellMgr:SetWingsBlessExp(cur_exp + config.bless_exp)
 				self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_WINGS_BLESS_NUM,{config.bless_exp})
 			end
+			
+			self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_WINGS_BLESS_TIMES, {})
 		end
 	else
 		outFmtError("wings id:%d can not bless",wings_id)

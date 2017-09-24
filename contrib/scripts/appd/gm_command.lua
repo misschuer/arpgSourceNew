@@ -1382,13 +1382,21 @@ function  DoGMScripts(player_ptr, gm_commands)
 		player:Handle_Equip_Appearance(pkt)
 		
 		-- 坐骑
-		player:activeMount()
+		pkt = {}
+		player:Handle_Active_Mount(pkt)
 	
 	elseif(tokens[ 1 ] == "@摇钱树")then
 		player:UseMoneytree()
-		
-																elseif(tokens[ 1 ] == "@摇钱树礼物")then
+	
+	elseif(tokens[ 1 ] == "@摇钱树礼物")then
 		player:GetMoneytreeGift(tonumber( tokens[ 2 ]))
+	
+	elseif (tokens[ 1 ] == "@家族资金") then
+		local faction = app.objMgr:getObj(player:GetFactionId())
+		local count = tonumber( tokens[ 2 ]) or 1000000
+		if faction then
+			faction:SetFactionMoney(count)
+		end
 	end
 	
 	return result

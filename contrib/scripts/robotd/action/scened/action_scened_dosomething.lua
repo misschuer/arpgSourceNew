@@ -66,7 +66,7 @@ function ActionScenedDoSomething:Update(diff)
 	
 	--寻路没成功，使用失败
 	if(mapid ~= self.to_mapid or self.player.my_unit:GetDistanceByPos(self.to_x,self.to_y)>2)then
-		outFmtDebug("ActionScenedDoSomething:Update %s dosomething fail", self:ToString())
+		outFmtError("ActionScenedDoSomething:Update %s dosomething fail", self:ToString())
 		return false, 2
 	end
 

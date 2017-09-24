@@ -21,6 +21,7 @@ function RobotdItem:GetSuitEntryAndBagPosBySuitPos(suitpos, suitEntry)
 
 	self:foreach(function(item)
 		local config = tb_item_template[item.entry]
+		outFmtDebug(config.pos)
 		if config.pos > 0 and (suitpos == 0 or suitpos == config.pos) and (suitEntry == 0 or suitEntry == item.entry) then
 			entry = item.entry
 			bagpos = item.pos

@@ -416,6 +416,7 @@ function handle_cast_add_unit_effect_heal(caster, target, spell_id, spell_lv,dst
 end
 
 --治疗之泉技能
+-- 这个caster 是那个召唤出来的奶棒
 function handle_cast_spell_heal(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets, unit, data)
 	local casterInfo = UnitInfo:new{ptr = caster}
 	local cast_x , cast_y  = unitLib.GetPos(caster)
@@ -437,6 +438,7 @@ function handle_cast_spell_heal(caster,target,spell_id,spell_lv,dst_x,dst_y, all
 	end
 	local radius = 10
 	local targets = mapLib.GetCircleTargets(cast_x, cast_y, radius, caster, TARGET_TYPE_FRIENDLY, true)
+	local caster_player = creatureLib.GetMonsterHost(caster)
 	for _, attack_target in pairs(targets) do
 		if attack_target and GetUnitTypeID(attack_target) == TYPEID_PLAYER then
 			--目标点
@@ -444,7 +446,7 @@ function handle_cast_spell_heal(caster,target,spell_id,spell_lv,dst_x,dst_y, all
 			local pos = GetHitAreaPostion({cast_x,cast_y,shifa_x,shifa_y,tar_x,tar_y,0})
 			attack_mast[ 1 ] = pos[ 1 ]
 			attack_mast[ 2 ] = pos[ 2 ]
-			if CalHitTest(attack_mast)[ 1 ] and unitLib.IsFriendlyTo(caster, attack_target) == 1 then
+			if CalHitTest(attack_mast)[ 1 ] and canCure(caster_player, attack_target) then
 				local maxValue = binLogLib.GetUInt32(attack_target, binlogIndx)
 				local added = math.floor(maxValue * percent / 100) + fixValue
 				unitLib.ModifyHealth(attack_target, added)
@@ -456,6 +458,34 @@ function handle_cast_spell_heal(caster,target,spell_id,spell_lv,dst_x,dst_y, all
 		end
 	end
 	
+end
+
+function canCure(killer_ptr, target_ptr)
+	if killer_ptr == target_ptr then
+		return true
+	end
+	
+	local killerMode = unitGetBattleMode(killer_ptr)
+	if killerMode == PEACE_MODE then
+		return false
+	end
+	
+	local killerData = nil
+	local targetData = nil
+	
+	if killerMode == FAMILY_MODE then
+		killerData = GetFactionGuid(killer_ptr)
+		targetData = GetFactionGuid(target_ptr)
+		if string.len(killerData) == 0 then
+			return false
+		end
+	elseif killerMode == GROUP_MODE then
+		-- 由于不能手动切换组队模式, 如果一个玩家存在组队模式, 另外一个必定也是组队模式
+		killerData = GetGroupModeId(killer_ptr)
+		targetData = GetGroupModeId(target_ptr)
+	end
+	
+	return killerData == targetData
 end
 
 

@@ -7,7 +7,7 @@ tb_moneytree_gift = {
 	--  id:int 序号
 	--  rewards:array 次数奖励
 	--  count:int 次数需求
-	[1] = {id = 1, rewards = {{3,1000000}}, count = 3},
-	[2] = {id = 2, rewards = {{3,1000001}}, count = 6},
-	[3] = {id = 3, rewards = {{3,1000002}}, count = 10},
+	[1] = {id = 1, rewards = {{3,434000}}, count = 3},
+	[2] = {id = 2, rewards = {{3,868100}}, count = 6},
+	[3] = {id = 3, rewards = {{3,1591500}}, count = 10},
 }

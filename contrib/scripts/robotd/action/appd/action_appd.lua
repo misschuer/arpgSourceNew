@@ -12,12 +12,12 @@ function ActionAppd:Initialize(...)
 	self:RegOpcodeHandler(SMSG_OPERATION_FAILED, self.HandlerOperationFailed)
 	
 	self:AddTimer("RobotRank", self.player.SendRobotRank, 1000, self.player)
-	self:AddTimer("RobotAppearance", self.player.SendRobotAppearance, 5000, self.player)
-	self:AddTimer("RobotRide", self.player.SendRide, 8000, self.player)
+--[[	self:AddTimer("RobotAppearance", self.player.SendRobotAppearance, 5000, self.player)
+	self:AddTimer("RobotRide", self.player.SendRide, 8000, self.player)--]]
 	
 	-- AddTimer 参数：1：名字，2：对应业务逻辑的函数名，3:间隔执行时间，4：玩家对象
 	-- 每秒发送6个消息
-	self:AddTimer("SendProtocol", self.player.SendProtocol, 1000, self.player)
+	-- self:AddTimer("SendProtocol", self.player.SendProtocol, 1000, self.player)
 	
 		--[[
 	-- 装备等使用检测

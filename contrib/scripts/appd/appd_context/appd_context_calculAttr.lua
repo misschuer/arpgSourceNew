@@ -467,9 +467,9 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	printAttr("title ", attrs)
 	
 	-- 被动技能属性
-	self:PassiveSpellAttr(attrs)
+	self:PassiveSpellAttr(suitBaseAttribute)
 	
-	printAttr("passive attr ", attrs)
+	--printAttr("passive attr ", attrs)
 	
 	-- 获得玩家速度
 	local speed = GetPlayerSpeed(self:GetLevel(), spellMgr:getMountLevel(), self:GetCurrIllusionId(), self:isRide(), self:GetGender())
@@ -556,6 +556,9 @@ function PlayerInfo:PassiveSpellAttr(attrs)
 					if passiveInfo[ 1 ] == PASSIVE_EFFECT_TYPE_PLAYER_ATTR then
 						local attrId = passiveInfo[ 2 ]
 						local values = passiveInfo[ 3 ]
+						if not attrs[attrId] then
+							attrs[attrId] = 0
+						end
 						attrs[attrId] = attrs[attrId] + values
 					end
 				end
@@ -592,7 +595,11 @@ function printAttr(str, dict)
 end
 
 function PlayerInfo:GetSkillBattlePoint(spellId, lv)
-	local indx = tb_skill_base[spellId].uplevel_id[ 1 ] + lv - 1
+	local config = tb_skill_base[spellId]
+	if config.skill_slot == 1 and config.pre > 0 then
+		return 0
+	end
+	local indx = config.uplevel_id[ 1 ] + lv - 1
 	return tb_skill_uplevel[indx].fight_value
 end
 

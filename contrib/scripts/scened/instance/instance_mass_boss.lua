@@ -4,16 +4,34 @@ local protocols = require('share.protocols')
 InstanceMassBoss.Name = "InstanceMassBoss"
 InstanceMassBoss.player_auto_respan = 5
 InstanceMassBoss.BOSS_ALIAS_NAME = 'MASS_BOSS'
--- 所有全民boss的排名
-InstanceMassBoss.globalRankList = {}
-InstanceMassBoss.bossHpRate = {}
-InstanceMassBoss.bossMaxHp = {}
-InstanceMassBoss.enterCount = {}
-
-for i = 1, #tb_mass_boss_info do
-	InstanceMassBoss.enterCount[ i ] = 0
-	InstanceMassBoss.globalRankList[ i ] = {}
+function initMassBoss()
+	-- 所有全民boss的排名
+	if not InstanceMassBoss.globalRankList then
+		InstanceMassBoss.globalRankList = {}
+	end
+	
+	if not InstanceMassBoss.bossHpRate then
+		InstanceMassBoss.bossHpRate = {}
+	end
+	
+	if not InstanceMassBoss.bossMaxHp then
+		InstanceMassBoss.bossMaxHp = {}
+	end
+	
+	if not InstanceMassBoss.enterCount then
+		InstanceMassBoss.enterCount = {}
+	end
+	
+	if #InstanceMassBoss.globalRankList == 0 then
+		for i = 1, #tb_mass_boss_info do
+			InstanceMassBoss.enterCount[ i ] = 0
+			InstanceMassBoss.globalRankList[ i ] = {}
+		end
+	end
 end
+initMassBoss()
+
+
 
 function InstanceMassBoss:ctor(  )
 	

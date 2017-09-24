@@ -63,7 +63,7 @@ function PlayerInfo:FindUnitByTemplateID(temp_id)
 	local result
 	local dis = 9999999999
 	for k,v in pairs(self.all_unit) do
-		if(v:IsUnit() and v:GetEntry() == temp_id)then
+		if(v:IsUnit() and v:GetEntry() == temp_id and not v:IsDie())then
 			--outFmtDebug("PlayerInfo:FindUnitByTemplateID findID:%s get:%s", temp_id,v:GetName())
 			if(result == nil or self.my_unit:GetDistance(v)<dis) then
 				dis = self.my_unit:GetDistance(v)

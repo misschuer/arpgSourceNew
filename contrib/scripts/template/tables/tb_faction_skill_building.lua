@@ -6,9 +6,14 @@
 tb_faction_skill_building = {
 	--  id:int 建筑等级
 	--  level_limit:int 技能等级上限
-	[1] = {id = 1, level_limit = 2},
-	[2] = {id = 2, level_limit = 4},
-	[3] = {id = 3, level_limit = 6},
-	[4] = {id = 4, level_limit = 8},
-	[5] = {id = 5, level_limit = 10},
+	[1] = {id = 1, level_limit = 10},
+	[2] = {id = 2, level_limit = 20},
+	[3] = {id = 3, level_limit = 30},
+	[4] = {id = 4, level_limit = 40},
+	[5] = {id = 5, level_limit = 50},
+	[6] = {id = 6, level_limit = 60},
+	[7] = {id = 7, level_limit = 70},
+	[8] = {id = 8, level_limit = 80},
+	[9] = {id = 9, level_limit = 90},
+	[10] = {id = 10, level_limit = 100},
 }

@@ -154,7 +154,7 @@ end
 
 function PlayerInfo:calcQueueIndx()
 	local score = self:GetQualifyScore()
-	local indx = #tb_single_pvp_grade	
+	local indx = 1
 	for i = 1, #tb_single_pvp_grade do
 		local range = tb_single_pvp_grade[ i ].range
 		if score >= range[ 1 ] and score <= range[ 2 ] then
@@ -246,6 +246,18 @@ end
 
 -- 设置排位赛积分
 function PlayerInfo:SetInitQualifyScore()
+	-- 领取奖励
+	local curr = self:GetQualifyScore()
+	if curr > 0 then
+		local indx = self:calcQueueIndx()
+		local config = tb_single_pvp_grade[indx]
+		local giftType = 3
+		outFmtInfo("SetInitQualifyScore indx = %d", indx)
+		-- 发邮件
+		AddGiftPacksData(self:GetGuid(),0,giftType,os.time(),os.time() + 86400*30, config.name, config.desc, config.weekRewards, SYSTEM_NAME)
+		--self:AppdAddItems(rewards, MONEY_CHANGE_SINGLE_PVP, LOG_ITEM_OPER_TYPE_SINGLE_PVP)
+	end
+	
 	local val = tb_single_pvp_base[ 1 ].initScore
 	self:SetUInt32(PLAYER_INT_FIELD_QUALIFY_SCORE, val)
 end

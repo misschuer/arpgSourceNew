@@ -244,7 +244,7 @@ bool PathFinding::pathFinding(uint32 mapid, uint16 startX, uint16 startY, uint16
 	//终点是否可到达(掩码)
 	if(!m_map->IsCanRun(endX, endY))
 	{
-		tea_pdebug("error: astar find path fail. end can't run, mapid = %u, start %u %u, end %u %u!", mapid, startX, startY, endX, endY);
+		tea_perror("error: astar find path fail. end can't run, mapid = %u, start %u %u, end %u %u!", mapid, startX, startY, endX, endY);
 		return false;
 	}
 
@@ -288,7 +288,7 @@ bool PathFinding::pathFinding(uint32 mapid, uint16 startX, uint16 startY, uint16
 	}
 	else
 	{
-		tea_pdebug("error: astar find path fail. mapid = %u, start %u %u %u %u, end %u %u!", mapid, startX, startY, m_startX, m_startY, endX, endY);
+		tea_perror("error: astar find path fail. mapid = %u, start %u %u %u %u, end %u %u!", mapid, startX, startY, m_startX, m_startY, endX, endY);
 	}
 
 	return result;
@@ -447,6 +447,9 @@ int PathFinding::LuaPathfindingGoto(lua_State* scriptL)
 	for (auto it : p)
 	{
 		unit->m_moving_path.push_back(it);
+		if (it < 1) {
+			tea_perror("robot %s has a invalid pos %.4f", context->GetGuid().c_str(), it);
+		}
 	}
 	unit->StartMoving(true, "LuaPathfindingGoto");
 	lua_pushboolean(scriptL, TRUE);

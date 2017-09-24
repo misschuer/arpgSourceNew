@@ -5,7 +5,7 @@
 
 tb_welfare_sevengift = {
 	--  id:int ID
-	--  item:array 道具
+	--  item:array 7日大礼道具ID
 	[1] = {id = 1, item = {{3,500000}}},
 	[2] = {id = 2, item = {{2,1200}}},
 	[3] = {id = 3, item = {{237,23}}},

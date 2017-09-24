@@ -5,11 +5,11 @@
 
 tb_welfare_checkin_all = {
 	--  id:int ID
-	--  num:int 累积次数
+	--  num:int 累积签到次数
 	--  item:array 道具
-	[1] = {id = 1, num = 2, item = {{1,100}}},
-	[2] = {id = 2, num = 5, item = {{3,100}}},
-	[3] = {id = 3, num = 10, item = {{1,100}}},
-	[4] = {id = 4, num = 17, item = {{3,100}}},
-	[5] = {id = 5, num = 26, item = {{1,100}}},
+	[1] = {id = 1, num = 2, item = {{2,107}}},
+	[2] = {id = 2, num = 5, item = {{3,71706}}},
+	[3] = {id = 3, num = 10, item = {{2,320}}},
+	[4] = {id = 4, num = 17, item = {{3,286824}}},
+	[5] = {id = 5, num = 26, item = {{2,746}}},
 }

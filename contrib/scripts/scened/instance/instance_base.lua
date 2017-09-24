@@ -806,8 +806,11 @@ Instance_base = {
 			local killerData = nil
 			local targetData = nil
 			local killerMode = unitGetBattleMode(killer_ptr)
-			local targetMode = unitGetBattleMode(target_ptr)
-				
+			
+			if killerMode == PEACE_MODE then
+				return true
+			end
+			
 			-- 家族模式
 			if killerMode == FAMILY_MODE then
 				killerData = GetFactionGuid(killer_ptr)
