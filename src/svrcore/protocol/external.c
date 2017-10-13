@@ -376,6 +376,8 @@ char* OpcodeName[NUM_MSG_TYPES+1] = {
     "CMSG_SET_ORIENT",
     "CMSG_USE_MONEYTREE",
     "CMSG_GET_MONEYTREE_GIFT",
+    "CMSG_SET_WORLD_RISK_LAST_ID",
+    "CMSG_ENTER_PRIVATE_BOSS",
 "NUM_MSG_TYPES"
 };
 
@@ -6572,6 +6574,40 @@ int   pack_get_moneytree_gift (packet**dst ,uint32 id)
 	return 0;	
 }
 int   unpack_get_moneytree_gift (packet *src ,uint32 *id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*修改幻境最后进入id*/
+int   pack_set_world_risk_last_id (packet**dst ,uint32 id)
+{
+	*dst = external_protocol_new_packet(CMSG_SET_WORLD_RISK_LAST_ID);
+	ASSERT((*dst)->head->optcode == CMSG_SET_WORLD_RISK_LAST_ID);	
+	packet_write(*dst,(char *)&id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_set_world_risk_last_id (packet *src ,uint32 *id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*进入个人Boss*/
+int   pack_enter_private_boss (packet**dst ,uint32 id)
+{
+	*dst = external_protocol_new_packet(CMSG_ENTER_PRIVATE_BOSS);
+	ASSERT((*dst)->head->optcode == CMSG_ENTER_PRIVATE_BOSS);	
+	packet_write(*dst,(char *)&id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_enter_private_boss (packet *src ,uint32 *id)
 {	
 	int ret=0;
 	ret = packet_read(src,(char*)(id),sizeof(uint32));

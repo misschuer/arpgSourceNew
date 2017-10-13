@@ -341,6 +341,13 @@ function PlayerInfo:Handle_Get_Moneytree_Gift(pkt)
 	end
 end
 
+function PlayerInfo:Handle_Set_World_Risk_Last_Id(pkt)
+	local id = pkt.id
+	
+	if tb_risk_data[id] then
+		self:SetWorldRiskLastId(id)
+	end
+end
 
 --函数包路由表
 local OpcodeHandlerFuncTable = require 'appd.appd_context.appd_context_hanlder_map'

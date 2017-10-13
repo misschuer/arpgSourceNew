@@ -4713,7 +4713,7 @@ function FactionInfo:FactionSkillLvup(player,id)
 		return
 	end
 	
-	local config = tb_faction_skill_lvup[id*1000 + learn_lv + 1]
+	local config = tb_faction_skill_lvup[id*10000 + learn_lv + 1]
 	if not config then
 		outFmtDebug("FactionSkillLvup skill lv max  can not lvup")
 		return

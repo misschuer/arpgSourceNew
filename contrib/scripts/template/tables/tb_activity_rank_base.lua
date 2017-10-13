@@ -15,5 +15,5 @@ tb_activity_rank_base = {
 	[4] = {id = 4, type = 4, rank_reward = {1,2,3}, process_reward = {1,2,3,4,5,6}, process = {10,20,30,40,50,60}},
 	[5] = {id = 5, type = 5, rank_reward = {1,2,3}, process_reward = {1,2,3,4,5,6}, process = {10,20,30,40,50,60}},
 	[6] = {id = 6, type = 6, rank_reward = {1,2,3}, process_reward = {1,2,3,4,5,6}, process = {10,20,30,40,50,60}},
-	[7] = {id = 7, type = 7, rank_reward = {1,2,3}, process_reward = {1,2,3,4,5,6}, process = {10,20,30,40,50,60}},
+	[7] = {id = 7, type = 7, rank_reward = {1,2,3}, process_reward = {7,8,9}, process = {1002,3000,4000}},
 }

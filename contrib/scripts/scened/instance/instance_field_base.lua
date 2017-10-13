@@ -321,6 +321,7 @@ end
 
 --当玩家离开时触发
 function InstanceFieldBase:OnLeavePlayer( player, is_offline)
+	Instance_base.OnLeavePlayer(self, player, is_offline)
 	
 	-- 离开打断
 	local openguid = mapLib.GetOnOpenGuid(self.ptr)

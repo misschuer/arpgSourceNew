@@ -123,10 +123,6 @@ function InstanceWorldRisk:onSetOrder(player_ptr)
 	if not self:isSettedOrder() then
 		local seciontId = self:getSectionId()
 		local count = #tb_risk_data[seciontId].monsters
-		local order = GetRandomIndexTable(count, count)
-		for i = 1, #order do
-			self:SetByte(TRIAL_INSTANCE_FIELD_ORDER, i-1, order[ i ])
-		end
 		
 		local playerInfo = UnitInfo:new {ptr = player_ptr}
 		if tb_risk_data[seciontId].is_boss_section == 0 and playerInfo:GetRiskMonsterCount() == 0 then
@@ -141,6 +137,23 @@ function InstanceWorldRisk:OnRefreshMonsterInit(player)
 	self:refresh()
 end
 
+function InstanceWorldRisk:SetCreaturePro(creatureInfo, pros, bRecal, mul)
+	local idx = creatureInfo:GetUInt32(UNIT_INT_FIELD_RISK_CREATURE_ID)
+	local config = tb_creature_worldrisk[idx]
+	if config then
+		Instance_base.SetCreaturePro(self, creatureInfo, config.pro, bRecal, mul)
+	else
+		Instance_base.SetCreaturePro(self, creatureInfo, pros, bRecal, mul)
+	end
+end
+
+function InstanceWorldRisk:DoGetCreatureBaseExp(creature, owner)
+	local idx = binLogLib.GetUInt32(creature, UNIT_INT_FIELD_RISK_CREATURE_ID)
+	local config = tb_creature_worldrisk[idx]
+	
+	return config.exp
+end
+
 function InstanceWorldRisk:refreshBoss()
 	if self:GetUInt32(TRIAL_INSTANCE_FIELD_BOSS_REFRESHED) > 0 then
 		return
@@ -153,11 +166,13 @@ function InstanceWorldRisk:refreshBoss()
 	
 	local cx = info[ 3 ]
 	local cy = info[ 4 ]
-	local entry = info[ 1 ]
+	local riskCreatureId = info[ 1 ]
+	local entry = tb_creature_worldrisk[riskCreatureId].entry
 	
 	local creature = mapLib.AddCreature(self.ptr, {
 		templateid = entry, x = cx, y = cy,
-		active_grid = true, ainame = 'AI_worldRiskBoss', npcflag = {}
+		active_grid = true, ainame = 'AI_worldRiskBoss', npcflag = {},
+		riskId = riskCreatureId
 	})
 end
 
@@ -170,13 +185,12 @@ function InstanceWorldRisk:refresh()
 			local indx = self:nextMonsterInfoIndx()
 			local seciontId = self:getSectionId()
 			local monsters = tb_risk_data[seciontId].monsters
-			outFmtDebug("--------- %s seciontId %d indx %d",self:GetMapGeneralId(),seciontId,indx)
 			local info = monsters[indx]
 			
 			local cx = info[ 3 ]
 			local cy = info[ 4 ]
-			
-			local entry = info[ 1 ]
+			local riskCreatureId = info[ 1 ]
+			local entry = tb_creature_worldrisk[riskCreatureId].entry
 			local num = info[ 2 ]
 
 			local width = offs * 2 + 1
@@ -197,7 +211,8 @@ function InstanceWorldRisk:refresh()
 					
 					local creature = mapLib.AddCreature(self.ptr, {
 						templateid = entry, x = bornX, y = bornY,
-						active_grid = true, ainame = "AI_worldRisk", npcflag = {}
+						active_grid = true, ainame = "AI_worldRisk", npcflag = {},
+						riskId = riskCreatureId
 					})
 				end
 				curr = curr + 1
@@ -293,9 +308,9 @@ function AI_worldRiskBoss:LootAllot(owner, player, killer, drop_rate_multiples, 
 	local mapid = mapLib.GetMapID(map_ptr)
 	local instanceInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
 	
-	local entry = binLogLib.GetUInt16(owner, UNIT_FIELD_UINT16_0, 0)
-	local info = tb_creature_template[entry]
-	local drop_ids = info.reward_id
+	local idx = binLogLib.GetUInt32(owner, UNIT_INT_FIELD_RISK_CREATURE_ID)
+	local info = tb_creature_worldrisk[idx]
+	local drop_ids = info.droprid
 	local dict = {}
 	if #drop_ids > 0 then
 		for i = 1, #drop_ids do
@@ -329,9 +344,9 @@ function AI_worldRisk:LootAllot(owner, player, killer, drop_rate_multiples, boss
 	local mapid = mapLib.GetMapID(map_ptr)
 	local instanceInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
 	
-	local entry = binLogLib.GetUInt16(owner, UNIT_FIELD_UINT16_0, 0)
-	local info = tb_creature_template[entry]
-	local drop_ids = info.reward_id
+	local idx = binLogLib.GetUInt32(owner, UNIT_INT_FIELD_RISK_CREATURE_ID)
+	local info = tb_creature_worldrisk[idx]
+	local drop_ids = info.droprid
 	local dict = {}
 	if #drop_ids > 0 then
 		for i = 1, #drop_ids do

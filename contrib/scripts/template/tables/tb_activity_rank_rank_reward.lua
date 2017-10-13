@@ -5,10 +5,10 @@
 
 tb_activity_rank_rank_reward = {
 	--  id:int 序号
-	--  item:array 道具
+	--  item:array  排名道具
 	--  mail_name:string 邮件标题
 	--  mail_desc:string 邮件正文
-	[1] = {id = 1, item = {{201,3},{202,3},{203,3}}, mail_name = "排行奖励", mail_desc = "第1名奖励"},
-	[2] = {id = 2, item = {{201,2},{202,2},{203,2}}, mail_name = "排行奖励", mail_desc = "第2名奖励"},
-	[3] = {id = 3, item = {{201,1},{202,1},{203,1}}, mail_name = "排行奖励", mail_desc = "第3名奖励"},
+	[1] = {id = 1, item = {{233,3},{233,3},{233,3}}, mail_name = "排行奖励", mail_desc = "第1名奖励"},
+	[2] = {id = 2, item = {{233,3},{233,3},{233,4}}, mail_name = "排行奖励", mail_desc = "第2名奖励"},
+	[3] = {id = 3, item = {{233,3},{233,3},{233,5}}, mail_name = "排行奖励", mail_desc = "第3名奖励"},
 }

@@ -1089,6 +1089,12 @@ public:
 	/*领取摇钱树礼包*/
 	int unpack_get_moneytree_gift (ByteArray &bytes ,uint32 &id);
 	int send_get_moneytree_gift (uint32 id);
+	/*修改幻境最后进入id*/
+	int unpack_set_world_risk_last_id (ByteArray &bytes ,uint32 &id);
+	int send_set_world_risk_last_id (uint32 id);
+	/*进入个人Boss*/
+	int unpack_enter_private_boss (ByteArray &bytes ,uint32 &id);
+	int send_enter_private_boss (uint32 id);
 };
 
 #endif

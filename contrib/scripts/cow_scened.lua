@@ -288,6 +288,7 @@ function load_lua_scripts()
 		--{'桃花迷阵脚本'		,'scened/instance/instanceTaoHua'},
 		
 		{'全民boss'				,'scened/instance/instance_mass_boss'},
+		{'个人boss'				,'scened/instance/instance_private_boss'},
 		{'跨服组队副本'			,'scened/instance/instance_kuafu_group'},
 		
 		{'LUA之GM命令'		,'scened/gm_command'},
@@ -377,7 +378,8 @@ function initScriptTable()
 	--  plot:array 剧情副本
 	onRangeMapping(tb_script_base[ 1 ].plot, InstanceRemind0)
 	
-	
+	--  grBoss:array 个人BOSS
+	onRangeMapping(tb_script_base[ 1 ].grBoss, InstancePrivateBoss)
 end
 
 initScriptTable()

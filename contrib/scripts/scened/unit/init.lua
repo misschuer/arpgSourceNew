@@ -622,8 +622,10 @@ function UnitInfo:SetBaseAttrs(info, bRecal, mul)
 		end
 		if tBaseKey[attrtype] then
 			local k = tBaseKey[attrtype]
+			local k1 = k + #tBaseKey
 			if(self:GetUInt32(k) ~= attrval)then
 				self:SetUInt32(k, attrval)
+				self:SetUInt32(k1, attrval)
 			end
 			if attrtype == EQUIP_ATTR_MAX_HEALTH and not bRecal then
 				self:SetUInt32(UNIT_FIELD_HEALTH, attrval)
@@ -2389,6 +2391,22 @@ function UnitInfo:GetOpenMenuFlag(id,subid)
 	return false
 end
 
+function UnitInfo:SetLastInstanceType(val)
+	self:SetPlayerUInt32(PLAYER_INT_FIELD_LAST_INSTANCE_TYPE, val)
+end
+
+function UnitInfo:GetLastInstanceType()
+	return self:GetPlayerUInt32(PLAYER_INT_FIELD_LAST_INSTANCE_TYPE)
+end
+
+
+function UnitInfo:SetLastInstanceParam(val)
+	self:SetPlayerUInt32(PLAYER_INT_FIELD_LAST_INSTANCE_PARAM, val)
+end
+
+function UnitInfo:GetLastInstanceParam()
+	return self:GetPlayerUInt32(PLAYER_INT_FIELD_LAST_INSTANCE_PARAM)
+end
 
 require 'scened.unit.unit_spell'
 require 'scened.unit.scened_appd_dosomething'

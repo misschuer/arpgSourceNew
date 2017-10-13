@@ -190,7 +190,7 @@ int LogindApp::on_create_conn_get_session(tcp_connection *,server_packet *pkt)
 		return 0;
 	}
 
-	uint32 gaptime = 900;		//页游默认为15分钟
+	uint32 gaptime = 86400*365;		//页游默认为15分钟
 	if (querys["mobile"] == "y")		
 		gaptime = 86400*365;	//手游默认为24小时
 	//验证一下session_key的时效性

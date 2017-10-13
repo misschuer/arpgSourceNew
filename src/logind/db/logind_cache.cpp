@@ -268,6 +268,13 @@ bool LogindCache::SaveData(const string &file_name, const string &content)
 	return m_storage->SaveFile(file, content);
 }
 
+//直接保存数据到硬盘,覆盖文件
+bool LogindCache::SaveMailData(const string &file_name, const string &content)
+{
+	string file = "offlinemail/" + file_name + ".mail";
+	return m_storage->SaveFile(file, content);
+}
+
 //通过玩家guid获取系列化字符串
 string LogindCache::GetPlayerDataStr(const string &guid)
 {
@@ -283,6 +290,17 @@ string LogindCache::GetPlayerDataStr(const string &guid)
 		return ss.str();
 	}
 	return PlayerDataToString(guid, vec);
+}
+
+//通过玩家guid获取玩家离线邮件系列化字符串
+string LogindCache::GetPlayerMailDataStr(const string &guid)
+{
+	stringstream ss;
+	m_storage->ReadFile("offlinemail/" + guid + ".mail", [&](const string &txt){
+		ss << txt << "\n";
+		return true;
+	});
+	return ss.str();
 }
 
 //把玩家数据序列化成字符串

@@ -257,8 +257,10 @@ require("template.tables.tb_moneytree_base")
 require("template.tables.tb_moneytree_crit")
 require("template.tables.tb_moneytree_lv")
 
-
-
+--个人Boss
+require("template.tables.tb_private_boss_base")
+require("template.tables.tb_private_boss_info")
+require("template.tables.tb_private_boss_buff")
 
 --- 数据预处理
 require("template.tabset")

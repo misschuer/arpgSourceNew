@@ -126,5 +126,7 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 		local pkt = {}
 		pkt.opt_type = FACTION_MANAGER_TYPE_TOWER_CHALLENGE
 		self:Handle_Faction_People(pkt)
+	elseif SCENED_APPD_PRIVATE_BOSS_WIN == ntype then
+		self:onPrivateBossWin(data)
 	end
 end

@@ -7152,3 +7152,41 @@ int ProtocolUtil::send_get_moneytree_gift (uint32 id)
 	return 0;
 }
 
+/*修改幻境最后进入id*/
+int ProtocolUtil::unpack_set_world_risk_last_id (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_set_world_risk_last_id (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_SET_WORLD_RISK_LAST_ID);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*进入个人Boss*/
+int ProtocolUtil::unpack_enter_private_boss (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_enter_private_boss (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_ENTER_PRIVATE_BOSS);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+

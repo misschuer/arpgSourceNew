@@ -250,8 +250,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif(tokens[1] == "@锻造材料")then		
 		if(#tokens == 2 or #tokens == 1)then
 			local value = paras[2] or 100
-			for i = Item_Loot_Wood,Item_Loot_Crystal
-			do
+			for i = Item_Loot_Wood,Item_Loot_Crystal do
 				player:SetNumberMaterial(i,value)
 			end
 		elseif(#tokens == 3)then
@@ -718,8 +717,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif(tokens[1] == "@红颜")then		
 		if(#tokens == 2 or #tokens == 1)then
 			local value = paras[2] or 100
-			for i = HONGYAN_PLAYER_ATTRS_XIAYI,HONGYAN_PLAYER_ATTRS_XIANGMAO
-			do
+			for i = HONGYAN_PLAYER_ATTRS_XIAYI,HONGYAN_PLAYER_ATTRS_XIANGMAO do
 				player:SetHongYanPlayerAttrs(i,value)
 			end
 		elseif(#tokens == 3)then
@@ -762,8 +760,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 			player:SetHongYanMeiRenQinMiDu(meiren_id - 1,val)
 		elseif(#tokens == 2)then
 			local val = paras[2] or 1
-			for i = 1,#tb_peri_base
-			do
+			for i = 1,#tb_peri_base do
 				player:DoJieShiMeiRen(i)
 				player:SetHongYanMeiRenQinMiDu(i - 1,val)
 			end
@@ -973,8 +970,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 			if(val > 400)then
 				val = 400
 			end
-			for i = 1,#tb_assistspell
-			do
+			for i = 1,#tb_assistspell do
 				player:SetPlayerAssistspellLv(i,val)
 				playerLib.SendAttr(player_ptr)
 			end
@@ -1017,15 +1013,13 @@ function  DoGMScripts(player_ptr, gm_commands)
 		local wujianginfo = player:getWuJiangInfo()
 		if(wujianginfo ~= nil)then
 			if(#tokens == 1)then
-				for index = 1,MAX_WUJIANG_COUNT
-				do
+				for index = 1,MAX_WUJIANG_COUNT do
 					wujianginfo:ClearWujiangInfo(index)
 				end
 				wujianginfo:SetHasWujiangCount(0)
 			elseif(#tokens == 2)then
 				local id = paras[2] or 1
-				for index = 1,MAX_WUJIANG_COUNT
-				do
+				for index = 1,MAX_WUJIANG_COUNT do
 					if(wujianginfo:GetWujiangID(index) == id)then
 						local wj_guid = wujianginfo:GetWuJiangGuid(index)
 						wujianginfo:DeleteWujiang(wj_guid)
@@ -1077,24 +1071,21 @@ function  DoGMScripts(player_ptr, gm_commands)
 			local id = paras[3] or 1
 			local val = paras[4] or 1
 			if(tokens[2] == "等级")then
-				for index = 1,MAX_WUJIANG_COUNT
-				do
+				for index = 1,MAX_WUJIANG_COUNT do
 					if(wujianginfo:GetWujiangID(index) == id)then
 						wujianginfo:SetWujiangLevel(index,val)
 						break
 					end
 				end
 			elseif(tokens[2] == "升星")then
-				for index = 1,MAX_WUJIANG_COUNT
-				do
+				for index = 1,MAX_WUJIANG_COUNT do
 					if(wujianginfo:GetWujiangID(index) == id)then
 						wujianginfo:SetWujiangStarsLv(index,val)
 						break
 					end
 				end
 			elseif(tokens[2] == "转生")then	
-				for index = 1,MAX_WUJIANG_COUNT
-				do
+				for index = 1,MAX_WUJIANG_COUNT do
 					if(wujianginfo:GetWujiangID(index) == id)then
 						wujianginfo:SetWujiangZhuanShengLv(index,val)
 						break
@@ -1160,8 +1151,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 		local gender = player:GetGender()
 		local itemMgr = player:getItemMgr()
 		itemMgr:clearBag(BAG_TYPE_EQUIP)
-		for i = EQUIPMENT_TYPE_MAIN_WEAPON,EQUIPMENT_TYPE_LRING
-		do
+		for i = EQUIPMENT_TYPE_MAIN_WEAPON,EQUIPMENT_TYPE_LRING do
 			for _,val in pairs(tb_item_template) do
 				-- 类型，部位，等级，品质，性别
 				if(ITEM_TYPE_EQUIP == val.type and i == val.pos and level == val.level and quality == val.quality and gender == val.sex)then
@@ -1228,8 +1218,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif(tokens[1] == "@删除武将装备")then
 		local WjEquipInfo = player:getWjEquipInfo()
 		local id = paras[2] or 1
-		for i = 1,MAX_WUJIANG_EQUIP_COUNT
-		do
+		for i = 1,MAX_WUJIANG_EQUIP_COUNT do
 			if(id == WjEquipInfo:getEquipID(i))then
 				WjEquipInfo:delEquip(WjEquipInfo:getEquipGuid(i))
 				break
@@ -1243,13 +1232,11 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif(tokens[1] == "@会试")then
 		local kaozhuangyuan = app.objMgr:getObj(player:GetKaozhuangyuanGuid())
 		if(kaozhuangyuan)then
-			for i = 1,16
-			do
+			for i = 1,16 do
 				kaozhuangyuan:setFailType(i,0)
 				kaozhuangyuan:setVictoryType(i,1)
 			end
-			for i = 17,32
-			do
+			for i = 17,32 do
 				kaozhuangyuan:setFailType(i,1)
 			end
 			kaozhuangyuan:setRoomState(4)
@@ -1257,13 +1244,11 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif(tokens[1] == "@殿试")then
 		local kaozhuangyuan = app.objMgr:getObj(player:GetKaozhuangyuanGuid())
 		if(kaozhuangyuan)then
-			for i = 1,8
-			do
+			for i = 1,8 do
 				kaozhuangyuan:setFailType(i,0)
 				kaozhuangyuan:setVictoryType(i,2)
 			end
-			for i = 9,32
-			do
+			for i = 9,32 do
 				kaozhuangyuan:setFailType(i,2)
 			end
 			kaozhuangyuan:setRoomState(8)
@@ -1396,6 +1381,20 @@ function  DoGMScripts(player_ptr, gm_commands)
 		local count = tonumber( tokens[ 2 ]) or 1000000
 		if faction then
 			faction:SetFactionMoney(count)
+		end
+	elseif (tokens[ 1 ] == "@选择幻境") then
+		local id = tonumber( tokens[ 2 ])
+		if id then
+			if tb_risk_data[id] and tb_risk_data[id].is_boss_section == 0 then
+				player:SetUInt32(PLAYER_INT_FIELD_TRIAL_FINISHED_SECTIONID, id)
+			end
+		end
+	elseif (tokens[ 1 ] == "@个人Boss") then
+		local id = tonumber( tokens[ 2 ])
+		if id then
+			local pkt = {}
+			pkt.id = id
+			player:Handle_Enter_Private_Boss(pkt)
 		end
 	end
 	

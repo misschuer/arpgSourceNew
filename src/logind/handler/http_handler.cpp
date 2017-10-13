@@ -396,9 +396,9 @@ void HttpHandler::Handle_Merge_Postdata(const Request& req, Reply& rep)
 	tea_pinfo("merge/postdata begin");
 	Tokens token;
 	StrSplit(token, req.content, MERGE_DATA_SEPARATOR);
-	if(token.size() != 3)
+	if(token.size() != 4)
 	{
-		tea_pinfo("merge/postdata err token.size() != 3");
+		tea_pinfo("merge/postdata err token.size() != 4");
 		rep.content = "{}";
 		rep.status = hs::reply::internal_server_error;
 		return;
@@ -415,21 +415,41 @@ void HttpHandler::Handle_Merge_Postdata(const Request& req, Reply& rep)
 		return;
 	}
 
+	bool b = false;
 	//重试三次！！！
-	for (int i = 0; i <= 3; i++)
-	{
-		if(g_Cache.SaveData(guid, token[2]))
-		{
+	for (int i = 0; i <= 3; i++) {
+		if(g_Cache.SaveData(guid, token[2])) {
+			b = true;
+			break;
+		} else {
+			tea_pinfo("merge/postdata save data fail %s %s %u", server_name.c_str(), guid.c_str(), i);
+		}
+	}
+	
+	if (!b) {
+		tea_pinfo("merge/postdata fail %s %s", server_name.c_str(), guid.c_str());
+		rep.content = "{}";
+		rep.status = hs::reply::internal_server_error;
+		return;
+	}
+
+	for (int i = 0; i <= 3; i ++) {
+
+		string str = token[ 3 ];
+		if (str.length() == 1) {
+			str = "";
+		}
+
+		if(str.empty() || g_Cache.SaveMailData(guid, str)) {
 			rep.content = "ok";
 			rep.status = hs::reply::ok;
 			tea_pinfo("merge/postdata end");
 			return;
-		}
-		else
-		{
-			tea_pinfo("merge/postdata save data fail %s %s %u", server_name.c_str(), guid.c_str(), i);
+		} else {
+			tea_pinfo("merge/postdata save mail data fail %s %s %u", server_name.c_str(), guid.c_str(), i);
 		}
 	}
+
 	tea_pinfo("merge/postdata fail %s %s", server_name.c_str(), guid.c_str());
 	rep.content = "{}";
 	rep.status = hs::reply::internal_server_error;
@@ -441,9 +461,9 @@ void HttpHandler::Handle_Merge_Ok(const Request& req, Reply& rep)
 	tea_pinfo("merge/ok begin");
 	Tokens token;
 	StrSplit(token, req.content, MERGE_DATA_SEPARATOR);
-	if(token.size() != 2)
+	if(token.size() != 4)
 	{
-		tea_pinfo("merge/ok err token.size() != 3");
+		tea_pinfo("merge/ok err token.size() != 4");
 		rep.content = "{}";
 		rep.status = hs::reply::internal_server_error;
 		return;
@@ -491,6 +511,13 @@ void HttpHandler::Handle_Merge_Ok(const Request& req, Reply& rep)
 			break;
 		}
 	}
+
+	//TODO: token[ 2 ] 帮派基本信息
+	//解出最大guid
+	parseMergeData(token[ 2 ], FACTION_BINLOG_OWNER_STRING);
+	// token[ 3 ] 帮派数据信息
+	parseMergeData(token[ 3 ], FACTION_DATA_OWNER_STRING);
+
 	//设置下合服服务器列表
 	for(auto it:server_tokens)
 	{
@@ -574,7 +601,8 @@ bool HttpHandler::PostMergeData(const string &guid, const string &to_server_name
 	url = getUrl(url, "/merge/postdata");
 	tea_pinfo("HttpHandler::PostMergeData %s %s %s", guid.c_str(), to_server_name.c_str(), url.c_str());
 	string player_data_str = g_Cache.GetPlayerDataStr(guid);
-	string data = LogindApp::g_app->GetServerID() + MERGE_DATA_SEPARATOR + guid + MERGE_DATA_SEPARATOR + player_data_str;
+	string player_mail_str = g_Cache.GetPlayerMailDataStr(guid);
+	string data = LogindApp::g_app->GetServerID() + MERGE_DATA_SEPARATOR + guid + MERGE_DATA_SEPARATOR + player_data_str + MERGE_DATA_SEPARATOR + player_mail_str;
 	string reponse;
 	int result_code = m_client->post(url, data, reponse);
 	if(result_code != 200)
@@ -593,6 +621,8 @@ bool HttpHandler::PostMergeOK(const string &to_server_name)
 	ASSERT(!url.empty());
 	url = getUrl(url, "/merge/ok");
 	string global_str = g_Cache.GetPlayerDataStr(GLOBAL_VALUE_OWNER_STRING);
+	string faction_str = g_Cache.GetPlayerDataStr(FACTION_BINLOG_OWNER_STRING);
+	string faction_data_str = g_Cache.GetPlayerDataStr(FACTION_DATA_OWNER_STRING);
 
 	//取得所有合服表
 	vector<string> server_names;
@@ -600,7 +630,7 @@ bool HttpHandler::PostMergeOK(const string &to_server_name)
 	string all_server_names;
 	StrJoin(server_names,all_server_names, ';');
 
-	string data = all_server_names + MERGE_DATA_SEPARATOR + global_str;
+	string data = all_server_names + MERGE_DATA_SEPARATOR + global_str + MERGE_DATA_SEPARATOR + faction_str + MERGE_DATA_SEPARATOR + faction_data_str;
 	string reponse;
 	int result_code = m_client->post(url, data, reponse);
 	if(result_code != 200)
@@ -608,7 +638,8 @@ bool HttpHandler::PostMergeOK(const string &to_server_name)
 		tea_pinfo("HttpHandler::PostMergeOK fail, err code %d, %s", result_code, reponse.c_str());
 		return false;
 	}
-	return reponse == "ok";
+	return true;
+	//return reponse == "ok";
 }
 
 //从web接口服取得配置项信息

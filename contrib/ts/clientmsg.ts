@@ -12999,3 +12999,69 @@ class c2s_get_moneytree_gift
 }
 
 
+
+
+
+class c2s_set_world_risk_last_id
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onSet_world_risk_last_id"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 幻境id
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_set_world_risk_last_id, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//幻境id
+		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_enter_private_boss
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onEnter_private_boss"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * Bossid
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_enter_private_boss, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//Bossid
+		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+

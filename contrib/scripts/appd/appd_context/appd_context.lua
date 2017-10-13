@@ -237,6 +237,7 @@ function PlayerInfo:SetVIP(vipLevel, time)
 	self:SetUInt32(PLAYER_FIELD_VIP_TIME_OUT, time)
 	
 	self:UpdateFactionBangZhuInfo()
+	self:UpdateBagSize(vipLevel)
 end
 
 -- 是否达到该vip等级
@@ -721,6 +722,8 @@ function PlayerInfo:Login()
 		local times = math.floor((os.time() - logoutTime) / 10)
 		self:onPickedOfflineRiskReward(times)
 	end
+	
+	self:ResetLastInstanceInfo()
 end
 
 --pk服玩家登陆做点啥
@@ -2631,6 +2634,7 @@ function PlayerInfo:onCalRiskReward(times)
 end
 
 function PlayerInfo:onUpdatePlayerQuest(type,params)
+	params = params or {}
 	local questMgr = self:getQuestMgr()
 	questMgr:OnUpdate(type, params)
 end
@@ -2719,7 +2723,7 @@ function PlayerInfo:UseMoneytree()
 			return
 		end
 		
-		local rewards = {{lv_config.reward[1],lv_config.reward[2] * rate}}
+		local rewards = {{lv_config.reward[1],math.floor(lv_config.reward[2] * rate * base_config.rate/10000)}}
 		
 		self:AddMoneytreeCount(1)
 		self:AppdAddItems(rewards,MONEY_CHANGE_MONEYTREE_USE)
@@ -2728,6 +2732,8 @@ function PlayerInfo:UseMoneytree()
 		else
 			self:CallOptResult(OPRATE_TYPE_MONEYTREE,MONEYTREE_TYPE_CRIT,{lv_config.reward[2] * rate,rate})
 		end
+		
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_MONEYTREE_TIMES)
 	end
 end
 
@@ -2759,6 +2765,25 @@ end
 
 ------------------------------------------
 
+--更新背包大小
+function PlayerInfo:UpdateBagSize(vipLevel)
+	local config = tb_vip_base[vipLevel].bag_size
+	
+	local itemMgr = self:getItemMgr()
+	for _,info in pairs(config) do
+		itemMgr:setBagSize(info[1],info[2])
+	end
+end
+
+--清除关于上次所处场景的信息
+function PlayerInfo:ResetLastInstanceInfo()
+	self:SetUInt32(PLAYER_INT_FIELD_LAST_INSTANCE_TYPE,0)
+	self:SetUInt32(PLAYER_INT_FIELD_LAST_INSTANCE_PARAM,0)
+end
+
+function PlayerInfo:SetWorldRiskLastId(val)
+	self:SetUInt32(PLAYER_INT_FIELD_WORLD_RISK_LAST_ID,val)
+end
 
 -- 跨服回来进行清空标志
 function PlayerInfo:KuafuUnMarked()

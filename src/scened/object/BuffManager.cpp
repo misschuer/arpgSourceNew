@@ -337,6 +337,9 @@ void BufferManager::AddBuff(uint16 buff_id,uint32 buffEffectId,int32 bonus_time,
 //增加BUFF属性		
 void BufferManager::AddBuffAttr()
 {
+	// 先把unit的基础属性永不城player的基础属性
+	m_buffOwner->resetAttr();
+
 	for(uint8 i = 0; i < MAX_UNIT_BUFF; i++)
 	{
 		uint16 cur_buff = GetBuff(i);

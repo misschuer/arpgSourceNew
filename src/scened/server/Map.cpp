@@ -932,17 +932,18 @@ bool Map::AddCreature(Creature *creature)
 	return true;
 }
 
-Creature *Map::AddCreature(uint32 templateid,float x,float y,float toward/* = 0*/,uint32 respan_time /*= 0*/,uint32 movetype/*=0*/, uint32 npcflag/* = 0*/,const char *alias_name /*= NULL*/,bool active_grid /*= false*/,uint8 faction/*= 0*/,const char* ainame/* = 0*/, uint32 level/* = 0*/, uint32 attackType/* = 0*/)
+Creature *Map::AddCreature(uint32 templateid,float x,float y,float toward/* = 0*/,uint32 respan_time /*= 0*/,uint32 movetype/*=0*/, uint32 npcflag/* = 0*/,const char *alias_name /*= NULL*/,bool active_grid /*= false*/,uint8 faction/*= 0*/,const char* ainame/* = 0*/, uint32 level/* = 0*/, uint32 attackType/* = 0*/, uint32 riskId/* = 0*/)
 {
 	string lguid = CreateNewCreatureID();
 	Creature *new_creature = new Creature;
-
+	new_creature->SetUInt32(UNIT_INT_FIELD_RISK_CREATURE_ID, riskId);
 	//需要确保地图怪物刷新点不删除		
 	if(!new_creature->Create(this,lguid,templateid,respan_time,movetype,ainame,level, attackType))
 	{
 		safe_delete(new_creature);
 		return NULL;
 	}
+	
 	new_creature->SetBornPos(x,y);
 	new_creature->SetPosition(x,y);
 	new_creature->SetOrientation((float)toward);
@@ -1423,6 +1424,7 @@ int Map::LuaAddCreature(lua_State *scriptL)
 	uint32 templateid;
 	float x,y,toward = 0.0f;
 	uint32 respan_time = 0,movetype = 0,npcflag = 0,level = 0,attackType=0;
+	uint32 riskId = 0;
 	vector<uint32> npcflags;
 	const char *alias_name = NULL;
 	bool active_grid = false;
@@ -1460,6 +1462,7 @@ int Map::LuaAddCreature(lua_State *scriptL)
 		lua_readvalue(scriptL,"ainame",ainame);
 		lua_readvalue(scriptL,"level",level);
 		lua_readvalue(scriptL,"attackType",attackType);
+		lua_readvalue(scriptL,"riskId",riskId);
 	}
 	else
 	{
@@ -1499,7 +1502,7 @@ int Map::LuaAddCreature(lua_State *scriptL)
 	}	
 #endif // DEBUG
 
-	Creature *creature = _m->AddCreature(templateid,x,y,toward,respan_time,movetype,npcflag,alias_name,active_grid,faction,ainame,level,attackType);
+	Creature *creature = _m->AddCreature(templateid,x,y,toward,respan_time,movetype,npcflag,alias_name,active_grid,faction,ainame,level,attackType,riskId);
 	if(!creature)
 	{
 		tea_perror("Map::LuaAddCreature creature is NULL");

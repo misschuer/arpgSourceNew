@@ -210,16 +210,23 @@ void Player::OnAfterPlayerDataUpdate(SyncEventRecorder *data,int flags,UpdateMas
 
 		bool recal = false;
 		// 血量只会在第一次的时候赋值
-		uint32 pIndex = PLAYER_FIELD_HEALTH;
-		for (uint32 attrIndex = UNIT_FIELD_HEALTH; attrIndex < UNIT_FIELD_ATTRIBUTE_END; ++ attrIndex) {
+		uint32 pIndex = PLAYER_FIELD_MAX_HEALTH;
+		for (uint32 attrIndex = UNIT_FIELD_MAX_HEALTH_BASE, indx = 0; attrIndex < UNIT_FIELD_ATTRIBUTE_BASE_END; ++ attrIndex, ++ indx) {
 			if (mask.GetBit(pIndex) || mask.GetBit(pIndex+1) || is_new) {
 				SET_VALUE(this, attrIndex, (uint32)self->GetDouble(pIndex));
 				recal = true;
-				if (attrIndex == UNIT_FIELD_HEALTH) {
-					tea_pdebug("p => u sync player health %d\n", this->GetUInt32(attrIndex));
+				SET_VALUE(this, indx + UNIT_FIELD_MAX_HEALTH, this->GetUInt32(indx + UNIT_FIELD_MAX_HEALTH_BASE));
+				if (indx == 0) {
+					tea_pdebug("##########p => u sync player maxhealth %d\n", this->GetUInt32(indx + UNIT_FIELD_MAX_HEALTH_BASE));
 				}
 			}
 			pIndex += 2;
+		}
+
+		if (mask.GetBit(PLAYER_FIELD_HEALTH) || mask.GetBit(PLAYER_FIELD_HEALTH+1) || is_new) {
+			recal = true;
+			SET_VALUE(this, UNIT_FIELD_HEALTH, (uint32)self->GetDouble(PLAYER_FIELD_HEALTH));
+			tea_pdebug("p => u sync player health %d\n", this->GetUInt32(UNIT_FIELD_HEALTH));
 		}
 		/*
 		SET_VALUE(this, UNIT_FIELD_HEALTH, (uint32)self->GetDouble(PLAYER_FIELD_HEALTH));

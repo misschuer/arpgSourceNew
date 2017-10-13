@@ -136,7 +136,9 @@ function InstanceInstBase:OnAddProtectNPCQuest(quest)
 	local indx = self:OnAddKillMonsterQuest(quest)
 	if indx > 0 then
 		local offset = (indx - MAP_INT_FIELD_QUESTS_START) / 2
-		self:SetByte(MAP_INT_FIELD_QUESTS_PROCESS_START, offset, 100)
+		local index = 0
+		index,offset = getRealOffset(offset,4)
+		self:SetByte(MAP_INT_FIELD_QUESTS_PROCESS_START + index, offset, 100)
 	end
 end
 
@@ -184,7 +186,10 @@ function InstanceInstBase:OneMonsterKilled(entry)
 		if self:GetByte(i, 0) == INSTANCE_QUEST_TYPE_KILL_MONSTER and self:IsFitForKillMonsterQuest(self:GetUInt16(i, 1), entry) then
 			local offset = (i - MAP_INT_FIELD_QUESTS_START) / 2
 			local prev = self:GetByte(MAP_INT_FIELD_QUESTS_PROCESS_START, offset)
-			self:SetByte(MAP_INT_FIELD_QUESTS_PROCESS_START, offset, prev + 1)
+			
+			local index = 0
+			index,offset = getRealOffset(offset,4)
+			self:SetByte(MAP_INT_FIELD_QUESTS_PROCESS_START + index, offset, prev + 1)
 			return true
 		end
 	end
@@ -204,7 +209,10 @@ function InstanceInstBase:ProtectorHit(entry, hpRate)
 		if self:GetByte(i, 0) == INSTANCE_QUEST_TYPE_PROTECT_NPC and self:GetUInt16(i, 1) == entry then
 			local offset = (i - MAP_INT_FIELD_QUESTS_START) / 2
 			hpRate = math.floor(hpRate)
-			self:SetByte(MAP_INT_FIELD_QUESTS_PROCESS_START, offset, hpRate)
+			
+			local index = 0
+			index,offset = getRealOffset(offset,4)
+			self:SetByte(MAP_INT_FIELD_QUESTS_PROCESS_START + index, offset, hpRate)
 			return true
 		end
 	end
@@ -331,12 +339,14 @@ function InstanceInstBase:OnJoinPlayer(player)
 	Instance_base.OnJoinPlayer(self, player)
 	
 	local playerInfo = UnitInfo:new{ptr = player}
+	
 	playerInfo:ChangeToPeaceModeAfterTeleport()
+	playerInfo:ModifyHealth(playerInfo:GetMaxHealth())
 end
 
 --当玩家离开时触发
 function InstanceInstBase:OnLeavePlayer( player, is_offline)
-	Instance_base.OnJoinPlayer(self, player, is_offline)
+	Instance_base.OnLeavePlayer(self, player, is_offline)
 	
 	local playerInfo = UnitInfo:new{ptr = player}
 	playerInfo:ChangeToPeaceModeAfterTeleport()

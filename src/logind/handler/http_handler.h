@@ -52,6 +52,28 @@ public:
 protected:
 	void LoadPlayer(const string &player_guid, std::function<void(bool,const string &,vector<GuidObject*>&)> fun);
 	string GetLogindPostUrl(const string &server_name);
+
+	inline void parseMergeData(string& data, const char* tag) {
+		Tokens token_gv;
+		StrSplit(token_gv, data, '\n');
+
+		for (uint32 i = 0; i + 3 <= token_gv.size(); i += 3) {
+			string guid = token_gv[ i ];
+			BinLogObject *obj = new BinLogObject;
+			obj->FromString(token_gv[i+1], token_gv[i+2]);
+			obj->guid(guid);
+			vector<GuidObject*> vec;
+			vector<string> guid_vec;
+			vec.push_back(obj);
+			guid_vec.push_back(guid);
+
+			ObjMgr.CallPutsObject(tag, vec, [guid_vec](bool) {
+				for (auto it : guid_vec) {
+					ObjMgr.InsertObjOwner(it);
+				}
+			});
+		}
+	}
 private:
 	http::server::server *m_server;
 	http::client::client *m_client;

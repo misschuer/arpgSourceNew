@@ -128,12 +128,14 @@ function InstanceFactionBossDefense:parseGeneralId()
 end
 
 function InstanceFactionBossDefense:DoMapBuffBonus(unit)
-	local building_lv = self:GetBuildingLv()
-	local base_config = tb_faction_bossdefense_base[building_lv]
-	local buffEffectId = base_config.buffeffect_id
-	local buff_id = tb_buff_effect[buffEffectId].buff_id
-	
-	SpelladdBuff(unit, buff_id, unit, buffEffectId, 65535)
+	if GetUnitTypeID(unit) == TYPEID_PLAYER then
+		local building_lv = self:GetBuildingLv()
+		local base_config = tb_faction_bossdefense_base[building_lv]
+		local buffEffectId = base_config.buffeffect_id
+		local buff_id = tb_buff_effect[buffEffectId].buff_id
+		
+		SpelladdBuff(unit, buff_id, unit, buffEffectId, 65535)
+	end
 end
 	
 --当副本状态发生变化时间触发
@@ -191,6 +193,9 @@ function InstanceFactionBossDefense:OnLeavePlayer( player, is_offline)
 	InstanceInstBase.OnLeavePlayer(self, player, is_offline)
 	self:OnBossDefenseLeave()
 	unitLib.RemoveBuff(player,BUFF_ALLATTR)
+	local playerInfo = UnitInfo:new{ptr = player}
+	
+	playerInfo:SetLastInstanceParam(self:GetIndex())
 	
 	if self:GetMapState() == self.STATE_START then
 		if player then

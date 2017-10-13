@@ -99,6 +99,13 @@ public:
 	uint8 GetProfession() const{return GetByte(UNIT_FIELD_BYTE_1,3);}
 	uint8 GetCreatureSkin() const{return GetByte(UNIT_FIELD_BYTE_4, 2);}
 
+	void resetAttr() {
+		uint32 len = UNIT_FIELD_ATTRIBUTE_BASE_END - UNIT_FIELD_MAX_HEALTH_BASE;
+		for (uint32 indx = 0; indx < len; ++ indx) {
+			this->SetUInt32(indx + UNIT_FIELD_MAX_HEALTH, this->GetUInt32(indx + UNIT_FIELD_MAX_HEALTH_BASE));
+		}
+	}
+
 	double GetCurrCastVampiric() {
 		return GetDouble(UINT_FIELD_VAMPIRIC);
 	}

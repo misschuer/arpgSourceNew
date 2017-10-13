@@ -244,6 +244,10 @@ function InstanceKuafuGroup:OnLeavePlayer( player, is_offline)
 	if persons == 0 then
 		self:SetMapState(self.STATE_FAIL)
 	end
+	
+	local playerInfo = UnitInfo:new{ptr = player}
+	
+	playerInfo:SetLastInstanceParam(self:GetHard())
 end
 
 -- 获得名字对应的位置, ''表示用来查询空位位置

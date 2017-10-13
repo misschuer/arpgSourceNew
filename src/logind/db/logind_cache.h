@@ -46,8 +46,11 @@ public:
 public:
 	//直接保存数据到硬盘,覆盖文件
 	bool SaveData(const string &file_name, const string &content);
+	bool SaveMailData(const string &file_name, const string &content);
 	//通过玩家guid获取系列化字符串
 	string GetPlayerDataStr(const string &guid);
+	//通过玩家guid获取玩家离线邮件系列化字符串
+	string GetPlayerMailDataStr(const string &guid);
 	//玩家自动保存心跳
 	void Update(logind_player *player);
 	//读取玩家对象

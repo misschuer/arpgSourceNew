@@ -1581,3 +1581,11 @@ use_moneytree,c2s,407,/*摇动摇钱树*/,STATUS_NEVER,False
 #
 get_moneytree_gift,c2s,408,/*领取摇钱树礼包*/,STATUS_NEVER,False
 	id,uint32,False,/*礼包id*/
+	
+#
+set_world_risk_last_id,c2s,409,/*修改幻境最后进入id*/,STATUS_NEVER,False
+	id,uint32,False,/*幻境id*/
+	
+#
+enter_private_boss,c2s,410,/*进入个人Boss*/,STATUS_NEVER,False
+	id,uint32,False,/*Bossid*/

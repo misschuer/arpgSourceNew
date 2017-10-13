@@ -388,6 +388,7 @@ class SharedDef
 		public static LOG_ITEM_OPER_TYPE_ACT_LIMITGIFT			:number = 52;	// 限定礼包活动
 		public static LOG_ITEM_OPER_TYPE_RECHARGE_REWARD			:number = 53;	// 充值返利
 		public static LOG_ITEM_OPER_TYPE_CONSUME_REWARD			:number = 54;	// 消费返利
+		public static LOG_ITEM_OPER_TYPE_PRIVATE_BOSS			:number = 55;	// 个人Boss
 		public static LOG_ITEM_OPER_TYPE_NPC_BUY			:number = 102;	// 从NPC购买获得
 		public static LOG_ITEM_OPER_TYPE_BIND_SHOP_BUY			:number = 103;	// 从绑定商城购买获得
 		public static LOG_ITEM_OPER_TYPE_REPURCHASE			:number = 104;	// 从NPC回购物品获得
@@ -544,7 +545,8 @@ class SharedDef
 		public static MONEY_CHANGE_RECHARGE_REWARD			:number = 121;	// 充值返利
 		public static MONEY_CHANGE_CONSUME_REWARD			:number = 122;	// 消费返利
 		public static MONEY_CHANGE_MONEYTREE_USE			:number = 123;	// 摇动摇钱树
-		public static MAX_MONEY_CHANGE_TYPE			:number = 124;
+		public static MONEY_CHANGE_PRIVATE_BOSS			:number = 124;	// 个人Boss
+		public static MAX_MONEY_CHANGE_TYPE			:number = 125;
 		// 特殊包裹类型
 		public static BAG_VIRTUAL_TYPE_STALL			:number = -1;	// 摆摊
 		public static BAG_VIRTUAL_TYPE_UNKNOWN			:number = -2;	// 未知
@@ -1038,6 +1040,8 @@ class SharedDef
 		public static QUEST_TARGET_TYPE_DAILY_TASK			:number = 71;	// 完成X轮日常任务
 		public static QUEST_TARGET_TYPE_GEM_TOTAL_LEVEL			:number = 72;	// 所有宝石总等级升到X级
 		public static QUEST_TARGET_TYPE_WINGS_BLESS_TIMES			:number = 73;	// 翅膀祝福X次
+		public static QUEST_TARGET_TYPE_MONEYTREE_TIMES			:number = 74;	// 使用摇钱树X次
+		public static QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES			:number = 75;	// 参与X次全民Boss
 		// 货币处理类型
 		public static CURRENCY_HANDLE_TYPE_ADD			:number = 0;	// 增加
 		public static CURRENCY_HANDLE_TYPE_SUB			:number = 1;	// 减少
@@ -1309,27 +1313,60 @@ class SharedDef
 		public static UNIT_FIELD_CONTROL_RESIST_RATE			:number = 117;	// 控制减免
 		public static UNIT_FIELD_STRENGTH_ARMOR			:number = 118;	// 强化护甲
 		public static UNIT_FIELD_ATTRIBUTE_END			:number = 119;	//  属性结束
-		public static UNIT_FIELD_ANGER			:number = 119;	// 愤怒值
-		public static UNIT_FIELD_USE_RESPAWN_MAPID			:number = 120;	// 使用复活丹的地图id
-		public static UNIT_FIELD_PROCESS_TIME			:number = 121;	//  进度条读完的时间戳
-		public static UNIT_FIELD_PROCESS_SECONDS			:number = 122;	//  读条总共需要时间	
-		public static UINT_FIELD_BOSS_DATA			:number = 123;	// boss数据byte 0:boss状态 1:boss前一状态 2:boss索引(云游的是这个用途)
-		public static UINT_FIELD_BOSS_DATA1			:number = 124;	// boss数据byte 0:当前坐标x 1:当前坐标y 2:下一坐标x 3:下一坐标y(云游的是这个用途)
-		public static UINT_FIELD_VIEW_MODE			:number = 124;	// 是否是观看模式
-		public static UINT_FIELD_VIRTUAL_CAMP			:number = 125;	// 虚拟阵营
-		public static UINT_FIELD_XIANFU_INFO			:number = 126;	// 跨服仙府的信息4bytes (0:宝箱数量, 1:死亡次数)
-		public static UINT_FIELD_VIP_LEVEL			:number = 127;	// VIP等级
-		public static UINT_FIELD_VIP_TIME_OUT			:number = 128;	// VIP超时时间
-		public static UINT_FIELD_VAMPIRIC			:number = 129;	// 当前战斗的吸血值
-		public static UINT_INT_FIELD_ILLUSION			:number = 131;	// 角色幻化
-		public static UINT_FIELD_BOOS_CUR_SPELLID			:number = 132;	// 当前正在释放的蓄力技能idUNIT_INT_FIELD_APPEARANCE
-		public static UINT_FIELD_BOOS_CUR_SPELL_TIME			:number = 133;	// 前一个技能结束的时间戳
-		public static UINT_FIELD_BOOS_CUR_SPELL_LAST_COUNT			:number = 134;	//  持续技能数量
-		public static UINT_INT_FIELD_PASSIVE_SPELL_START			:number = 135;	// 被动技能开始
-		public static UINT_INT_FIELD_PASSIVE_SPELL_END			:number = 235;	// 被动技能结束
-		public static UINT_INT_FIELD_WINGS_RANK			:number = 235;	// 神羽阶数
-		public static UNIT_INT_FIELD_APPEARANCE			:number = 236;	//  外观
-		public static MAX_UNIT_FIELD			:number = 237;
+		public static UNIT_FIELD_MAX_HEALTH_BASE			:number = 119;	// 最大生命
+		public static UNIT_FIELD_DAMAGE_BASE			:number = 120;	// 攻击力
+		public static UNIT_FIELD_ARMOR_BASE			:number = 121;	// 防御力
+		public static UNIT_FIELD_HIT_BASE			:number = 122;	// 命中
+		public static UNIT_FIELD_MISS_BASE			:number = 123;	// 闪避
+		public static UNIT_FIELD_CRIT_BASE			:number = 124;	// 暴击
+		public static UNIT_FIELD_TOUGH_BASE			:number = 125;	// 坚韧
+		public static UNIT_FIELD_ATTACK_SPEED_BASE			:number = 126;	// 攻击速度
+		public static UNIT_FIELD_MOVE_SPEED_BASE			:number = 127;	// 移动速度
+		public static UNIT_FIELD_IGNORE_ARMOR_BASE			:number = 128;	// 忽视防御
+		public static UNIT_FIELD_IGNORE_MISS_BASE			:number = 129;	// 忽视闪避
+		public static UNIT_FIELD_RECOVERY_BASE			:number = 130;	// 生命值回复
+		public static UNIT_FIELD_DAMAGE_AMPLIFY_RATE_BASE			:number = 131;	// 伤害加深(万分比)
+		public static UNIT_FIELD_DAMAGE_RESIST_RATE_BASE			:number = 132;	// 伤害减免(万分比)
+		public static UNIT_FIELD_DAMAGE_RETURN_RATE_BASE			:number = 133;	// 反弹伤害(万分比)
+		public static UNIT_FIELD_VAMPIRIC_RATE_BASE			:number = 134;	// 吸血光环(万分比)
+		public static UNIT_FIELD_RECOVERY_RATE_BASE			:number = 135;	// 回复效率(万分比)
+		public static UNIT_FIELD_CRIT_RATE_BASE			:number = 136;	// 暴击率(万分比)
+		public static UNIT_FIELD_CRIT_RESIST_RATE_BASE			:number = 137;	// 抗暴率(万分比)
+		public static UNIT_FIELD_CRIT_DAM_RATE_BASE			:number = 138;	// 暴击伤害倍数(万分比)
+		public static UNIT_FIELD_CRIT_RESIST_DAM_RATE_BASE			:number = 139;	// 降暴伤害倍数(万分比)
+		public static UNIT_FIELD_HIT_RATE_BASE			:number = 140;	// 命中率(万分比)
+		public static UNIT_FIELD_MISS_RATE_BASE			:number = 141;	// 闪避率(万分比)
+		public static UNIT_FIELD_STUN_RATE_BASE			:number = 142;	// 眩晕
+		public static UNIT_FIELD_ROOTS_RATE_BASE			:number = 143;	// 定身
+		public static UNIT_FIELD_SILENCE_RATE_BASE			:number = 144;	// 沉默
+		public static UNIT_FIELD_CHAOS_RATE_BASE			:number = 145;	// 混乱
+		public static UNIT_FIELD_CHARM_RATE_BASE			:number = 146;	// 魅惑
+		public static UNIT_FIELD_CONTROL_ENHANCE_RATE_BASE			:number = 147;	// 控制增强
+		public static UNIT_FIELD_CONTROL_RESIST_RATE_BASE			:number = 148;	// 控制减免
+		public static UNIT_FIELD_STRENGTH_ARMOR_BASE			:number = 149;	// 强化护甲
+		public static UNIT_FIELD_ATTRIBUTE_BASE_END			:number = 150;	//  属性结束
+		public static UNIT_FIELD_ANGER			:number = 150;	// 愤怒值
+		public static UNIT_FIELD_USE_RESPAWN_MAPID			:number = 151;	// 使用复活丹的地图id
+		public static UNIT_FIELD_PROCESS_TIME			:number = 152;	//  进度条读完的时间戳
+		public static UNIT_FIELD_PROCESS_SECONDS			:number = 153;	//  读条总共需要时间	
+		public static UINT_FIELD_BOSS_DATA			:number = 154;	// boss数据byte 0:boss状态 1:boss前一状态 2:boss索引(云游的是这个用途)
+		public static UINT_FIELD_BOSS_DATA1			:number = 155;	// boss数据byte 0:当前坐标x 1:当前坐标y 2:下一坐标x 3:下一坐标y(云游的是这个用途)
+		public static UINT_FIELD_VIEW_MODE			:number = 155;	// 是否是观看模式
+		public static UINT_FIELD_VIRTUAL_CAMP			:number = 156;	// 虚拟阵营
+		public static UINT_FIELD_XIANFU_INFO			:number = 157;	// 跨服仙府的信息4bytes (0:宝箱数量, 1:死亡次数)
+		public static UINT_FIELD_VIP_LEVEL			:number = 158;	// VIP等级
+		public static UINT_FIELD_VIP_TIME_OUT			:number = 159;	// VIP超时时间
+		public static UINT_FIELD_VAMPIRIC			:number = 160;	// 当前战斗的吸血值
+		public static UINT_INT_FIELD_ILLUSION			:number = 162;	// 角色幻化
+		public static UINT_FIELD_BOOS_CUR_SPELLID			:number = 163;	// 当前正在释放的蓄力技能idUNIT_INT_FIELD_APPEARANCE
+		public static UINT_FIELD_BOOS_CUR_SPELL_TIME			:number = 164;	// 前一个技能结束的时间戳
+		public static UINT_FIELD_BOOS_CUR_SPELL_LAST_COUNT			:number = 165;	//  持续技能数量
+		public static UINT_INT_FIELD_PASSIVE_SPELL_START			:number = 166;	// 被动技能开始
+		public static UINT_INT_FIELD_PASSIVE_SPELL_END			:number = 266;	// 被动技能结束
+		public static UINT_INT_FIELD_WINGS_RANK			:number = 266;	// 神羽阶数
+		public static UNIT_INT_FIELD_APPEARANCE			:number = 267;	//  外观
+		public static UNIT_INT_FIELD_RISK_CREATURE_ID			:number = 268;	//  世界冒险怪物对应的序号
+		public static MAX_UNIT_FIELD			:number = 269;
 		public static GO_STRING_FIELD_CREATED_BY			:number = 4;
 		public static UNIT_STRING_FIELD_ALIAS_NAME			:number = 5;
 		public static UNIT_STRING_FIELD_PICK_NAME			:number = 6;	// 正在采集的玩家
@@ -1474,6 +1511,7 @@ class SharedDef
 		public static SCENED_APPD_SINGLE_PVP_RESULT			:number = 26;	//  排位赛结果
 		public static SCENED_APPD_ENTER_QUALIFY_INSTANCE			:number = 27;	// 进入排位赛
 		public static SCENED_APPD_ENTER_FACTION_TOWER_INSTANCE			:number = 28;	// 进入家族远征
+		public static SCENED_APPD_PRIVATE_BOSS_WIN			:number = 29;	// 个人Boss胜利
 		public static APPD_SCENED_SWEEP_TRIAL_INSTANCE			:number = 1;	// 扫荡试炼塔副本
 		public static APPD_SCENED_SWEEP_VIP_INSTANCE			:number = 2;	// 扫荡VIP副本
 		public static APPD_SCENED_RESPAWN			:number = 3;	// 元宝复活
@@ -1503,6 +1541,7 @@ class SharedDef
 		public static INSTANCE_SUB_TYPE_FACTION_TOWER			:number = 14;	// 家族无尽远征
 		public static INSTANCE_SUB_TYPE_QUALIFY			:number = 15;	// 排位赛
 		public static INSTANCE_SUB_TYPE_RISK			:number = 16;	// 世界冒险
+		public static INSTANCE_SUB_TYPE_PRIVATE_BOSS			:number = 17;	// 个人BOSS
 		//  聊天频道
 		public static CHAT_CHANNEL_SYSTEM			:number = 0;	// 系统频道
 		public static CHAT_CHANNEL_WORLD			:number = 1;	// 世界频道
@@ -1781,6 +1820,9 @@ class SharedDef
 		public static PLAYER_APPD_INT_FIELD_CONSUME_SUM			:number = 1770;	// 累计消费元宝
 		public static PLAYER_APPD_INT_FIELD_MONEYTREE_COUNT			:number = 1771;	// 摇钱树摇钱次数
 		public static PLAYER_APPD_INT_FIELD_MONEYTREE_GIFT_FLAG			:number = 1772;	// 摇钱树礼包领取状态
+		public static PLAYER_INT_FIELD_WORLD_RISK_LAST_ID			:number = 1773;	// 最后一次进入的幻境地图id
+		public static PLAYER_INT_FIELD_LAST_INSTANCE_TYPE			:number = 1774;	// 上次副本子类型
+		public static PLAYER_INT_FIELD_LAST_INSTANCE_PARAM			:number = 1775;	// 上次副本额外参数
 		// ////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// 字符串部分
 		public static PLAYER_STRING_FIELD_ACCOUNT			:number = 4;	// 账号
@@ -2171,6 +2213,7 @@ class SharedDef
 		public static MAX_ACTIVT_REWARD_COUNT			:number = 6;
 		public static MAX_DOUJIANTAI_RECORD_COUNT			:number = 10;
 		public static MAX_QUALIFY_RECORD_COUNT			:number = 30;
+		public static MAX_PRIVATE_BOSS_COUNT			:number = 20;
 		//  玩家副本信息
 		public static INSTANCE_INT_FIELD_VIP_START			:number = 0;	// vip副本开始	每个信息4个byte[0:预留,1:可扫荡难度,2:挑战次数,3:购买次数]
 		public static INSTANCE_INT_FIELD_VIP_END			:number = 3;	// vip副本结束
@@ -2205,6 +2248,8 @@ class SharedDef
 		public static INSTANCE_INT_FIELD_QUALIFY_DAILY_TIMES			:number = 84;	//  排位赛每天次数
 		public static INSTANCE_INT_FIELD_QUALIFY_BUY_TIMES			:number = 85;	//  排位赛购买次数
 		public static INSTANCE_INT_FIELD_QUALIFY_CURSOR			:number = 86;	//  排位赛记录游标
+		public static INSTANCE_INT_FIELD_PRIVATE_BOSS_RECOVER_TIME_START			:number = 87;	// 个人BOSS挑战次数回复时间戳开始
+		public static INSTANCE_INT_FIELD_PRIVATE_BOSS_RECOVER_TIME_END			:number = 107;	// 个人BOSS挑战次数回复时间戳结束
 		public static INSTANCE_STR_FIELD_DOUJIANTAI_RECORD_START			:number = 4;	// 斗剑台战斗信息开始
 		public static INSTANCE_STR_FIELD_DOUJIANTAI_RECORD_END			:number = 14;	// 斗剑台战斗信息结束
 		public static INSTANCE_STR_FIELD_QUALIFY_RECORD_START			:number = 14;	// 排位赛战斗信息开始
@@ -2484,6 +2529,8 @@ class SharedDef
 		// VIP BOSS
 		public static VIP_INSTANCE_FIELD_ID			:number = 43;	//  0:VIP副本序号,1:副本难度
 		public static MAP_MASS_BOSS_INT_FIELD_ID			:number = 43;	// 全民bossid
+		public static MAP_PRIVATE_BOSS_INT_FIELD_ID			:number = 43;	// 个人bossid
+		public static MAP_PRIVATE_BOSS_INT_FIELD_BUFFEFFECT_ID			:number = 44;	// buff效果id
 		public static WORLDBOSS_FIELDS_WAIT_TIME			:number = 43;	// 报名等待时间戳
 		public static WORLDBOSS_FIELDS_BORN_TIME			:number = 44;	// 刷新等待时间戳
 		public static RES_INSTANCE_FIELD_ID			:number = 43;	// 资源副本的索引
@@ -2856,8 +2903,9 @@ class SharedDef
 		public static MODULE_ARENA_XIANMO			:number = 2;	// 仙魔道(3V3)
 		public static MODULE_ARENA_XIANFU			:number = 3;	// 仙府夺宝
 		public static MODULE_ARENA_RANK			:number = 4;	// 排位赛
-		public static MODULE_BOSS_WORLD_BOSS			:number = 2;	// 世界BOSS
+		public static MODULE_BOSS_PERSON_BOSS			:number = 1;	// 个人boss
 		public static MODULE_BOSS_RISK_BOSS			:number = 2;	// BOSS挑战
+		public static MODULE_BOSS_WORLD_BOSS			:number = 3;	// 世界BOSS
 		public static MODULE_WELFARE_MONTH			:number = 1;	// 月签到
 		public static MODULE_WELFARE_LEVEL			:number = 2;	// 升级奖励
 		public static MODULE_WELFARE_SEVEN			:number = 3;	// 七日大礼

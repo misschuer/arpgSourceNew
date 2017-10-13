@@ -738,6 +738,7 @@ function AppInstanceMgr:checkIfCanEnterMassBoss(id)
 	call_appd_teleport(player:GetScenedFD(), player:GetGuid(), x, y, mapid, ''..id)
 	
 	player:AddActiveItem(VITALITY_TYPE_MASS_BOSS)
+	self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES, {})
 end
 
 --组队副本
@@ -903,6 +904,75 @@ end
 
 -------------------------------------------------------------------------------
 
+
+-------------------------------------------------------------------------------
+--个人BOSS
+
+function AppInstanceMgr:GetPrivateBossRecoverTime(index)
+	return self:GetUInt32(INSTANCE_INT_FIELD_PRIVATE_BOSS_RECOVER_TIME_START + index)
+end
+
+function AppInstanceMgr:SetPrivateBossRecoverTime(index,value)
+	self:SetUInt32(INSTANCE_INT_FIELD_PRIVATE_BOSS_RECOVER_TIME_START + index,value)
+end
+
+function AppInstanceMgr:checkIfCanEnterPrivateBoss(id)
+	local config = tb_private_boss_info[ id ]
+	local player = self:getOwner()
+	
+	-- 判断等级是否足够
+	if player:GetLevel() < config.permitLevel then
+		outFmtError("checkIfCanEnterPrivateBoss no level to enter id = %s", id)
+		return
+	end
+	
+	local now_time = os.time()
+	local recover_time = self:GetPrivateBossRecoverTime(id - 1)
+	
+	if now_time < recover_time - (config.rebornTime * 60 * (config.maxTimes - 1)) then
+		outFmtError("checkIfCanEnterPrivateBoss boss not recover to enter id = %s", id)
+		return
+	end
+	
+	local buffeffectId = 0
+	local force_range = math.floor(player:GetForce() / config.force * 100)
+	for _,info in ipairs(tb_private_boss_buff) do
+		if info.force_range_right == -1 then
+			if force_range >= info.force_range_left then
+				buffeffectId = info.buffeffect_id
+				break
+			end
+		else
+			if force_range >= info.force_range_left and force_range <= info.force_range_right then
+				buffeffectId = info.buffeffect_id
+				break
+			end
+		end
+	end
+	
+	local x 	= config.enterPos[ 1 ]
+	local y 	= config.enterPos[ 2 ]
+	local mapid = config.mapId
+	
+	-- 发起传送
+	call_appd_teleport(player:GetScenedFD(), player:GetGuid(), x, y, mapid, ''..id..'|'..buffeffectId..'|'..os.time())
+	
+	--player:AddActiveItem(VITALITY_TYPE_MASS_BOSS)
+end
+
+function AppInstanceMgr:updatePrivateBossRecoverTime(id)
+	local config = tb_private_boss_info[ id ]
+	
+	local now_time = os.time()
+	local recover_time = self:GetPrivateBossRecoverTime(id - 1)
+	if now_time < recover_time then
+		self:SetPrivateBossRecoverTime(id - 1,recover_time + config.rebornTime * 60)
+	else
+		self:SetPrivateBossRecoverTime(id - 1,now_time + config.rebornTime * 60)
+	end
+end
+
+-------------------------------------------------------------------------------
 
 
 -- 获得玩家guid

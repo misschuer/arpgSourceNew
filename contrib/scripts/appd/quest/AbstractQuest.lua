@@ -56,6 +56,7 @@ end
 
 -- (次数)类的更新
 function AbstractQuest:OnUpdateModeTimes(playerInfo, start, offset, params)
+	params = params or {}
 	local questMgr = playerInfo:getQuestMgr()
 	local quest_ptr = questMgr.ptr
 	local cnt = params[ 1 ] or 1

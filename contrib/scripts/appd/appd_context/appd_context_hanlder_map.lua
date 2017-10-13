@@ -262,5 +262,9 @@ hanlders[CMSG_RISK_GET_RANK] = PlayerInfo.Handle_Get_Risk_Reward
 hanlders[CMSG_USE_MONEYTREE] = PlayerInfo.Handle_Use_Moneytree
 hanlders[CMSG_GET_MONEYTREE_GIFT] = PlayerInfo.Handle_Get_Moneytree_Gift
 
+hanlders[CMSG_SET_WORLD_RISK_LAST_ID] = PlayerInfo.Handle_Set_World_Risk_Last_Id
+
+hanlders[CMSG_ENTER_PRIVATE_BOSS] = PlayerInfo.Handle_Enter_Private_Boss
+
 
 return hanlders

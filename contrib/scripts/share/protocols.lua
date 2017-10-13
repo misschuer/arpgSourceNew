@@ -370,6 +370,8 @@ SMSG_RISK_GET_RANK_RESULT		= 405	-- /*世界冒险排行榜信息 */
 CMSG_SET_ORIENT		= 406	-- /*设置朝向*/	
 CMSG_USE_MONEYTREE		= 407	-- /*摇动摇钱树*/	
 CMSG_GET_MONEYTREE_GIFT		= 408	-- /*领取摇钱树礼包*/	
+CMSG_SET_WORLD_RISK_LAST_ID		= 409	-- /*修改幻境最后进入id*/	
+CMSG_ENTER_PRIVATE_BOSS		= 410	-- /*进入个人Boss*/	
 
 
 ---------------------------------------------------------------------
@@ -13347,6 +13349,64 @@ function Protocols.unpack_get_moneytree_gift (pkt)
 end
 
 
+-- /*修改幻境最后进入id*/	
+function Protocols.pack_set_world_risk_last_id ( id)
+	local output = Packet.new(CMSG_SET_WORLD_RISK_LAST_ID)
+	output:writeU32(id)
+	return output
+end
+
+-- /*修改幻境最后进入id*/	
+function Protocols.call_set_world_risk_last_id ( playerInfo, id)
+	local output = Protocols.	pack_set_world_risk_last_id ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*修改幻境最后进入id*/	
+function Protocols.unpack_set_world_risk_last_id (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*进入个人Boss*/	
+function Protocols.pack_enter_private_boss ( id)
+	local output = Packet.new(CMSG_ENTER_PRIVATE_BOSS)
+	output:writeU32(id)
+	return output
+end
+
+-- /*进入个人Boss*/	
+function Protocols.call_enter_private_boss ( playerInfo, id)
+	local output = Protocols.	pack_enter_private_boss ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*进入个人Boss*/	
+function Protocols.unpack_enter_private_boss (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
 
 function Protocols:SendPacket(pkt)
 	external_send(self.ptr_player_data or self.ptr, pkt.ptr)
@@ -13709,6 +13769,8 @@ function Protocols:extend(playerInfo)
 	playerInfo.call_set_orient = self.call_set_orient
 	playerInfo.call_use_moneytree = self.call_use_moneytree
 	playerInfo.call_get_moneytree_gift = self.call_get_moneytree_gift
+	playerInfo.call_set_world_risk_last_id = self.call_set_world_risk_last_id
+	playerInfo.call_enter_private_boss = self.call_enter_private_boss
 end
 
 local unpack_handler = {
@@ -14068,6 +14130,8 @@ local unpack_handler = {
 [CMSG_SET_ORIENT] =  Protocols.unpack_set_orient,
 [CMSG_USE_MONEYTREE] =  Protocols.unpack_use_moneytree,
 [CMSG_GET_MONEYTREE_GIFT] =  Protocols.unpack_get_moneytree_gift,
+[CMSG_SET_WORLD_RISK_LAST_ID] =  Protocols.unpack_set_world_risk_last_id,
+[CMSG_ENTER_PRIVATE_BOSS] =  Protocols.unpack_enter_private_boss,
 
 }
 

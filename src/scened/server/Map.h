@@ -153,7 +153,7 @@ public:
 	void UnSetMapSite(float x, float y);	//战利品网格设置为未用
 
 	bool AddCreature(Creature *creature);
-	Creature *AddCreature(uint32,float,float,float toward = 0.0f,uint32 respan_time = 0, uint32 movetype=0, uint32 npcflag = 0, const char *alias_name = NULL,bool active_grid = false, uint8 faction = 0,const char *ainame = NULL,uint32 level = 0, uint32 attackType = 0); 
+	Creature *AddCreature(uint32,float,float,float toward = 0.0f,uint32 respan_time = 0, uint32 movetype=0, uint32 npcflag = 0, const char *alias_name = NULL,bool active_grid = false, uint8 faction = 0,const char *ainame = NULL,uint32 level = 0, uint32 attackType = 0, uint32 riskId = 0); 
 	Creature * AddCreatureTravelers(string &data,float x,float y, uint32 movetype=0,const char *alias_name = NULL);		//别的图传过来的怪物
 
 	void ToDelCreature(Creature *creature);

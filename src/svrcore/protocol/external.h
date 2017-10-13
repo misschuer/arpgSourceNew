@@ -366,6 +366,8 @@ enum Opcodes
 	CMSG_SET_ORIENT		= 406,	/*设置朝向*/	//set_orient
 	CMSG_USE_MONEYTREE		= 407,	/*摇动摇钱树*/	//use_moneytree
 	CMSG_GET_MONEYTREE_GIFT		= 408,	/*领取摇钱树礼包*/	//get_moneytree_gift
+	CMSG_SET_WORLD_RISK_LAST_ID		= 409,	/*修改幻境最后进入id*/	//set_world_risk_last_id
+	CMSG_ENTER_PRIVATE_BOSS		= 410,	/*进入个人Boss*/	//enter_private_boss
 	NUM_MSG_TYPES
 };
 
@@ -1759,6 +1761,12 @@ TEA_SVRCORE_API  int   unpack_use_moneytree (packet *src );
 /*领取摇钱树礼包*/
 TEA_SVRCORE_API	int   pack_get_moneytree_gift (packet**dst ,uint32 id);
 TEA_SVRCORE_API  int   unpack_get_moneytree_gift (packet *src ,uint32 *id);
+/*修改幻境最后进入id*/
+TEA_SVRCORE_API	int   pack_set_world_risk_last_id (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_set_world_risk_last_id (packet *src ,uint32 *id);
+/*进入个人Boss*/
+TEA_SVRCORE_API	int   pack_enter_private_boss (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_enter_private_boss (packet *src ,uint32 *id);
 /*rand send msg*/
 TEA_SVRCORE_API	int   pack_rand_send_msg (packet**dst ,const char* msg);
 #ifdef __cplusplus
@@ -6531,6 +6539,32 @@ __INLINE__ int Call_use_moneytree (Delegate_Sendpackt SendPacket )
 __INLINE__ int Call_get_moneytree_gift (Delegate_Sendpackt SendPacket ,uint32 id)
 {
 	packet *dst = external_protocol_new_packet(CMSG_GET_MONEYTREE_GIFT);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*修改幻境最后进入id*/
+__INLINE__ int Call_set_world_risk_last_id (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_SET_WORLD_RISK_LAST_ID);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*进入个人Boss*/
+__INLINE__ int Call_enter_private_boss (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_ENTER_PRIVATE_BOSS);
 		
 	packet_write(dst,(char *)&id,sizeof(uint32));
 	update_packet_len(dst);

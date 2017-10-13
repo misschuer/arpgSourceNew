@@ -60,6 +60,8 @@ require("appd.quest.QuestActiveTask")
 require("appd.quest.QuestDailyTask")
 require("appd.quest.QuestGemTotalLevel")
 require("appd.quest.QuestWingsBlessTimes")
+require("appd.quest.QuestMoneytreeTimes")
+require("appd.quest.QuestJoinMassBossTimes")
 
 -- 这个一定要放到最后
 require("appd.quest.QuestManager")

@@ -8,6 +8,7 @@ function PlayerInfo:Handle_Add_Friend(pkt)
 	self:ApplyFriend(guid)
 end
 
+--need fix 相似名字都会发申请
 function PlayerInfo:Handle_Add_Friend_ByName(pkt)
 	local name = pkt.name
 	if name == nil then
@@ -15,10 +16,21 @@ function PlayerInfo:Handle_Add_Friend_ByName(pkt)
 	end
 	local flag = false
 	
+	local callback = function(player)
+		local val = player:GetName()
+		local arry = string.split(val, ',')
+		return string.equals(arry[#arry], name)
+	end
+	
+	if app.objMgr:IsPlayerGuid(name) then
+		callback = function(player)
+			local guid = player:GetGuid()
+			return string.equals(guid, name)
+		end
+	end
+	
 	app.objMgr:foreachAllPlayer(function(player)
-		local pname = player:GetName()
-		local _, q= string.find(pname, name)  
-		if q ~= nil and q == #pname then
+		if callback(player) then
 			self:ApplyFriend(player:GetGuid())
 			flag = true
 		end

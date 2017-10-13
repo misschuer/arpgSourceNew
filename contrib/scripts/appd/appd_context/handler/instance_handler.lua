@@ -87,3 +87,13 @@ end
 function PlayerInfo:Handle_Get_Risk_Reward(pkt)
 	globalCounter:getRiskRank(self)
 end
+
+function PlayerInfo:Handle_Enter_Private_Boss(pkt)
+	local id = pkt.id
+	
+	if not tb_private_boss_info[id] then
+		return
+	end
+	
+	self:checkPrivateBossMapTeleport(id)
+end

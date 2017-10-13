@@ -829,3 +829,30 @@ function rewardsAddExtraAndClone(rewards, extra)
 	
 	return list
 end
+
+--获取实际下标和偏移量
+function getRealOffset(offset,seg)
+	local index = math.floor(offset/seg)
+	offset = offset % seg
+	return index,offset
+end
+
+function print2DList(list)
+	outFmtDebug("{")
+	for _, element in ipairs(list) do
+		outFmtDebug("%s", list1DToString(element))
+	end
+	outFmtDebug("}")
+end
+
+function list1DToString(list)
+	local str = "{"
+	if #list > 0 then
+		str = str .. tostring(list[ 1 ])
+	end
+	for i = 2, #list do
+		str = ", " .. str .. tostring(list[ i ])
+	end
+	str = str .. "}"
+	return str
+end

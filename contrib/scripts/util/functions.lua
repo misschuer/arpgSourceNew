@@ -458,6 +458,10 @@ function string.split(str, delimiter)
     return arr
 end
 
+function string.equals(str1, str2)
+	return #str1 == #str2 and string.find(str1, str2)
+end
+
 --用惯了python的join函数,还是这样看着养眼
 function string.join( delimiter, tbl)
     return table.concat(tbl, delimiter)

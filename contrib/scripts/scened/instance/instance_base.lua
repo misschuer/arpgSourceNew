@@ -682,7 +682,10 @@ Instance_base = {
 
 	--当玩家离开时触发
 	OnLeavePlayer = function(self, player, is_offline)
-	
+		local playerInfo = UnitInfo:new{ptr = player}
+		local mapid = self:GetMapId()
+		local sub_type = tb_map[mapid].inst_sub_type
+		playerInfo:SetLastInstanceType(sub_type)
 	end,
 	
 	--地图需要清空人时要做的事
@@ -1131,9 +1134,9 @@ Instance_base = {
 	end,
 	
 	-- 设置属性
-	SetCreaturePro = function(self, creature, pros, bRecal, mul)
+	SetCreaturePro = function(self, creatureInfo, pros, bRecal, mul)
 		mul = mul or 1
-		creature:SetBaseAttrs(pros, bRecal, mul)
+		creatureInfo:SetBaseAttrs(pros, bRecal, mul)
 	end,
 	
 	-- 设置技能

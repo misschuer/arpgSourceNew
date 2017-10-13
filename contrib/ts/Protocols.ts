@@ -722,6 +722,10 @@ class Protocols {
 	public static  CMSG_USE_MONEYTREE :number = 407;	//use_moneytree
 	/*领取摇钱树礼包*/
 	public static  CMSG_GET_MONEYTREE_GIFT :number = 408;	//get_moneytree_gift
+	/*修改幻境最后进入id*/
+	public static  CMSG_SET_WORLD_RISK_LAST_ID :number = 409;	//set_world_risk_last_id
+	/*进入个人Boss*/
+	public static  CMSG_ENTER_PRIVATE_BOSS :number = 410;	//enter_private_boss
 	private _FUNCS:Object = new Object();
 		
 		/**
@@ -1006,6 +1010,8 @@ class Protocols {
 		this._FUNCS[406] = "set_orient";
 		this._FUNCS[407] = "use_moneytree";
 		this._FUNCS[408] = "get_moneytree_gift";
+		this._FUNCS[409] = "set_world_risk_last_id";
+		this._FUNCS[410] = "enter_private_boss";
 	}
 		
 	public null_action ():void{
@@ -3242,6 +3248,22 @@ class Protocols {
 		this._stream.optcode = 408;
 		this._stream.writeUint16( 408 );
 			//礼包id
+		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public set_world_risk_last_id ( id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 409;
+		this._stream.writeUint16( 409 );
+			//幻境id
+		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public enter_private_boss ( id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 410;
+		this._stream.writeUint16( 410 );
+			//Bossid
 		this._stream.writeUint32 (id);		
 		this._send_func(this._stream);			
 	}

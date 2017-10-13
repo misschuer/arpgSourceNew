@@ -5,11 +5,14 @@
 
 tb_activity_rank_process_reward = {
 	--  id:int 序号
-	--  item:array 道具
+	--  item:array 进度奖励道具
 	[1] = {id = 1, item = {{211,10}}},
 	[2] = {id = 2, item = {{211,20}}},
 	[3] = {id = 3, item = {{211,30}}},
 	[4] = {id = 4, item = {{211,40}}},
 	[5] = {id = 5, item = {{211,50}}},
 	[6] = {id = 6, item = {{211,60}}},
+	[7] = {id = 7, item = {{233,100}}},
+	[8] = {id = 8, item = {{233,300}}},
+	[9] = {id = 9, item = {{233,500}}},
 }

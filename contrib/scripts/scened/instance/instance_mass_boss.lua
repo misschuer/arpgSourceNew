@@ -143,6 +143,10 @@ function InstanceMassBoss:OnLeavePlayer( player, is_offline)
 	InstanceInstBase.OnLeavePlayer(self, player, is_offline)
 	local id = self:GetMassBossId()
 	InstanceMassBoss.enterCount[ id ] = InstanceMassBoss.enterCount[ id ] - 1
+	
+	local playerInfo = UnitInfo:new{ptr = player}
+	
+	playerInfo:SetLastInstanceParam(id)
 end
 
 -- µ±ÕÊº“À¿Õˆ∫Û

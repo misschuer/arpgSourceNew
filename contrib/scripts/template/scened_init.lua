@@ -139,9 +139,16 @@ require("template.tables.tb_script_base")
 require("template.tables.tb_mail")
 require("template.tables.tb_job_info")
 require("template.tables.tb_doujiantai_combat_win")
+require("template.tables.tb_creature_worldrisk")
 
 --vip
 require("template.tables.tb_vip_base")
+
+
+--个人Boss
+require("template.tables.tb_private_boss_base")
+require("template.tables.tb_private_boss_info")
+require("template.tables.tb_private_boss_buff")
 
 for _, ctInfo in pairs(tb_creature_template) do
 	local ps = string.split(ctInfo.spell, ',')

@@ -259,3 +259,23 @@ function PlayerInfo:checkMassBossMapTeleport(id)
 	local instMgr = self:getInstanceMgr()
 	instMgr:checkIfCanEnterMassBoss(id)
 end
+
+
+--------------------------------------
+--个人BOSS
+
+function PlayerInfo:checkPrivateBossMapTeleport(id)
+	-- 模块没开 不让进
+	--if not self:GetOpenMenuFlag(MODULE_BOSS, MODULE_BOSS_RISK_BOSS) then
+	--	return
+	--end
+	
+	local instMgr = self:getInstanceMgr()
+	instMgr:checkIfCanEnterPrivateBoss(id)
+end
+
+function PlayerInfo:onPrivateBossWin(id)
+	
+	local instMgr = self:getInstanceMgr()
+	instMgr:updatePrivateBossRecoverTime(id)
+end

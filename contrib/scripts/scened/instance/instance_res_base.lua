@@ -276,6 +276,10 @@ function InstanceResBase:OnLeavePlayer( player, is_offline)
 		self:RemoveTimeOutCallback(self.Leave_Callback)
 		self:SetMapEndTime(os.time())
 	end
+	
+	local playerInfo = UnitInfo:new{ptr = player}
+	
+	playerInfo:SetLastInstanceParam(self:GetIndex())
 end
 
 -- 当进度更新时调用
@@ -350,21 +354,33 @@ function InstanceResBase:RefreshBoss(player)
 	creatureLib.ModifyThreat(creature, player.ptr, self.THREAT_V)
 end
 
-function InstanceResBase:SetCreaturePro(creature, pros, bRecal, mul)
+function InstanceResBase:SetCreaturePro(creatureInfo, pros, bRecal, mul)
 	--outFmtDebug("SetBaseAttrs -- ai res ")
 	--creature:SetBaseAttrs(pros, bRecal, mul)
-	local entry = creature:GetEntry()
-	local lev = creature:GetLevel()
+	local entry = creatureInfo:GetEntry()
+	local lev = creatureInfo:GetLevel()
 	local idx = entry * 1000 + lev
 	--outFmtDebug("SetBaseAttrs -- ai res %d--%d--%d",entry,lev,idx)
 	local config = tb_creature_resource[idx]
 	if config then
 		--outFmtDebug("shu xing")
-		Instance_base.SetCreaturePro(self, creature, config.pro, bRecal, mul)
+		Instance_base.SetCreaturePro(self, creatureInfo, config.pro, bRecal, mul)
 	else 
-		Instance_base.SetCreaturePro(self, creature, pros, bRecal, mul)
+		Instance_base.SetCreaturePro(self, creatureInfo, pros, bRecal, mul)
 	end
 	
+end
+
+function InstanceResBase:DoGetCreatureBaseExp(creature, owner)
+	local entry = binLogLib.GetUInt16(creature, UNIT_FIELD_UINT16_0, 0)
+	local level = binLogLib.GetUInt16(creature, UNIT_FIELD_UINT16_0, 1)
+	local index = entry * 1000 + level
+	local config = tb_creature_resource[index]
+	
+	if config then
+		return config.exp
+	end
+	return tb_creature_template[entry].exp
 end
 
 -------------------------------- BOSS
