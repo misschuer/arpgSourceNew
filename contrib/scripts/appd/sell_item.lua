@@ -55,7 +55,7 @@ end
 @player:玩家对象
 @flag:强制整理
 ]]
-function SortItem(player,flag)
+function SortItem(player,flag,bagType)
 	local nowtime = os.time()
 	local lasttime = player:GetBagSortTime()
 	
@@ -67,8 +67,16 @@ function SortItem(player,flag)
 	if not flag then
 		player:SetBagSortTime(nowtime)
 	end
+	bagType = bagType or -1 
+	local bags = {}
+	if bagType == -1 then
+		bags = {BAG_TYPE_MAIN_BAG,BAG_TYPE_EQUIP_BAG}
+	else
+		bags = {bagType}
+	end
 	
-	for _,bag_type in pairs({BAG_TYPE_MAIN_BAG,BAG_TYPE_EQUIP_BAG}) do
+	
+	for _,bag_type in pairs(bags) do
 		
 		local itemMgr = player:getItemMgr()
 		local items = itemMgr:getBagAllItem(bag_type)
@@ -86,7 +94,7 @@ function SortItem(player,flag)
 		local tempTable = {}
 		for pos, item in pairsByKeys(items) do
 			
-			local value1 = tb_item_template[item:getEntry()].rank --等级(降序) 品质(降序)  类型(升序)  战力(降序)  获取时间(降序)  entry(升序) 
+			local value1 = tb_item_template[item:getEntry()].rank --等级(降序) 品质(降序)  类型(升序) 位置(升序) 战力(降序)  获取时间(降序)  entry(升序) 数量(降序)
 			local value2 = tb_item_template[item:getEntry()].quality
 			local value3 = tb_item_template[item:getEntry()].type_c
 			local value3_1 = tb_item_template[item:getEntry()].pos
@@ -94,11 +102,11 @@ function SortItem(player,flag)
 			local value5 = 0
 			local value6 = item:getEntry()
 			local value7 = item:getCount()
-			
+			local value99 = pos
 			-- 
 			local value = value4 + (99 - value3_1) * 100000+ (99-value3) * 10000000 + value2 * 1000000000+ value1 * 10000000000
 			--outFmtDebug("======= value4 = %d", value4)
-			table.insert(tempTable,{pos=pos,value = value,value1=value1,value2=value2,value3=value3,value3_1=value3_1,value4=value4,value5=value5,value6=value6,value7=value7})
+			table.insert(tempTable,{pos=pos,value = value,value1=value1,value2=value2,value3=value3,value3_1=value3_1,value4=value4,value5=value5,value6=value6,value7=value7,value99=value99})
 		end
 
 		--print("------------------------------")	
@@ -136,7 +144,11 @@ function SortItem(player,flag)
 				return a.value6 < b.value6
 			end
 			
-			return a.value7 > b.value7
+			if a.value7 ~= b.value7 then
+				return a.value7 > b.value7
+			end
+			
+			return a.value99 < b.value99
 		end
 		,function(a,b)
 			itemMgr:exchangePos(bag_type,a.pos,bag_type,b.pos)
@@ -175,6 +187,8 @@ function SortItem(player,flag)
 				
 			end
 		end
+		
+		--outFmtDebug("**************************")
 		local items = itemMgr:getBagAllItem(bag_type)
 		local index = 0
 		for pos, item in pairsByKeys(items) do      

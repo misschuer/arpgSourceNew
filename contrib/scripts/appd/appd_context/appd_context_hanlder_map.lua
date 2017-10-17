@@ -104,7 +104,6 @@ hanlders[CMSG_FACTION_MEMBER_OPERATE] = PlayerInfo.Handle_Faction_People
 hanlders[CMSG_FACTION_FAST_JOIN] = PlayerInfo.Handle_Faction_FastJoin
 
 
-hanlders[CMSG_WORLD_BOSS_ENROLL] = PlayerInfo.Handle_World_Boss_Enroll
 
 ---------------------------
 hanlders[CMSG_RANK_ADD_LIKE] = PlayerInfo.Handle_Rank_Like
@@ -153,8 +152,6 @@ hanlders[CMSG_USE_VIRTUAL_ITEM] = PlayerInfo.Handle_Use_Virtual_Item
 hanlders[CMSG_KUAFU_XIANFU_MATCH]	= PlayerInfo.Handle_Kuafu_Xianfu_Match
 
 hanlders[CMSG_BUY_XIANFU_ITEM] = PlayerInfo.Handle_Buy_Xianfu_Item
-
-hanlders[CMSG_DOUJIANTAI_FIGHT] = PlayerInfo.Handle_Doujiantai_Fight
 
 hanlders[CMSG_DOUJIANTAI_BUYTIME] = PlayerInfo.Handle_Doujian_BuyTimes
 
@@ -264,7 +261,7 @@ hanlders[CMSG_GET_MONEYTREE_GIFT] = PlayerInfo.Handle_Get_Moneytree_Gift
 
 hanlders[CMSG_SET_WORLD_RISK_LAST_ID] = PlayerInfo.Handle_Set_World_Risk_Last_Id
 
-hanlders[CMSG_ENTER_PRIVATE_BOSS] = PlayerInfo.Handle_Enter_Private_Boss
+--hanlders[CMSG_ENTER_PRIVATE_BOSS] = PlayerInfo.Handle_Enter_Private_Boss
 
 
 return hanlders

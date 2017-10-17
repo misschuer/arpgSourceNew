@@ -407,6 +407,8 @@ public:
 
 	static int LuaSendToAppdDoSomething(lua_State* scriptL);	//发送到场景服进行进入逻辑判断
 
+	static int LuaSendToAppdAddOfflineMail(lua_State* scriptL);
+
 	static int LuaGetAllPlayerNearBy(lua_State *scriptL);	//获取附近的玩家
 
 	static int LuaSetPlayerEnterOrigin(lua_State *scriptL);	// 设置玩家的进入副本的位置

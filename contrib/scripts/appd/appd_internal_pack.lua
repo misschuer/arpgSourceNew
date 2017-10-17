@@ -148,6 +148,16 @@ function unpack_send_to_appd_do_something( pkt )
 	return true, player_guid, ntype, data,	str
 end
 
+function unpack_send_to_appd_add_offline_mail( pkt )
+	local ret, player_guid, str
+	ret, player_guid = pkt:readUTF()
+	if not ret then return false end
+	ret, str = pkt:readUTF()
+	if not ret then return false end
+	
+	return true, player_guid, str
+end
+
 function unpack_scened_send_notice( pkt )
 	local ret, id, content, data
 	ret, id = pkt:readU32()

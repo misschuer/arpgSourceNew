@@ -105,11 +105,6 @@ function ScenedContext:Hanlde_Stop_Hung_Up(pkt)
 	end
 end
 
---副本挂机操作
-function ScenedContext:Hanlde_Fuben_Hung_Up(packet)	
-	self:DoFubenHungUp(packet.ntype, packet.count, packet.param)
-end
-
 -- 查询副本信息
 function ScenedContext:Hanlde_Query_Fuben_Info(packet)
 	local type = packet.type
@@ -141,35 +136,6 @@ end
 -- 开始使用游戏对象
 function ScenedContext:Hanlde_Use_Gameobject_Start(packet)	
 	self:StartUseGameObject()
-end
-
---接受其他任务
-function ScenedContext:Hanlde_Receive_Other_Quest(packet)	
-	if(packet.type == QUEST_TYPE_TOKEN)then --江湖密令任务
-		self:DoAcceptTokenQuset()
-	elseif(packet.type == QUEST_TYPE_XUANSHANG)then --悬赏任务
-		self:DoAcceptXuanShangQuset()
-	end
-end
-
---完成其他任务
-function ScenedContext:Hanlde_Complete_Other_Quest(packet)	
-	if(packet.type == QUEST_TYPE_TOKEN)then --江湖密令任务
-		self:DoCompleteTokenQuset(packet.quest_id,packet.item_guid,packet.reserve)
-	end
-end		
-
--- 全屏秒杀操作
-function ScenedContext:Hanlde_Instance_All_Kill_Opt(packet)
-	local player_ptr = self.ptr
-	local map_ptr = unitLib.GetMap(player_ptr)
-	local allCreatures = mapLib.GetAllCreature(map_ptr)
-	if(#allCreatures > 0)then
-		playerLib.SendToAppdDoSomething(player_ptr, SCENED_APPD_ALL_KILL_SUB_MONEY)
-	else
-		--下发错误提示
-		self:CallOptResult(OPERTE_TYPE_FUBEN, FUBEN_OPRATE_NO_CREATURES)
-	end
 end
 
 JUMP_SKILL = 10001
@@ -390,80 +356,6 @@ function ScenedContext:Hanlde_Teleport( pkt )
 	Script_WorldMap_Teleport(self, pkt.map_id, pkt.pos_x, pkt.pos_y)
 end
 
---打boss传送
-function ScenedContext:Hanlde_DaBoss_Teleport( pkt )
-	local player_ptr = self.ptr
-	local map_ptr = unitLib.GetMap(player_ptr)
-	if not map_ptr then return end
-	local mapid = unitLib.GetMapID(player_ptr)
-	local mapInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
-	--玩家不在世界地图,不让传
-	if mapInfo:GetInstanceType() ~= 0 then
-		outFmtError("CMSG_DABOSS_TELEPORT player %s not in worldmap, curmapid %d!", self:GetPlayerGuid(), mapid)
-		return
-	end
-	--玩家必须还活着
-	if not self:IsAlive() then
-		outFmtError("CMSG_DABOSS_TELEPORT player %s is not alive!", self:GetPlayerGuid())
-		return 
-	end
-	
-	--pvp状态下一律不准进
-	if(self:GetPVPState())then
-		outFmtError("CMSG_DABOSS_TELEPORT player %s is pvp state!", self:GetPlayerGuid())
-		return
-	end
-	
-	local teleport_count = self:GetDaBossTeleportCount()
-	if teleport_count >= 50 then
-		outFmtError("CMSG_DABOSS_TELEPORT teleport_count is %d", self:GetDaBossTeleportCount())
-		return
-	end
-	teleport_count = teleport_count + 1
-	self:SetDaBossTeleportCount(teleport_count)
-	playerLib.Teleport(player_ptr, pkt.map_id, pkt.pos_x, pkt.pos_y)
-	
-end
-
-
---BOSS掉落记录查询
-function ScenedContext:Handle_Boss_Drop_Record_Query( pkt )
-	local event = {}	
-	for i = 1, MAX_DROP_RECORD_INFO_COUNT do
-		local ret, player_guid, player_name, item_entry, boss_entry, map_id, tm ,boss_level ,map_cs = globalCounter:GetBossDropRecordInfo( i - 1 )
-		if ret then
-			local e = boss_drop_event_t.new()
-			e.player_guid = player_guid
-			e.player_name = player_name
-			e.item_entry = item_entry
-			e.boss_entry = boss_entry
-			e.map_id = map_id
-			e.time = tm
-			e.boss_level = boss_level
-			e.map_cs = map_cs
-			table.insert( event, e)
-		end
-	end
-	self:call_boss_drop_event_query_result( event )
-end
-
---查询上次击杀BOSS的玩家信息
-function ScenedContext:Handle_Query_Kill_Boss_Playername( pkt )
-	local entry = pkt.boss_entry
-	if entry == 0 then
-		outFmtError("Handle_Query_Kill_Boss_Playername:  boss_entry:%d",entry )
-		return
-	end 
-	--查找被杀BOSS模板位置
-	local cursor = globalCounter:FindKillBossPosition( entry )
-	local boss_entry, player_name
-	if cursor ~= -1 then 
-		boss_entry, player_name = globalCounter:GetKillBossInfo(cursor)
-	else
-		boss_entry, player_name = entry, ""		
-	end	
-	self:call_query_kill_boss_playername(boss_entry, player_name)
-end
 
 --请求BUFF处理
 function ScenedContext:Hanlde_Ask_For_Buff( pkt )
@@ -472,82 +364,6 @@ function ScenedContext:Hanlde_Ask_For_Buff( pkt )
 		ClearBuffFlags(self.ptr, pkt.data)
 	end
 end
-
---进入日常副本
-function ScenedContext:Hanlde_Enter_Daily_Instance( pkt )
-	local player_ptr = self.ptr
-	local map_ptr = unitLib.GetMap(player_ptr)
-	if not map_ptr then return end
-	local mapid = unitLib.GetMapID(player_ptr)
-	local mapInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
-	--玩家不在世界地图,不让传
-	if mapInfo:GetInstanceType() ~= 0 then
-		outFmtError("CMSG_ENTER_DAILY_INSTANCE player %s not in worldmap, curmapid %d!", self:GetPlayerGuid(), mapid)
-		return
-	end
-	--玩家必须还活着
-	if not self:IsAlive() then
-		outFmtError("CMSG_ENTER_DAILY_INSTANCE player %s is not alive!", self:GetPlayerGuid())
-		return 
-	end
-	--pvp状态下一律不准进
-	if self:GetPVPState() then
-		outFmtError("CMSG_ENTER_DAILY_INSTANCE player %s is pvp state!", self:GetPlayerGuid())
-		return
-	end
-	--发到应用服其他校验、及扣除材料
-	playerLib.SendToAppdDoSomething(player_ptr, SCENED_APPD_ENTER_DAILY_INSTANCE, pkt.map_id)
-end
-
---进入塞外伏击副本
-function ScenedContext:Hanlde_Enter_Swfj_Instance( pkt )
-	local player_ptr = self.ptr
-	local map_ptr = unitLib.GetMap(player_ptr)
-	if not map_ptr then return end
-	local mapid = unitLib.GetMapID(player_ptr)
-	local mapInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
-	--玩家不在世界地图,不让传
-	if mapInfo:GetInstanceType() ~= 0 then
-		outFmtError("CMSG_ENTER_DAILY_INSTANCE player %s not in worldmap, curmapid %d!", self:GetPlayerGuid(), mapid)
-		return
-	end
-	--玩家必须还活着
-	if not self:IsAlive() then
-		outFmtError("CMSG_ENTER_DAILY_INSTANCE player %s is not alive!", self:GetPlayerGuid())
-		return 
-	end
-	--pvp状态下一律不准进
-	if self:GetPVPState() then
-		outFmtError("CMSG_ENTER_DAILY_INSTANCE player %s is pvp state!", self:GetPlayerGuid())
-		return
-	end
-	
-	--次数判断
-	if self:GetSwfjEnterCount() >= tb_swfj[151].num then
-		outFmtError("CMSG_ENTER_DAILY_INSTANCE enter count %s is max", self:GetSwfjEnterCount())
-		return
-	end
-	
-	local to_mapid = 151
-	playerLib.Teleport(player_ptr, to_mapid, tb_map_info[to_mapid].into_point[1], tb_map_info[to_mapid].into_point[2])	
-end
-
---塞外伏击领取经验
-function ScenedContext:Hanlde_Get_Swfj_Instance_Reward( pkt )
-	local mapid = unitLib.GetMapID(self.ptr)
-	if not tb_swfj[mapid] then return end
-	local map_ptr = unitLib.GetMap(self.ptr)
-	if not map_ptr then return end
-	local mapInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
-	
-	--不在领奖励阶段
-	if mapInfo:GetMapState() ~= mapInfo.STATE_GET_EXP then
-		return
-	end
-	--发到应用服其他校验、及扣除材料
-	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_SWFJ_INSTANCE_AWARD_SUB_MONEY, pkt.get_type)
-end
-
 
 --进入VIP副本
 function ScenedContext:Hanlde_Enter_VIP_Instance( pkt )
@@ -566,7 +382,7 @@ function ScenedContext:Hanlde_Enter_VIP_Instance( pkt )
 	if not map_ptr then 
 		return
 	end
-	
+	local mapid = unitLib.GetMapID(self.ptr)
 	local toMapId = tb_map_vip[id].mapid
 	
 	-- 玩家必须还活着
@@ -581,7 +397,7 @@ function ScenedContext:Hanlde_Enter_VIP_Instance( pkt )
 	end
 	
 	-- 是否允许传送
-	if not self:makeEnterTest(toMapId) then
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
 --		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
 		return
 	end
@@ -614,7 +430,7 @@ function ScenedContext:Hanlde_Enter_Trial_Instance(pkt)
 	
 	local mapid = unitLib.GetMapID(self.ptr)
 	-- 是否允许传送
-	if mapid ~= toMapId and not self:makeEnterTest(toMapId) then
+	if mapid ~= toMapId and not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
 --		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
 		return
 	end
@@ -660,6 +476,70 @@ function ScenedContext:Hanlde_Enter_Risk_Instance(pkt)
 	self:teleportWorldRisk()
 end
 
+function ScenedContext:Handle_Doujiantai_Fight( pkt )
+	local rank = pkt.rank
+	-- 不再挑战名次内
+	if rank < 0 or rank >= 3 then
+		return
+	end
+
+	local map_ptr = unitLib.GetMap(self.ptr)
+	if not map_ptr then 
+		return
+	end
+	
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		outFmtError("Handle_Doujiantai_Fight player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+
+	local mapid = unitLib.GetMapID(self.ptr)
+	-- 是否允许传送
+	if tb_map[mapid].is_instance == 1 and isRiskMap(mapid) == 0 then
+--		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
+		return
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return
+	end
+	
+	--发到应用服进行进入判断
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_DOUJIANTAI_INSTANCE, rank)
+end
+
+function ScenedContext:Handle_WorldBoss_Enroll(pkt)
+	local map_ptr = unitLib.GetMap(self.ptr)
+	if not map_ptr then 
+		return
+	end
+	
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		outFmtError("Handle_WorldBoss_Enroll player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+
+	local mapid = unitLib.GetMapID(self.ptr)
+	-- 是否允许传送
+	if tb_map[mapid].is_instance == 1 and isRiskMap(mapid) == 0 then
+--		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
+		return
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return
+	end
+	
+	--发到应用服进行进入判断
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_WORLD_BOSS_ENROLL, 0)
+end
+
 --进入资源副本
 function ScenedContext:Hanlde_Enter_Res_Instance( pkt )
 	
@@ -686,9 +566,9 @@ function ScenedContext:Hanlde_Enter_Res_Instance( pkt )
 	if tb_map[toMapId] == nil then
 		return
 	end
-	
+	local mapid = unitLib.GetMapID(self.ptr)
 	-- 是否允许传送
-	if not self:makeEnterTest(toMapId) then
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
 --		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
 		return
 	end
@@ -816,6 +696,12 @@ function ScenedContext:Handle_Challange_Boss(pkt)
 	-- 玩家必须还活着
 	if not self:IsAlive() then
 		return 
+	end
+	
+	-- 是否允许传送
+	if isRiskMap(mapid) == 0 then
+--		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
+		return
 	end
 	
 	local bossSectionId = tb_risk_data[sectionId].relateId
@@ -1023,13 +909,14 @@ function ScenedContext:Handle_Try_Mass_Boss (pkt)
 	end
 	
 	-- 人数是否超过上限
-	local currentCount = InstanceMassBoss.enterCount[ id ]
+	local currentCount = mapLib.GetMassBossEnterCount(id)
 	if currentCount > tb_mass_boss_info[ id ].permitCount then
 		return
 	end
 	
+	local mapid = unitLib.GetMapID(self.ptr)
 	-- 是否允许传送
-	if not self:makeEnterTest(toMapId) then
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
 		return
 	end
 	
@@ -1048,16 +935,11 @@ function ScenedContext:Handle_Query_Mass_Boss_Info(pkt)
 	if not tb_mass_boss_info[ id ] then
 		return
 	end
-	
-	local rankList = InstanceMassBoss.globalRankList[ id ]
-	local count = 0
+	local count = mapLib.GetBossDamageRankCount(id)
 	local rate = 100
-	if rankList then
-		count = #rankList
-	end
-	
-	if InstanceMassBoss.bossHpRate[ id ] then
-		rate = InstanceMassBoss.bossHpRate[ id ]
+	rate = mapLib.GetMassBossHpRate(id)
+	if rate == 0 then
+		rate = 100
 	end
 	
 	self:call_mass_boss_info_ret (count, rate)
@@ -1069,22 +951,45 @@ function ScenedContext:Handle_Query_Mass_Boss_Rank(pkt)
 		return
 	end
 	
-	local rankList = InstanceMassBoss.globalRankList[ id ]
-	local info = {}
-	if rankList then
-		local maxHP = InstanceMassBoss.bossMaxHp[id]
-		local len = math.min(10, #rankList)
-		for i = 1, len do
-			local datainfo = rankList[ i ]
-			local rank_info = mass_boss_rank_info_t .new()
-			rank_info.name = datainfo[ 1 ]
-			rank_info.dam = datainfo[ 2 ] * 100 / maxHP
-			table.insert(info, rank_info)
-		end
+	mapLib.ShowMassBossRank(self.ptr, id)
+end
+
+function ScenedContext:Handle_Enter_Private_Boss (pkt)
+	local id = pkt.id
+	
+	if not tb_private_boss_info[id] then
+		return
 	end
 	
-	self:call_mass_boss_rank_result (info)
+	local toMapId = tb_private_boss_info[id].mapId
+	
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		outFmtError("Handle_Enter_Private_Boss player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+
+	-- 该地图是否存在
+	if not tb_map[toMapId] then
+		return
+	end
+	
+	local mapid = unitLib.GetMapID(self.ptr)
+	-- 是否允许传送
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
+		return
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return
+	end
+	
+	--发到应用服进行进入判断
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_PRIVATE_BOSS_INSTANCE, id)
 end
+
 
 local OpcodeHandlerFuncTable = require 'scened.context.scened_context_handler_map'
 

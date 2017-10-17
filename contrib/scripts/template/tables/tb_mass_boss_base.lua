@@ -7,5 +7,7 @@ tb_mass_boss_base = {
 	--  id:int 序号
 	--  cd:int 回复次数时间
 	--  dailytimes:int 每日重置次数
-	[1] = {id = 1, cd = 60, dailytimes = 10},
+	--  name:string 邮件title
+	--  desc:string 邮件说明
+	[1] = {id = 1, cd = 60, dailytimes = 10, name = "全民BOSS奖励", desc = "您在全民BOSS中获得了奖励"},
 }

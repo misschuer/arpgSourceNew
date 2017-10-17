@@ -384,7 +384,7 @@ tb_drop_packet = {
 	[374] = {id = 374, itemKeys = {40025}, itemRates = {10000}, counts = {1}},
 	[375] = {id = 375, itemKeys = {224}, itemRates = {10000}, counts = {2000}},
 	[376] = {id = 376, itemKeys = {3}, itemRates = {10000}, counts = {50000}},
-	[377] = {id = 377, itemKeys = {223}, itemRates = {10000}, counts = {1500}},
+	[377] = {id = 377, itemKeys = {233}, itemRates = {10000}, counts = {1500}},
 	[378] = {id = 378, itemKeys = {3}, itemRates = {10000}, counts = {1500000}},
 	[379] = {id = 379, itemKeys = {1506}, itemRates = {10000}, counts = {1}},
 	[380] = {id = 380, itemKeys = {1507}, itemRates = {10000}, counts = {1}},

@@ -51,4 +51,10 @@ OpcodeHandlerFuncTable[CMSG_QUERY_MASS_BOSS_RANK] = ScenedContext.Handle_Query_M
 
 OpcodeHandlerFuncTable[CMSG_ENTER_RISK_INSTANCE] = ScenedContext.Hanlde_Enter_Risk_Instance
 
+OpcodeHandlerFuncTable[CMSG_DOUJIANTAI_FIGHT] = ScenedContext.Handle_Doujiantai_Fight
+
+OpcodeHandlerFuncTable[CMSG_WORLD_BOSS_ENROLL] = ScenedContext.Handle_WorldBoss_Enroll
+
+OpcodeHandlerFuncTable[CMSG_ENTER_PRIVATE_BOSS] = ScenedContext.Handle_Enter_Private_Boss
+
 return OpcodeHandlerFuncTable

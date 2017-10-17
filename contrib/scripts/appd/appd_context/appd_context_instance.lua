@@ -153,8 +153,6 @@ end
 
 
 -----------------世界BOSS----------------
--- 报名列表
-Enroll = {}
 
 -- 进行报名
 function onEnrole(playerInfo)
@@ -164,7 +162,7 @@ function onEnrole(playerInfo)
 		return
 	end
 	
-	Enroll[playerInfo:GetGuid()] = 1
+	WorldBossEnroll(playerInfo:GetGuid())
 	local id = globalValue:GetWorldBossTimes()
 	playerInfo:SetLastJoinID(id)
 	playerInfo:SetLastState(PLAYER_WORLD_BOSS_ENROLLED)
@@ -175,16 +173,16 @@ function onEnrole(playerInfo)
 end
 
 function ClearWorldBossEnrollData()
-	Enroll = {}
+	ResetWorldBossEnroll()
 end
 
 -- 获得报名的所有玩家
 function GetEnrolledPlayer()
 	local tb = {}
-	
-	for playerGuid, _ in pairs(Enroll) do
+	local enrollInfo = GetWorldBossEnrollInfo()
+	for _, playerGuid in pairs(enrollInfo) do
 		local playerInfo = app.objMgr:getObj(playerGuid)
-		outFmtDebug(playerGuid, playerInfo)
+		-- outFmtDebug(playerGuid, playerInfo)
 		if playerInfo  and playerInfo:isLogined()  then
 			table.insert(tb, playerInfo)
 		end

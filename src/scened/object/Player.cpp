@@ -2055,6 +2055,17 @@ int Player::LuaSendToAppdDoSomething(lua_State* scriptL) {
 	return 0;
 }
 
+int Player::LuaSendToAppdAddOfflineMail(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 2);
+
+	string player_guid = (string)LUA_TOSTRING(scriptL, 1);
+	string mail_info = (string)LUA_TOSTRING(scriptL, 2);
+	ScenedApp::g_app->call_add_offline_mail(player_guid, mail_info);
+	return 0;
+}
+
 //获取附近的玩家
 int Player::LuaGetAllPlayerNearBy(lua_State *scriptL) {
 

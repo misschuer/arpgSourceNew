@@ -29,17 +29,6 @@ function PlayerInfo:Handle_Sweep_Res(pkt)
 	self:sweepResInstance(id)
 end
 
-
--- 世界BOSS报名
-function PlayerInfo:Handle_World_Boss_Enroll(pkt)
-	-- 模块没开 不让进
-	if not self:GetOpenMenuFlag(MODULE_BOSS, MODULE_BOSS_WORLD_BOSS) then
-		return
-	end
-	onEnrole(self)
-end
-
-
 function PlayerInfo:Handle_Buy_Mass_Boss_Times(pkt)
 	local cnt = pkt.cnt
 	if cnt <= 0 then
@@ -86,14 +75,4 @@ end
 
 function PlayerInfo:Handle_Get_Risk_Reward(pkt)
 	globalCounter:getRiskRank(self)
-end
-
-function PlayerInfo:Handle_Enter_Private_Boss(pkt)
-	local id = pkt.id
-	
-	if not tb_private_boss_info[id] then
-		return
-	end
-	
-	self:checkPrivateBossMapTeleport(id)
 end

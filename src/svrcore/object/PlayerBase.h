@@ -305,6 +305,14 @@ public:
 	float GetDBPosX(){return GetFloat(PLAYER_EXPAND_INT_DB_POS_X);}
 	float GetDBPosY(){return GetFloat(PLAYER_EXPAND_INT_DB_POS_Y);}
 
+	void SetLastRiskFlag(uint32 value) {
+		this->SetUInt32(PLAYER_EXPAND_INT_LAST_IS_RISK, value);
+	}
+
+	bool IsLastInRisk() {
+		return this->GetUInt32(PLAYER_EXPAND_INT_LAST_IS_RISK) > 0;
+	}
+
 	void GetToDBPosition(int& mapid,float& x,float& y)
 	{
 		mapid = GetDBMapID();

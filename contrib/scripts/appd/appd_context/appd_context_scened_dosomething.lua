@@ -11,6 +11,10 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 	elseif SCENED_APPD_ENTER_RES_INSTANCE == ntype then
 		--进入资源副本
 		self:checkResMapTeleport(data)
+	elseif SCENED_APPD_ENTER_DOUJIANTAI_INSTANCE == ntype then
+		self:OnDoujiantaiFight(data)
+	elseif SCENED_APPD_WORLD_BOSS_ENROLL == ntype then
+		onEnrole(self)
 	elseif SCENED_APPD_PASS_RES_INSTANCE == ntype then
 		--通关资源副本
 		self:passResInstance(data)
@@ -122,10 +126,39 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 		end
 	elseif SCENED_APPD_SINGLE_PVP_RESULT == ntype then
 		self:OnProcessSingleMatchResult(data, str)
+	elseif SCENED_APPD_ENTER_FACTION_BOSSDEFENSE_INSTANCE == ntype then
+		local faction_guid = self:GetFactionId()
+		if faction_guid == "" then
+			return
+		end
+		
+		if not app.objMgr:IsFactionGuid(faction_guid) then
+			return
+		end
+		
+		local faction = app.objMgr:getObj(faction_guid)
+		if faction == nil then
+			return
+		end
+		faction:BossDenfenseChallenge(self,data)
 	elseif SCENED_APPD_ENTER_FACTION_TOWER_INSTANCE == ntype then
-		local pkt = {}
-		pkt.opt_type = FACTION_MANAGER_TYPE_TOWER_CHALLENGE
-		self:Handle_Faction_People(pkt)
+		local faction_guid = self:GetFactionId()
+		if faction_guid == "" then
+			return
+		end
+		
+		if not app.objMgr:IsFactionGuid(faction_guid) then
+			return
+		end
+		
+		local faction = app.objMgr:getObj(faction_guid)
+		if faction == nil then
+			return
+		end
+		faction:TowerChallenge(self)
+		
+	elseif SCENED_APPD_ENTER_PRIVATE_BOSS_INSTANCE == ntype then
+		self:checkPrivateBossMapTeleport(data)
 	elseif SCENED_APPD_PRIVATE_BOSS_WIN == ntype then
 		self:onPrivateBossWin(data)
 	end

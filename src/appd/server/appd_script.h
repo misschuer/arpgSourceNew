@@ -79,4 +79,19 @@ extern int LuaMongoUpdate(lua_State *scriptL);
 extern int LuaMongoQuery(lua_State *scriptL);
 //Êý¾Ý¿âÉ¾³ý
 extern int LuaMongoDelete(lua_State *scriptL);
+
+extern int LuaWorldBossEnroll(lua_State *scriptL);
+extern int LuaResetWorldBossEnroll(lua_State *scriptL);
+extern int LuaGetWorldBossEnrollInfo(lua_State *scriptL);
+
+extern int OnSinglePVPMatched(const char guid[50], const char key[50], const uint32 time);
+
+extern int LuaInitQueueInfo(lua_State *scriptL);
+
+extern int LuaAddMatchQueue(lua_State *scriptL);
+
+extern int LuaCancelMatchQueue(lua_State *scriptL);
+
+extern int LuaOnProcessMatchQueue(lua_State *scriptL);
+
 #endif

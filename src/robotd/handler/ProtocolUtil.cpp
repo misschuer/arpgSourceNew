@@ -5187,17 +5187,20 @@ int ProtocolUtil::send_bag_item_sell (char const*item_guid,uint32 count)
 }
 
 /*整理物品*/
-int ProtocolUtil::unpack_bag_item_sort (ByteArray &bytes )
+int ProtocolUtil::unpack_bag_item_sort (ByteArray &bytes ,uint32 &bag_type)
 {
 	int ret=0;
+	//uint32
+	bag_type = bytes.readUnsignedInt();
 	return ret;
 }
 
-int ProtocolUtil::send_bag_item_sort ()
+int ProtocolUtil::send_bag_item_sort (uint32 bag_type)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_BAG_ITEM_SORT);
 	
+	m_bytes.writeBytes((uint8*)&bag_type, sizeof(uint32));
 	SendToServer(m_bytes);
 	return 0;
 }
@@ -6143,15 +6146,15 @@ int ProtocolUtil::send_query_mass_boss_rank (uint8 id)
 }
 
 /*全民boss排行结果*/
-int ProtocolUtil::unpack_mass_boss_rank_result (ByteArray &bytes , vector< mass_boss_rank_info > &info)
+int ProtocolUtil::unpack_mass_boss_rank_result (ByteArray &bytes , vector< rank_info > &info)
 {
 	int ret=0;
-	//mass_boss_rank_info
+	//rank_info
 	ASSERT(false);
 	return ret;
 }
 
-int ProtocolUtil::send_mass_boss_rank_result (const vector< mass_boss_rank_info > &info )
+int ProtocolUtil::send_mass_boss_rank_result (const vector< rank_info > &info )
 {
 	m_bytes.clear();
 	m_bytes.writeShort(SMSG_MASS_BOSS_RANK_RESULT);

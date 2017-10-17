@@ -4951,13 +4951,21 @@ int   unpack_bag_item_sell (packet *src ,char **item_guid,uint32 *count)
 	return ret;
 }
 /*整理物品*/
-int   pack_bag_item_sort (packet**dst )
+int   pack_bag_item_sort (packet**dst ,uint32 bag_type)
 {
 	*dst = external_protocol_new_packet(CMSG_BAG_ITEM_SORT);
 	ASSERT((*dst)->head->optcode == CMSG_BAG_ITEM_SORT);	
+	packet_write(*dst,(char *)&bag_type,sizeof(uint32));
 		
 	update_packet_len(*dst);
 	return 0;	
+}
+int   unpack_bag_item_sort (packet *src ,uint32 *bag_type)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(bag_type),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
 }
 /*提交日常任务*/
 int   pack_submit_quest_daily2 (packet**dst )
@@ -5726,23 +5734,23 @@ int   unpack_query_mass_boss_rank (packet *src ,uint8 *id)
 	return ret;
 }
 /*全民boss排行结果*/
-int   pack_mass_boss_rank_result (packet**dst , mass_boss_rank_info *info , uint16 len_1)
+int   pack_mass_boss_rank_result (packet**dst , rank_info *info , uint16 len_1)
 {
 	*dst = external_protocol_new_packet(SMSG_MASS_BOSS_RANK_RESULT);
 	ASSERT((*dst)->head->optcode == SMSG_MASS_BOSS_RANK_RESULT);	
 	packet_write(*dst,(char *)&len_1, sizeof(uint16));
-	packet_write(*dst,(char *)info, sizeof(mass_boss_rank_info) * len_1);
+	packet_write(*dst,(char *)info, sizeof(rank_info) * len_1);
 		
 	update_packet_len(*dst);
 	return 0;	
 }
-int   unpack_mass_boss_rank_result (packet *src , mass_boss_rank_info **info , uint16 *len_1)
+int   unpack_mass_boss_rank_result (packet *src , rank_info **info , uint16 *len_1)
 {	
 	int ret=0;
 	ret = packet_read(src,(char*)len_1,sizeof(uint16));
 	if(ret) return -1;
-	*info = (mass_boss_rank_info *)(src->content+src->rpos);
-	src->rpos += sizeof(mass_boss_rank_info) * (*len_1);
+	*info = (rank_info *)(src->content+src->rpos);
+	src->rpos += sizeof(rank_info) * (*len_1);
 	if(src->rpos > src->wpos) return -1;
 	return ret;
 }

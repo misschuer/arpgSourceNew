@@ -1394,7 +1394,39 @@ function  DoGMScripts(player_ptr, gm_commands)
 		if id then
 			local pkt = {}
 			pkt.id = id
-			player:Handle_Enter_Private_Boss(pkt)
+			--player:Handle_Enter_Private_Boss(pkt)
+		end
+		
+	elseif (tokens[ 1 ] == "@随机装备") then
+		local count = tonumber( tokens[ 2 ]) or 1
+		for i = 1,count do
+			local id = randInt(20001,28150)
+			while not tb_item_template[id] do
+				id = randInt(20001,28150)
+			end
+			player:AppdAddItems({{id,1}})
+		end
+	elseif (tokens[ 1 ] == "@批量熔炼") then
+		local count = tonumber( tokens[ 2 ]) or 1
+		for i = 1,count do
+			for i = 1,9 do
+				local id = randInt(20001,28150)
+				while not tb_item_template[id] do
+					id = randInt(20001,28150)
+				end
+				player:AppdAddItems({{id,1}})
+			end
+			for i = 1,1 do
+				--player:Handle_Smelting_Equip({pos_str = "0|1|2|3|4|5|6|7|8"})
+				SortItem(player,true)
+			end
+		end
+	elseif (tokens[ 1 ] == "@重复整理") then
+		local count = tonumber( tokens[ 2 ]) or 1
+		for i = 1,count do
+			
+			player:getItemMgr():exchangePos(2,0,2,1)
+			outFmtDebug("exchangePos 2 0 2 1 count %d",i)
 		end
 	end
 	

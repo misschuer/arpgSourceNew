@@ -1468,8 +1468,8 @@ TEA_SVRCORE_API  int   unpack_use_jump_point (packet *src ,uint32 *id);
 TEA_SVRCORE_API	int   pack_bag_item_sell (packet**dst ,char const*item_guid,uint32 count);
 TEA_SVRCORE_API  int   unpack_bag_item_sell (packet *src ,char **item_guid,uint32 *count);
 /*整理物品*/
-TEA_SVRCORE_API	int   pack_bag_item_sort (packet**dst );
-TEA_SVRCORE_API  int   unpack_bag_item_sort (packet *src );
+TEA_SVRCORE_API	int   pack_bag_item_sort (packet**dst ,uint32 bag_type);
+TEA_SVRCORE_API  int   unpack_bag_item_sort (packet *src ,uint32 *bag_type);
 /*提交日常任务*/
 TEA_SVRCORE_API	int   pack_submit_quest_daily2 (packet**dst );
 TEA_SVRCORE_API  int   unpack_submit_quest_daily2 (packet *src );
@@ -1612,8 +1612,8 @@ TEA_SVRCORE_API  int   unpack_mass_boss_info_ret (packet *src ,uint32 *count,uin
 TEA_SVRCORE_API	int   pack_query_mass_boss_rank (packet**dst ,uint8 id);
 TEA_SVRCORE_API  int   unpack_query_mass_boss_rank (packet *src ,uint8 *id);
 /*全民boss排行结果*/
-TEA_SVRCORE_API	int   pack_mass_boss_rank_result (packet**dst , mass_boss_rank_info *info , uint16 len_1);
-TEA_SVRCORE_API  int   unpack_mass_boss_rank_result (packet *src , mass_boss_rank_info **info , uint16 *len_1);
+TEA_SVRCORE_API	int   pack_mass_boss_rank_result (packet**dst , rank_info *info , uint16 len_1);
+TEA_SVRCORE_API  int   unpack_mass_boss_rank_result (packet *src , rank_info **info , uint16 *len_1);
 /*挑战全民boss*/
 TEA_SVRCORE_API	int   pack_try_mass_boss (packet**dst ,uint8 id);
 TEA_SVRCORE_API  int   unpack_try_mass_boss (packet *src ,uint8 *id);
@@ -5256,10 +5256,11 @@ __INLINE__ int Call_bag_item_sell (Delegate_Sendpackt SendPacket ,char const*ite
 }
 
 /*整理物品*/
-__INLINE__ int Call_bag_item_sort (Delegate_Sendpackt SendPacket )
+__INLINE__ int Call_bag_item_sort (Delegate_Sendpackt SendPacket ,uint32 bag_type)
 {
 	packet *dst = external_protocol_new_packet(CMSG_BAG_ITEM_SORT);
 		
+	packet_write(dst,(char *)&bag_type,sizeof(uint32));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -5887,7 +5888,7 @@ __INLINE__ int Call_query_mass_boss_rank (Delegate_Sendpackt SendPacket ,uint8 i
 }
 
 /*全民boss排行结果*/
-__INLINE__ int Call_mass_boss_rank_result (Delegate_Sendpackt SendPacket ,const vector< mass_boss_rank_info > &info )
+__INLINE__ int Call_mass_boss_rank_result (Delegate_Sendpackt SendPacket ,const vector< rank_info > &info )
 {
 	packet *dst = external_protocol_new_packet(SMSG_MASS_BOSS_RANK_RESULT);
 		

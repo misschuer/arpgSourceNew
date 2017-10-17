@@ -4,34 +4,6 @@ local protocols = require('share.protocols')
 InstanceMassBoss.Name = "InstanceMassBoss"
 InstanceMassBoss.player_auto_respan = 5
 InstanceMassBoss.BOSS_ALIAS_NAME = 'MASS_BOSS'
-function initMassBoss()
-	-- 所有全民boss的排名
-	if not InstanceMassBoss.globalRankList then
-		InstanceMassBoss.globalRankList = {}
-	end
-	
-	if not InstanceMassBoss.bossHpRate then
-		InstanceMassBoss.bossHpRate = {}
-	end
-	
-	if not InstanceMassBoss.bossMaxHp then
-		InstanceMassBoss.bossMaxHp = {}
-	end
-	
-	if not InstanceMassBoss.enterCount then
-		InstanceMassBoss.enterCount = {}
-	end
-	
-	if #InstanceMassBoss.globalRankList == 0 then
-		for i = 1, #tb_mass_boss_info do
-			InstanceMassBoss.enterCount[ i ] = 0
-			InstanceMassBoss.globalRankList[ i ] = {}
-		end
-	end
-end
-initMassBoss()
-
-
 
 function InstanceMassBoss:ctor(  )
 	
@@ -57,6 +29,14 @@ end
 function InstanceMassBoss:parseGeneralId()
 	local id = tonumber(self:GetMapGeneralId())
 	self:SetMassBossId(id)
+end
+
+function InstanceMassBoss:SetBossHP(val)
+	self:SetUInt32(MAP_MASS_BOSS_INT_FIELD_MAX_HP, val)
+end
+
+function InstanceMassBoss:GetBossHP()
+	return self:GetUInt32(MAP_MASS_BOSS_INT_FIELD_MAX_HP)
 end
 
 function InstanceMassBoss:SetMassBossId(id)
@@ -86,15 +66,16 @@ function InstanceMassBoss:onRefreshBoss()
 			local creatureInfo = UnitInfo:new{ptr = creature}
 			-- 标识为boss怪
 			creatureInfo:SetUnitFlags(UNIT_FIELD_FLAGS_IS_BOSS_CREATURE)
-			self.bossHpRate[ id ] = 100
-			self.bossMaxHp[ id ] = creatureInfo:GetMaxHealth()
+			mapLib.SetMassBossHpRate(id, 100)
+			self:SetBossHP(creatureInfo:GetMaxHealth())
 			-- 有boss再刷
 			mapLib.AddTimer(self.ptr, 'OnTimer_UpdateRank', 1000)
 		end
 	else
 		local creatureInfo = UnitInfo:new{ptr = boss}
-		self.bossMaxHp[ id ] = creatureInfo:GetMaxHealth()
-		self.bossHpRate[ id ] = math.floor(creatureInfo:GetHealth() * 100 / creatureInfo:GetMaxHealth())
+		self:SetBossHP(creatureInfo:GetMaxHealth())
+		local rate = math.floor(creatureInfo:GetHealth() * 100 / creatureInfo:GetMaxHealth())
+		mapLib.SetMassBossHpRate(id, rate)
 	end
 end
 
@@ -134,7 +115,9 @@ function InstanceMassBoss:OnJoinPlayer(player)
 	end
 	
 	local id = self:GetMassBossId()
-	InstanceMassBoss.enterCount[ id ] = InstanceMassBoss.enterCount[ id ] + 1
+	local prev = mapLib.GetMassBossEnterCount(id)
+	mapLib.SetMassBossEnterCount(id, prev + 1)
+	
 	playerInfo:ChangeToFamilyMode()
 end
 
@@ -142,7 +125,8 @@ end
 function InstanceMassBoss:OnLeavePlayer( player, is_offline)
 	InstanceInstBase.OnLeavePlayer(self, player, is_offline)
 	local id = self:GetMassBossId()
-	InstanceMassBoss.enterCount[ id ] = InstanceMassBoss.enterCount[ id ] - 1
+	local prev = mapLib.GetMassBossEnterCount(id)
+	mapLib.SetMassBossEnterCount(id, prev - 1)
 	
 	local playerInfo = UnitInfo:new{ptr = player}
 	
@@ -160,41 +144,22 @@ function InstanceMassBoss:onBossDead()
 	self:SetMapState(self.STATE_FINISH)
 	local id = self:GetMassBossId()
 	globalValue:doMassBossEnd(id)
-	self.bossHpRate[ id ] = nil
+	mapLib.SetMassBossHpRate(id, 0)
 	self:sendReward()
 end
 
 function onMassBossReborn(id)
-	InstanceMassBoss.globalRankList[ id ] = {}
-	InstanceMassBoss.enterCount[ id ] = 0
+	mapLib.SetMassBossEnterCount(id, 0)
 end
 
 -- 进行排名更新
 function InstanceMassBoss:OnTimer_UpdateRank()
-	-- 更新排名
-	local id = self:GetMassBossId()
-	local rankInfo = self.globalRankList[id]
-	local maxHP = self.bossMaxHp[id]
-	
-	local rankList = {}
-	if not rankInfo then
-		rankInfo = {}
-	end
-	
-	local len = math.min(#rankInfo, 10)
-	for i = 1, len do
-		local stru = rank_info_t .new()
-		stru.name = rankInfo[ i ][ 1 ]
-		stru.value = rankInfo[ i ][ 2 ] * 100 / maxHP
-		table.insert(rankList, stru)
-	end
-	
-	self:NotifyAllRankUpdate(rankInfo, rankList)
+	mapLib.NotifyAllRankUpdate(self.ptr)
 	
 	-- 全民BOSS结束
 	if self:IsEnd() then
 		-- outFmtInfo("############################# mass boss end")
-		self.globalRankList[ id ] = {}
+		mapLib.ResetBossDamageRank(self.ptr)
 		self:SetMapQuestEndTime(os.time())
 		return false
 	end
@@ -202,49 +167,61 @@ function InstanceMassBoss:OnTimer_UpdateRank()
 	return true
 end
 
-function InstanceMassBoss:NotifyAllRankUpdate(rankInfo, rankList)
-	local allPlayers = mapLib.GetAllPlayer(self.ptr)
-	local tmp = {}
-	for i = 1, #rankInfo do
-		tmp[rankInfo[ i ][ 1 ]] = i
-	end
-		
-	for _, player in pairs(allPlayers) do
-		local unitInfo = UnitInfo:new {ptr = player}
-		local mine = tmp[unitInfo:GetName()]
-		mine = mine or 0
-		unitInfo:call_boss_rank(2, rankList, mine)
-	end
-end
-
-
 -- 发放奖励
 function InstanceMassBoss:sendReward()
 	-- 所有玩加的排名
 	local tmpRank = {}
 	local id = self:GetMassBossId()
-	local ranklist = self.globalRankList[ id ]
-	for rank, dataInfo in ipairs(ranklist) do
-		tmpRank[dataInfo[ 3 ]] = rank
+	local ranklist = mapLib.GetBossDamageRank(self.ptr)
+	
+	local exist = {}
+	local allPlayers = mapLib.GetAllPlayer(self.ptr)
+	for _, player in pairs(allPlayers) do
+		local playerInfo = UnitInfo:new {ptr = player}
+		local player_guid = playerInfo:GetPlayerGuid()
+		exist[player_guid] = 1
 	end
 	
-	local allPlayers = mapLib.GetAllPlayer(self.ptr)
-	for _, unit_player in ipairs(allPlayers) do
-		local playerInfo = UnitInfo:new {ptr = unit_player}
-		local playerGuid = playerInfo:GetPlayerGuid()
-		local rank = tmpRank[playerGuid]
-		if rank then
-			local dict = {}
-			-- 获得奖励
-			local dropId = self:findDropId(rank)
-			DoRandomDropTable({dropId}, dict)
-			PlayerAddRewards(unit_player, dict, MONEY_CHANGE_MASS_BOSS, LOG_ITEM_OPER_TYPE_MASS_BOSS)
-			-- 扫荡的结果发送
-			local list = Change_To_Item_Reward_Info(dict, true)
+	for rank, player_guid in ipairs(ranklist) do
+		--tmpRank[player_guid] = rank
+		local player = mapLib.GetPlayerByPlayerGuid(self.ptr, player_guid)
+		
+		local dict = {}
+		-- 获得奖励
+		local dropId = self:findDropId(rank)
+		DoRandomDropTable({dropId}, dict)
 			
-			playerInfo:call_send_instance_result(self:GetMapState(), self.exit_time, list, INSTANCE_SUB_TYPE_MASS_BOSS, '')
+		if player then
+			local playerInfo = UnitInfo:new {ptr = player}
+			if exist[playerInfo:GetPlayerGuid()] then
+				PlayerAddRewards(player, dict, MONEY_CHANGE_MASS_BOSS, LOG_ITEM_OPER_TYPE_MASS_BOSS)
+				-- 扫荡的结果发送
+				local list = Change_To_Item_Reward_Info(dict, true)
+				
+				playerInfo:call_send_instance_result(self:GetMapState(), self.exit_time, list, INSTANCE_SUB_TYPE_MASS_BOSS, '')
+			else
+				local str = self:combineMailInfo(dict)
+				playerLib.SendToAppdDoSomething(player, SCENED_APPD_ADD_MAIL, 0, str)
+			end
+		else
+			-- 发邮件
+			local str = self:combineMailInfo(dict)
+			playerLib.SendToAppdAddOfflineMail(player_guid, str)
 		end
 	end
+end
+
+function InstanceMassBoss:combineMailInfo(dict)
+	local aa = {}
+	for entry, count in pairs(dict) do
+		table.insert(aa, string.format("%u,%u", entry, count))
+	end
+	local items = string.join(',', aa)
+
+	local mailInfo = {items, tb_mass_boss_base[ 1 ].name, tb_mass_boss_base[ 1 ].desc, GIFT_PACKS_TYPE_MASS_BOSS}
+	local str = string.join("|", mailInfo)
+	
+	return str
 end
 
 function InstanceMassBoss:findDropId(rank)
@@ -260,39 +237,6 @@ function InstanceMassBoss:findDropId(rank)
 	local id = self:GetMassBossId()
 	return tb_mass_boss_loot[indx].dropid[ id ]
 end
-
-function InstanceMassBoss:AddMassBossDamage(name, damage, playerGuid)
-	local id = self:GetMassBossId()
-	local ranklist = self.globalRankList[ id ]
-	local indx = #ranklist + 1
-	
-	for i = 1, #ranklist do
-		local dataInfo = ranklist[ i ]
-		if dataInfo[ 1 ] == name then
-			dataInfo[ 2 ] = dataInfo[ 2 ] + damage
-			indx = i
-			break
-		end
-	end
-	
-	if indx == #ranklist + 1 then
-		table.insert(ranklist, {name, damage, playerGuid})
-	end
-	
-	self:RankSort(ranklist, indx)
-end
-
-function InstanceMassBoss:RankSort(ranklist, indx)
-	for i = indx, 2, -1 do
-		local curr = ranklist[ i ]
-		local prev = ranklist[i-1]
-		if curr[ 2 ] > prev[ 2 ] then
-			ranklist[ i ] = prev
-			ranklist[i-1] = curr
-		end
-	end
-end
-
 
 --AI_MassBoss
 -------------------------世界boss---------------------------
@@ -343,10 +287,12 @@ function AI_MassBoss:DamageTaken(owner, unit, damage)
 	end
 	
 	local id = instanceInfo:GetMassBossId()
-	instanceInfo.bossHpRate[ id ] = math.floor(currHealth * 100 / instanceInfo.bossMaxHp[ id ])
-			
+	local rate = math.floor(currHealth * 100 / maxHealth)
+	mapLib.SetMassBossHpRate(id, rate)
+	
 	-- 进行排名
-	instanceInfo:AddMassBossDamage(name, damage, playerGuid)
+	mapLib.AddBossDamage(map_ptr, unitInfo.ptr, damage, maxHealth)
+	return 0
 end
 
 return InstanceMassBoss

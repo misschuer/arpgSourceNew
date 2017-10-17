@@ -1168,6 +1168,7 @@ bag_item_sell,c2s,273,/*出售物品*/,STATUS_NEVER,False
 	
 #
 bag_item_sort,c2s,274,/*整理物品*/,STATUS_NEVER,False
+	bag_type,uint32,False,/*背包类型*/
 
 #
 submit_quest_daily2,c2s,280,/*提交日常任务*/,STATUS_NEVER,False
@@ -1369,7 +1370,7 @@ query_mass_boss_rank,c2s,354,/*查询全民boss排行榜*/,STATUS_NEVER,False
 
 #
 mass_boss_rank_result,s2c,355,/*全民boss排行结果*/,STATUS_NEVER,False
-	info,mass_boss_rank_info,True,/*全民boss排名信息*/
+	info,rank_info,True,/*全民boss排名信息*/
 	
 #
 try_mass_boss,c2s,356,/*挑战全民boss*/,STATUS_NEVER,False

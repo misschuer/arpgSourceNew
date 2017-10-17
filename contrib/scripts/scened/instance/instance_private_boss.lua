@@ -39,7 +39,7 @@ function InstancePrivateBoss:parseGeneralId()
 	-- 刷boss
 	self:onRefreshBoss()
 	
-	tb_private_boss_base[1].timeLimit = 180
+	--tb_private_boss_base[1].timeLimit = 180
 	-- 挑战时间
 	self:SetMapEndTime(os.time() + tb_private_boss_base[1].timeLimit + self.exit_time)
 	self:SetMapQuestEndTime(os.time() + tb_private_boss_base[1].timeLimit)
@@ -68,7 +68,7 @@ function InstancePrivateBoss:GetBuffeffectId()
 	return self:GetUInt32(MAP_PRIVATE_BOSS_INT_FIELD_BUFFEFFECT_ID)
 end
 
-
+--[[
 function InstancePrivateBoss:DoMapBuffBonus(unit)
 	if GetUnitTypeID(unit) == TYPEID_PLAYER then
 		local buffEffectId = self:GetBuffeffectId()
@@ -77,7 +77,7 @@ function InstancePrivateBoss:DoMapBuffBonus(unit)
 			SpelladdBuff(unit, buff_id, unit, buffEffectId, 180)
 		end
 	end
-end
+end--]]
 
 function InstancePrivateBoss:onRefreshBoss()
 	local id = self:GetPrivateBossId()
@@ -95,6 +95,11 @@ function InstancePrivateBoss:onRefreshBoss()
 		)
 		
 		if creature then
+			local debuffeffect_id = self:GetBuffeffectId()
+			local debuff_id = tb_buff_effect[debuffeffect_id].buff_id
+			if debuffeffect_id ~= 0 then
+				SpelladdBuff(creature, debuff_id, creature, debuffeffect_id, 200)
+			end
 			local creatureInfo = UnitInfo:new{ptr = creature}
 			-- 标识为boss怪
 			creatureInfo:SetUnitFlags(UNIT_FIELD_FLAGS_IS_BOSS_CREATURE)
@@ -163,7 +168,8 @@ function InstancePrivateBoss:OnPlayerDeath(player)
 	-- 死亡立马复活并弹出去
 	--unitLib.Respawn(player, RESURRECTION_SPAWNPOINT, 100)
 	--mapLib.ExitInstance(self.ptr, player)
-	self:SetMapState(self.STATE_FAIL)
+	--self:SetMapState(self.STATE_FAIL)
+	self:instanceFail()
 end
 
 function InstancePrivateBoss:onBossDead()

@@ -148,6 +148,7 @@ public:
 	void call_player_addmoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string &p1, int32 p2, int32 p3, uint8 p4, uint8 p5);//通知应用服增加money
 	void call_player_submoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string &p1, int32 p2, int32 p3, uint8 p4, uint8 p5);//通知应用服扣money	
 	void call_player_do_something(const string& player_id, uint32 type, uint32 id, string& str);//通知应用服做什些事情
+	void call_add_offline_mail(const string& player_id, string& str);//通知应用服增加离线邮件
 	void call_recalculate(const string& player_id);	//通知应用服重算属性
 	void call_add_gift_packs(string& player, int id, int gift_type, uint32_t start_time, uint32_t end_time, string gift_name, string gift_desc, string item_config, string item_from);//发礼包
 	void call_player_upgrade(const string& player_id, const uint32 prevLevel, const uint32 level);//通知应用服玩家升级了

@@ -523,7 +523,7 @@ function AppItemMgr:smeltingEquip(pos_str)
 	end
 
 	owner:AppdAddItems(rewardList, MONEY_CHANGE_BOX_RANDOM, LOG_ITEM_OPER_TYPE_OPEN_BOX)
-	SortItem(owner,true)--强制整理
+	--SortItem(owner,true,BAG_TYPE_EQUIP_BAG)--强制整理
 	-- 加任务
 	local questMgr = owner:getQuestMgr()
 	questMgr:OnUpdate(QUEST_TARGET_TYPE_SMELT, {cnt})

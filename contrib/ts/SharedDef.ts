@@ -1483,6 +1483,7 @@ class SharedDef
 		public static GIFT_PACKS_TYPE_FACTION_BOSS			:number = 8;	// 家族boss奖励
 		public static GIFT_PACKS_TYPE_FACTION_GIFT_RANK			:number = 9;	// 家族魅力排行奖励
 		public static GIFT_PACKS_TYPE_ACT_RANK			:number = 10;	// 开服排行奖励
+		public static GIFT_PACKS_TYPE_MASS_BOSS			:number = 11;	//  全民boss
 		public static SCENED_APPD_ENTER_DAILY_INSTANCE			:number = 1;	// 进入日常副本
 		public static SCENED_APPD_ENTER_VIP_INSTANCE			:number = 2;	// 进入VIP副本
 		public static SCENED_APPD_USE_ITEM			:number = 3;	// 使用血瓶
@@ -1512,6 +1513,10 @@ class SharedDef
 		public static SCENED_APPD_ENTER_QUALIFY_INSTANCE			:number = 27;	// 进入排位赛
 		public static SCENED_APPD_ENTER_FACTION_TOWER_INSTANCE			:number = 28;	// 进入家族远征
 		public static SCENED_APPD_PRIVATE_BOSS_WIN			:number = 29;	// 个人Boss胜利
+		public static SCENED_APPD_ENTER_DOUJIANTAI_INSTANCE			:number = 30;	// 进入斗剑台副本
+		public static SCENED_APPD_WORLD_BOSS_ENROLL			:number = 31;	// 世界boss报名
+		public static SCENED_APPD_ENTER_FACTION_BOSSDEFENSE_INSTANCE			:number = 32;	// 进入家族Boss
+		public static SCENED_APPD_ENTER_PRIVATE_BOSS_INSTANCE			:number = 33;	// 进入个人Boss
 		public static APPD_SCENED_SWEEP_TRIAL_INSTANCE			:number = 1;	// 扫荡试炼塔副本
 		public static APPD_SCENED_SWEEP_VIP_INSTANCE			:number = 2;	// 扫荡VIP副本
 		public static APPD_SCENED_RESPAWN			:number = 3;	// 元宝复活
@@ -1525,6 +1530,9 @@ class SharedDef
 		public static APPD_SCENED_WORLD_BOSS_ENTER			:number = 11;	// 进入世界BOSS房间
 		public static APPD_SCENED_REMIND_INSTANCE_ENTER			:number = 12;	// 进入原地副本房间
 		public static APPD_SCENED_MASS_BOSS_REBORN			:number = 13;	// 全民boss重生
+		public static APPD_SCENED_TELEPORT			:number = 14;	// 传送
+		public static APPD_SCENED_CHECK_ENTER_FACTION_BOSSDEFENSE			:number = 15;	// 检测进入家族boss
+		public static APPD_SCENED_CHECK_ENTER_FACTION_TOWER			:number = 16;	// 检测进入家族远征
 		public static INSTANCE_SUB_TYPE_VIP			:number = 1;	// vip副本
 		public static INSTANCE_SUB_TYPE_TRIAL			:number = 2;	// 试炼塔副本
 		public static INSTANCE_SUB_TYPE_WORLD_BOSS			:number = 3;	// 世界BOSS
@@ -1823,6 +1831,7 @@ class SharedDef
 		public static PLAYER_INT_FIELD_WORLD_RISK_LAST_ID			:number = 1773;	// 最后一次进入的幻境地图id
 		public static PLAYER_INT_FIELD_LAST_INSTANCE_TYPE			:number = 1774;	// 上次副本子类型
 		public static PLAYER_INT_FIELD_LAST_INSTANCE_PARAM			:number = 1775;	// 上次副本额外参数
+		public static PLAYER_EXPAND_INT_LAST_IS_RISK			:number = 1776;	// 最后一次进的是幻境
 		// ////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// 字符串部分
 		public static PLAYER_STRING_FIELD_ACCOUNT			:number = 4;	// 账号
@@ -2345,7 +2354,7 @@ class SharedDef
 		public static MASS_BOSS_TIME			:number = 1;	// 全民boss刷新时间
 		public static MAX_MASS_BOSS_INT_FIELD_COUNT			:number = 2;
 		public static MAX_XIANFU_RECORD_COUNT			:number = 10;
-		public static MAX_MASS_BOSS_COUNT			:number = 10;
+		public static MAX_MASS_BOSS_COUNT			:number = 30;
 		public static MAX_LOTTERY_COUNT			:number = 10;
 		public static MAX_LOTTERY_RECORD_COUNT			:number = 10;
 		public static MAX_ACT_RANK_COUNT			:number = 10;	// 榜单数量
@@ -2372,11 +2381,11 @@ class SharedDef
 		public static GLOBALVALUE_INT_FIELD_GIFT_RANK_NEXT_UPDATE_TIME			:number = 290;	// 魅力排行下次更新时间
 		public static GLOBALVALUE_INT_FIELD_GIFT_RANK_CUR_ROUND			:number = 291;	// /魅力排行当前轮数
 		public static GLOBALVALUE_INT_FIELD_MASS_BOSS_START			:number = 292;	// 全民boss开始
-		public static GLOBALVALUE_INT_FIELD_MASS_BOSS_END			:number = 312;
-		public static GLOBALVALUE_INT_FIELD_LOTTERY_RECORD_CURSOR_START			:number = 312;	//  抽奖记录游标
-		public static GLOBALVALUE_INT_FIELD_LOTTERY_RECORD_CURSOR_END			:number = 322;
-		public static GLOBALVALUE_INT_FIELD_ACTIVITIES_RUNNING_START			:number = 322;	//  活动运行id 开始
-		public static GLOBALVALUE_INT_FIELD_ACTIVITIES_RUNNING_END			:number = 352;	//  活动运行id 结束
+		public static GLOBALVALUE_INT_FIELD_MASS_BOSS_END			:number = 352;
+		public static GLOBALVALUE_INT_FIELD_LOTTERY_RECORD_CURSOR_START			:number = 352;	//  抽奖记录游标
+		public static GLOBALVALUE_INT_FIELD_LOTTERY_RECORD_CURSOR_END			:number = 362;
+		public static GLOBALVALUE_INT_FIELD_ACTIVITIES_RUNNING_START			:number = 362;	//  活动运行id 开始
+		public static GLOBALVALUE_INT_FIELD_ACTIVITIES_RUNNING_END			:number = 392;	//  活动运行id 结束
 		public static GLOBALVALUE_STRING_FIELD_LIMIT_ACTIVITY_SCRIPT			:number = 4;	// 限时活动类名
 		public static GLOBALVALUE_STRING_FIELD_FIELD_BOSS_START			:number = 5;	//  野外boss优先开启宝箱的人物guid开始
 		public static GLOBALVALUE_STRING_FIELD_FIELD_BOSS_END			:number = 85;	//  野外boss优先开启宝箱的人物guid结束
@@ -2529,6 +2538,7 @@ class SharedDef
 		// VIP BOSS
 		public static VIP_INSTANCE_FIELD_ID			:number = 43;	//  0:VIP副本序号,1:副本难度
 		public static MAP_MASS_BOSS_INT_FIELD_ID			:number = 43;	// 全民bossid
+		public static MAP_MASS_BOSS_INT_FIELD_MAX_HP			:number = 44;
 		public static MAP_PRIVATE_BOSS_INT_FIELD_ID			:number = 43;	// 个人bossid
 		public static MAP_PRIVATE_BOSS_INT_FIELD_BUFFEFFECT_ID			:number = 44;	// buff效果id
 		public static WORLDBOSS_FIELDS_WAIT_TIME			:number = 43;	// 报名等待时间戳

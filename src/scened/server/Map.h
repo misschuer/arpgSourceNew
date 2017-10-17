@@ -34,6 +34,16 @@ typedef struct wait_joiningt
 	uint32	create_tm;			//开始传送时间,便于调试
 }wait_joining;
 
+// 用于打BOSS排名信息
+typedef struct boss_rank_info_tt {
+	char name[ 50 ];
+	uint32 dam;
+	char player_guid[ 50 ];
+	uint32 BOSS_MAX_HP;
+	uint16 level;
+	uint8 vip;
+}BossRankInfo;
+
 typedef UNORDERED_MAP<string,Creature*>  CreaturesMap;
 typedef std::list<std::pair<int32,string> > GameObjectRespawnList;
 typedef std::list<uint32> PlayerRespawnList;
@@ -44,6 +54,7 @@ typedef UNORDERED_MAP<string,GameObject*> GameObjectMap;
 typedef std::map<string, Player*> PlayerMap;
 typedef std::map<uint32, std::set<string>> HitMap;
 typedef vector<wait_joining> WaitJoiningVec;
+typedef vector<BossRankInfo> BossRankInfoVec;
 
 class Map
 {
@@ -58,10 +69,118 @@ public:
 		fighting_info_binlog.Reset();
 		fighting_info_binlog.SetGuid(guid);
 	}
+
+	static std::map<uint8, uint8> massBossHPRate;
+	static void setMassBossHpRate(uint8 indx, uint8 rate) {
+		massBossHPRate[indx] = rate;
+	}
+
+	static uint8 getMassBossHpRate(uint8 indx) {
+		auto it = massBossHPRate.find(indx);
+		if (it != massBossHPRate.end()) {
+			return it->second;
+		}
+		return 0;
+	}
+
+	static std::map<uint8, uint32> massBossEnterCount;
+	static void setMassBossEnterCount(uint8 indx, uint32 count) {
+		massBossEnterCount[indx] = count;
+	}
+
+	static uint32 getMassBossEnterCount(uint8 indx) {
+		auto it = massBossEnterCount.find(indx);
+		if (it != massBossEnterCount.end()) {
+			return it->second;
+		}
+		return 0;
+	}
+
+	static std::map<uint8, BossRankInfoVec> massBossRankInfo;
+
+	static void resetMassBossDamage(uint8 indx) {
+		massBossRankInfo.erase(indx);
+	}
+
+	static void addMassBossDamage(uint8 indx, Player* player, uint32 dam, uint32 BOSS_MAX_HP, uint32 level=0, uint32 vip=0) {
+		if (massBossRankInfo.find(indx) == massBossRankInfo.end()) {
+			BossRankInfoVec rankInfoVec;
+			massBossRankInfo.insert(std::make_pair(indx, rankInfoVec));
+		}
+		auto it = massBossRankInfo.find(indx);
+		addBossDamage(it->second, player, dam, BOSS_MAX_HP, level, vip);
+	}
+
+	static void addBossDamage(BossRankInfoVec& rankInfoVec, Player* player, uint32 dam, uint32 BOSS_MAX_HP, uint32 level=0, uint32 vip=0) {
+		uint32 indx = rankInfoVec.size();
+		for (uint32 i = 0; i < rankInfoVec.size(); ++ i) {
+			if (rankInfoVec[ i ].player_guid == player->GetSession()->GetGuid()) {
+				rankInfoVec[ i ].dam += dam;
+				indx = i;
+				break;
+			}
+		}
+
+		if (indx == rankInfoVec.size()) {
+			BossRankInfo dataInfo;
+			memset(&dataInfo, 0, sizeof(BossRankInfo));
+			dataInfo.BOSS_MAX_HP = BOSS_MAX_HP;
+			dataInfo.level = level;
+			dataInfo.vip = vip;
+			strcpy(dataInfo.name,player->GetName().c_str());
+			strcpy(dataInfo.player_guid,player->GetSession()->GetGuid().c_str());
+			dataInfo.dam = dam;
+			rankInfoVec.push_back(dataInfo);
+		}
+
+		bossRankSort(rankInfoVec, indx);
+	}
+
+	static void bossRankSort(BossRankInfoVec& rankInfoVec, uint32 indx) {
+		for (uint32 i = indx; i >= 1; -- i) {
+			BossRankInfo curr = rankInfoVec[ i ];
+			BossRankInfo prev = rankInfoVec[i-1];
+			if (curr.dam > prev.dam) {
+				rankInfoVec[ i ] = prev;
+				rankInfoVec[i-1] = curr;
+			}
+		}
+	}
+
+	static void showMassBossRank(Player* player, uint8 indx) {
+		if (massBossRankInfo.find(indx) == massBossRankInfo.end()) {
+			BossRankInfoVec rankInfoVec;
+			massBossRankInfo.insert(std::make_pair(indx, rankInfoVec));
+		}
+
+		auto it = massBossRankInfo.find(indx);
+		vector< rank_info > rankList;
+		map<string, uint32> rankIndx;
+		DoBossRankList(rankList, it->second, rankIndx);
+
+		Call_mass_boss_rank_result(player->GetSession()->m_delegate_sendpkt, rankList);
+	}
+
+	static void DoBossRankList(vector<rank_info> &rankList, BossRankInfoVec& rankInfoVec, map<string, uint32> &rankIndx) {
+		// 先确定guid对应的排名 和 排名数据
+		for (uint32 i = 0; i < rankInfoVec.size(); ++ i) {
+			BossRankInfo dataInfo = rankInfoVec[ i ];
+			rankIndx[dataInfo.player_guid] = i+1;
+
+			rank_info rankInfo;
+			memset(&rankInfo, 0, sizeof(rank_info));
+			rankInfo.value = float(dataInfo.dam * 100.0 / dataInfo.BOSS_MAX_HP);
+			strcpy(rankInfo.name, dataInfo.name);
+
+			rankList.push_back(rankInfo);
+		}
+	}
+
 public:	
 	typedef std::multimap<uint32,Map*> MapInstances;	//所有地图系列集合
 	static MapInstances map_instances;
 	static WaitJoiningVec wait_joing_vec;				//等待传送进入地图
+	
 
 	static Map *CreateInstance(uint32 instanceid,uint32 mapid,uint32 lineno,const string &general_id);	//创建地图实例
 	static void DelMap(uint32 instanceid); 						//删除地图实例
@@ -260,6 +379,22 @@ public:
 	void ClearCreatureHitHash(uint32 uintguid);
 	void PlayerHitCreature(uint32 creatureUintGuid, string playerGuid);	//某个人攻击了野怪
 
+	BossRankInfoVec rankInfoVec;
+	
+	std::map<string, uint32> deadTimesHash;
+	void addDeadTimes(string& player_guid) {
+		uint32 prev = this->getDeadTimes(player_guid);
+		deadTimesHash[player_guid] = prev + 1;
+	}
+
+	uint32 getDeadTimes(string& player_guid) {
+		auto it = deadTimesHash.find(player_guid);
+		if (it != deadTimesHash.end()) {
+			return it->second;
+		}
+		return 0;
+	}
+
 protected:
 	void AddAliasCreature(Unit *unit);
 	void DelAliasCreature(Unit *unit);
@@ -296,7 +431,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	//static for lua script
 	static int LuaGetMapId(lua_State *scriptL);					//获取地图模板ID
-	
+
 	static int LuaSetMapAttrBonus(lua_State *scriptL);			//设置地图加成
 	static int LuaSetCanRecovey(lua_State *scriptL);			//设置地图是否支持回血
 	static int LuaGetCanRecovey(lua_State *scriptL);			//获取地图是否支持回血
@@ -364,6 +499,23 @@ public:
 	static int LuaIsMapLineCreated(lua_State *scriptL);
 
 	static int LuaGetPlayersAfterCreatureDead(lua_State *scriptL);	//野怪死了, 找曾经攻击过的人
+
+	static int LuaAddBossDamage(lua_State *scriptL);			//增加boss伤害排名
+	static int LuaGetBossDamageRankCount(lua_State *scriptL);			//增加boss伤害排名
+
+	static int LuaResetBossDamageRank(lua_State *scriptL);
+	static int LuaGetBossDamageRank(lua_State *scriptL);
+	static int LuaGetBossDamageRankPlayerInfo(lua_State *scriptL);
+	static int LuaNotifyAllRankUpdate(lua_State *scriptL);
+	static int LuaShowMassBossRank(lua_State *scriptL);
+	
+	static int LuaSetMassBossHpRate(lua_State *scriptL);
+	static int LuaGetMassBossHpRate(lua_State *scriptL);
+	static int LuaSetMassBossEnterCount(lua_State *scriptL);
+	static int LuaGetMassBossEnterCount(lua_State *scriptL);
+
+	static int LuaAddDeadTimes(lua_State *scriptL);
+	static int LuaGetDeadTimes(lua_State *scriptL);
 };
 
 

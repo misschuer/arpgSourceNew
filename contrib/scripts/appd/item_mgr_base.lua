@@ -109,7 +109,9 @@ function ItemMgrBase:addItem(entry, count, isBind, isAppaisal, isSystem, strong_
 				self:getOwner():call_bag_find_equip_better(entry, bag_pos)
 			end
 		end
-		
+		if item_tempate.type == ITEM_TYPE_BOX then
+			self:getOwner():call_bag_find_equip_better(entry,count)
+		end
 		count = count - overlay
 	end
 	return 0

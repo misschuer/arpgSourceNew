@@ -43,4 +43,5 @@ tb_buff_effect = {
 	[219] = {id = 219, buff_id = 205, value = -19, duration = 65535, frequency = 0},
 	[220] = {id = 220, buff_id = 205, value = -20, duration = 65535, frequency = 0},
 	[221] = {id = 221, buff_id = 205, value = -50, duration = 65535, frequency = 0},
+	[222] = {id = 222, buff_id = 206, value = 100, duration = 65535, frequency = 0},
 }

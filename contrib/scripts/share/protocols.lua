@@ -10242,14 +10242,15 @@ end
 
 
 -- /*整理物品*/	
-function Protocols.pack_bag_item_sort (  )
+function Protocols.pack_bag_item_sort ( bag_type)
 	local output = Packet.new(CMSG_BAG_ITEM_SORT)
+	output:writeU32(bag_type)
 	return output
 end
 
 -- /*整理物品*/	
-function Protocols.call_bag_item_sort ( playerInfo )
-	local output = Protocols.	pack_bag_item_sort (  )
+function Protocols.call_bag_item_sort ( playerInfo, bag_type)
+	local output = Protocols.	pack_bag_item_sort ( bag_type)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -10259,9 +10260,12 @@ function Protocols.unpack_bag_item_sort (pkt)
 	local input = Packet.new(nil, pkt)
 	local param_table = {}
 	local ret
+	ret,param_table.bag_type = input:readU32()
+	if not ret then
+		return false
+	end	
 
-	return true,{}
-	
+	return true,param_table	
 
 end
 
@@ -11780,7 +11784,7 @@ function Protocols.unpack_mass_boss_rank_result (pkt)
 	param_table.info = {}
 	for i = 1,len,1
 	do
-		local stru = mass_boss_rank_info_t .new()
+		local stru = rank_info_t .new()
 		if(stru:read(input)==false)then
 			return false
 		end

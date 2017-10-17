@@ -143,6 +143,8 @@ enum Internal_Opcode_Type
 	INTERNAL_OPT_RENAME_CHECK_RESULT		= 102,		//修改名称检测结果
 	INTERNAL_OPT_UPDATE_CHAR_NAME			= 103,		//更新名字
 
+	INTERNAL_OPT_SEND_TO_APPD_ADD_OFFLINE_MAIL = 104, //增加离线邮件
+
 	MAX_INTERNAL_OPT						= 9999,//内部包最大包号
 };
 

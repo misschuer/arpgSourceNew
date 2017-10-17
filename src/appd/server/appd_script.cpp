@@ -53,6 +53,18 @@ static const struct luaL_reg mylib[] = {
 	{"mongoDelete",				&LuaMongoDelete},				//lua调用c删除数据
 	
 	{"SaveXiulianData",			&LuaSaveXiulianData},			//10分钟存储一次修炼记录
+
+	{"WorldBossEnroll",					&LuaWorldBossEnroll},
+	{"ResetWorldBossEnroll",			&LuaResetWorldBossEnroll},
+	{"GetWorldBossEnrollInfo",			&LuaGetWorldBossEnrollInfo},
+
+	{"InitQueueInfo",					&LuaInitQueueInfo},
+	{"AddMatchQueue",					&LuaAddMatchQueue},
+	{"CancelMatchQueue",				&LuaCancelMatchQueue},
+
+	{"OnProcessMatchQueue",				&LuaOnProcessMatchQueue},
+	
+
 	{NULL, NULL} /* sentinel */ 
 };
 
@@ -845,3 +857,83 @@ int LuaMongoDelete(lua_State *scriptL)
 	return 0;
 }
 
+int LuaWorldBossEnroll(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	string playerGuid = (string)LUA_TOSTRING(scriptL, 1);
+	AppdApp::onWorldBossEnroll(playerGuid);
+
+	return 0;
+}
+
+int LuaResetWorldBossEnroll(lua_State *scriptL) {
+	AppdApp::resetEnroll();
+
+	return 0;
+}
+
+int LuaGetWorldBossEnrollInfo(lua_State *scriptL) {
+	lua_newtable(scriptL);    /* We will pass a table */
+	int i = 0;
+	std::for_each(AppdApp::enrollSet.begin(), AppdApp::enrollSet.end(),[&i,scriptL](string guid){
+		lua_pushnumber(scriptL, i+1);   /* Push the table index */
+		lua_pushstring(scriptL, guid.c_str());	
+		lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+		i++;
+	});
+	return 1;
+}
+
+int OnSinglePVPMatched(const char guid[50], const char key[50], const uint32 time) {
+
+	LuaStackAutoPopup autoPopup(L);
+	lua_getglobal(L, "OnLocalSinglePVPMatched");
+	lua_pushstring(L, guid);
+	lua_pushstring(L, key);
+	lua_pushnumber(L, time);
+
+	if(LUA_PCALL(L, 3, 0, 0)) {
+		tea_perror(" lua error:OnLocalSinglePVPMatched");
+		return 1;
+	}
+
+	return 0;
+}
+
+int LuaInitQueueInfo(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	uint32 size = (uint32)LUA_TONUMBER(scriptL, 1);
+	uint32 matchLast = (uint32)LUA_TONUMBER(scriptL, 2);
+	AppdApp::initPvpMatchInfo(size, matchLast);
+
+	return 0;
+}
+
+int LuaAddMatchQueue(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	uint32 indx = (uint32)LUA_TONUMBER(scriptL, 1);
+	string guid = (string)LUA_TOSTRING(scriptL, 2);
+
+	AppdApp::addMatchQueue(indx, guid);
+	return 0;
+}
+
+int LuaCancelMatchQueue(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	uint32 indx = (uint32)LUA_TONUMBER(scriptL, 1);
+	string guid = (string)LUA_TOSTRING(scriptL, 2);
+
+	AppdApp::onCancelMatch(indx, guid);
+
+	return 0;
+}
+
+int LuaOnProcessMatchQueue(lua_State *scriptL) {
+
+	AppdApp::OnProcessLocalSinglePVPMatch();
+
+	return 0;
+}

@@ -796,8 +796,8 @@ public:
 	int unpack_bag_item_sell (ByteArray &bytes ,string &item_guid,uint32 &count);
 	int send_bag_item_sell (char const*item_guid,uint32 count);
 	/*整理物品*/
-	int unpack_bag_item_sort (ByteArray &bytes );
-	int send_bag_item_sort ();
+	int unpack_bag_item_sort (ByteArray &bytes ,uint32 &bag_type);
+	int send_bag_item_sort (uint32 bag_type);
 	/*提交日常任务*/
 	int unpack_submit_quest_daily2 (ByteArray &bytes );
 	int send_submit_quest_daily2 ();
@@ -940,8 +940,8 @@ public:
 	int unpack_query_mass_boss_rank (ByteArray &bytes ,uint8 &id);
 	int send_query_mass_boss_rank (uint8 id);
 	/*全民boss排行结果*/
-	int unpack_mass_boss_rank_result (ByteArray &bytes , vector< mass_boss_rank_info > &info);
-	int send_mass_boss_rank_result (const vector< mass_boss_rank_info > &info );
+	int unpack_mass_boss_rank_result (ByteArray &bytes , vector< rank_info > &info);
+	int send_mass_boss_rank_result (const vector< rank_info > &info );
 	/*挑战全民boss*/
 	int unpack_try_mass_boss (ByteArray &bytes ,uint8 &id);
 	int send_try_mass_boss (uint8 id);

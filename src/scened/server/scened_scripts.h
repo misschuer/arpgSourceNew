@@ -221,6 +221,7 @@ extern bool DoIsWorldMapID(uint32 map_id);
 extern bool DoGetMoneyType(uint32 item_entry, uint32 &money_type);
 // 是否是冒险地图
 extern int DoIsRiskMap(uint32 mapid);
+extern int DoIsMassBossMap(uint32 mapid);
 // 获得冒险地图的传送信息
 extern int DoScenedGetRiskTeleportInfo(Player* player, int &mapid, float &x, float &y, string &generalId);
 // 地图是否有时间限制

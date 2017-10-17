@@ -26,6 +26,13 @@ function UnitInfo:DoGetAppdDoSomething( ntype, data, str)
 		self:ToWorldBossRoom(data)
 	elseif ntype == APPD_SCENED_REMIND_INSTANCE_ENTER then
 		self:ToRemindRoom(data, str)
+	elseif ntype == APPD_SCENED_TELEPORT then
+		self:ToTeleport(str)
+	elseif ntype == APPD_SCENED_CHECK_ENTER_FACTION_BOSSDEFENSE then
+		self:CheckEnterFactionBossDefense(data)
+	elseif ntype == APPD_SCENED_CHECK_ENTER_FACTION_TOWER then
+		self:CheckEnterFactionBossTower()
+		
 	end
 end
 
@@ -94,6 +101,67 @@ function UnitInfo:ToRemindRoom(mapid, gerneralId)
 	playerLib.Teleport(self.ptr, mapid, toX, toY, lineNo, gerneralId)
 end
 
+function UnitInfo:ToTeleport(str)
+	local tokens = string.split(str,'|')
+	
+	local mapid = tonumber(tokens[1])
+	local x = tonumber(tokens[2])
+	local y = tonumber(tokens[3])
+	local lineNo = tonumber(tokens[4])
+	
+	playerLib.Teleport(self.ptr, mapid, x, y, lineNo)
+end
+
+function UnitInfo:CheckEnterFactionBossDefense(data)
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		outFmtError("CheckEnterFactionBossDefense player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+	local mapid = unitLib.GetMapID(self.ptr)
+	local toMapId = tb_script_base[ 1 ].factionBossDefense[1]
+	-- 是否允许传送
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
+--		outFmtError("CheckEnterFactionBossDefense player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
+		return
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return
+	end
+	
+	--发到应用服进行进入判断
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_FACTION_BOSSDEFENSE_INSTANCE, data, "")
+end
+
+function UnitInfo:CheckEnterFactionBossTower()
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		outFmtError("CheckEnterFactionBossDefense player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+	local mapid = unitLib.GetMapID(self.ptr)
+	local toMapId = tb_script_base[ 1 ].factionTower[1]
+	-- 是否允许传送
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 and tb_map[mapid].inst_sub_type ~= tb_map[toMapId].inst_sub_type then
+--		outFmtError("CheckEnterFactionBossDefense player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
+		return
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return
+	end
+	
+	--发到应用服进行进入判断
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_FACTION_TOWER_INSTANCE, 0, "")
+end
+
+
+
 ----------------------------------------场景服需要做的-----------------------------------------------
 function DoScenedAppGetAppdDoSomething( ntype, data, str)
 	-- 场景服清理野外BOSS
@@ -139,8 +207,6 @@ function OnFightWorldBoss(rooms)
 	globalValue:SetWorldBossState(WORLD_BOSS_PROCESS_BORN)
 	-- 每个房间先置空
 	globalValue:UnSetWorldBossEndInLine()
-	-- 清理世界BOSS数据
-	ClearWorldBossData(1)
 	-- 设置房间数
 	globalValue:SetTodayWorldBossRoom(rooms)
 end
@@ -155,6 +221,5 @@ function OnWorldBossEnd()
 	globalValue:UnSetWorldBossEndInLine()
 	-- 看看是否需要生成下一阶段的BOSS
 	globalValue:RandomWorldBossIfNextStep()
-	-- 清理世界BOSS数据
-	ClearWorldBossData()
 end
+

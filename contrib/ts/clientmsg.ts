@@ -9558,10 +9558,14 @@ class c2s_bag_item_sell
 class c2s_bag_item_sort
 {				
 	public optcode:number = 0;
-	public static param_count:number = 0;
+	public static param_count:number = 1;
 	public static optname:string = "onBag_item_sort"; 
 	private static input:ByteArray;		
 	
+	/**
+	 * 背包类型
+	 */
+	public bag_type :number ;	//uint32		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -9574,6 +9578,9 @@ class c2s_bag_item_sort
 		
 		//var parmLen:uint;
 		//var i:int;
+		//背包类型
+		self.bag_type = this.input. readUint32 ();		
+		
 	}
 }
 
@@ -11236,7 +11243,7 @@ class s2c_mass_boss_rank_result
 	/**
 	 * 全民boss排名信息
 	 */
-	public info :Array<mass_boss_rank_info > = new Array(); //mass_boss_rank_info
+	public info :Array<rank_info > = new Array(); //rank_info
 
 	/**
 	 从输入二进制流中读取结构体
@@ -11254,7 +11261,7 @@ class s2c_mass_boss_rank_result
 			throw Error("通讯对象池有异常");			
 		var parmLen:number = this.input.readUint16();			
 		for(var i:number=0;i<parmLen;i++){
-			var _info:mass_boss_rank_info = new mass_boss_rank_info;
+			var _info:rank_info = new rank_info;
 			_info .read(this.input);
 			self.info .push(_info);
 		}

@@ -689,9 +689,19 @@ function onGetRiskTeleportInfo(playerGuid, passedSectionId)
 	return mapid, x, y, generalId
 end
 
-
+-- 是否是冒险关卡小关
 function isRiskMap(mapId)
-	return tb_map[mapId].is_risk
+	if tb_map[mapId].inst_sub_type == INSTANCE_SUB_TYPE_RISK and tb_map[mapId].is_boss_risk == 0 then
+		return 1
+	end
+	return 0
+end
+
+function isMassBossMap(mapId)
+	if tb_map[mapId].inst_sub_type == INSTANCE_SUB_TYPE_MASS_BOSS then
+		return 1
+	end
+	return 0
 end
 
 --按key值从小到大排序的迭代器

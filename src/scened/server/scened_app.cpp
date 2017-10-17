@@ -907,6 +907,12 @@ void ScenedApp::call_player_do_something(const string& player_id, uint32 type, u
 	ScenedApp::g_app->SendToAppd(_pkt);	
 }
 
+void ScenedApp::call_add_offline_mail(const string& player_id, string& str) {
+	WorldPacket _pkt (INTERNAL_OPT_SEND_TO_APPD_ADD_OFFLINE_MAIL);
+	_pkt << player_id << str;
+	ScenedApp::g_app->SendToAppd(_pkt);	
+}
+
 //应用服通知场景服消耗元宝或铜钱做些什么
 int ScenedApp::on_scened_consume_money(tcp_connection *conn,server_packet *pkt)
 {

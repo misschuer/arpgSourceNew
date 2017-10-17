@@ -322,10 +322,22 @@ void MapManager::PlayerLogin(logind_player *player)
 		player->RelocateDBPosition();//这一句相当不靠谱啊，导致重新登录不是以前的地址
 		//如果从数据库load出来是副本地图,则置为主城,一般出现这种情况都是异常数据
 		const MapTemplate *tmp = MapTemplate::GetMapTempalte(player->GetMapId());
-		if ((!tmp || tmp->IsInstance()) && player->GetMapId() != BORN_MAP)
+		if (!tmp || tmp->IsInstance() && !player->IsLastInRisk())
 		{
 			player->SetMapId(ZHUCHENG_DITU_ID);
 			player->SetPosition(ZHUCHENG_FUHUO_X, ZHUCHENG_FUHUO_Y);
+		}
+
+		// 如果是世界冒险小关
+		if (player->IsLastInRisk()) {
+			int riskMapId = 0;
+			float riskMapX = 0;
+			float riskMapY = 0;
+			string teleportId;
+			DoGetRiskTeleportInfo(player, riskMapId, riskMapX, riskMapY, teleportId);
+			player->SetMapId(riskMapId);
+			player->SetPosition(riskMapX, riskMapY);
+			player->SetTeleportGuid(teleportId);
 		}
 
 		//跨服回来的玩家

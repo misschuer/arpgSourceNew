@@ -738,7 +738,7 @@ function AppInstanceMgr:checkIfCanEnterMassBoss(id)
 	call_appd_teleport(player:GetScenedFD(), player:GetGuid(), x, y, mapid, ''..id)
 	
 	player:AddActiveItem(VITALITY_TYPE_MASS_BOSS)
-	self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES, {})
+	player:onUpdatePlayerQuest(QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES, {})
 end
 
 --组队副本

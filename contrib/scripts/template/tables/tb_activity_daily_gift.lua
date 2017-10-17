@@ -10,9 +10,9 @@ tb_activity_daily_gift = {
 	--  vip:int 需求vip
 	--  buy_count:int 可购买数量
 	--  title:string 名称
-	[1] = {id = 1, item = {{233,50}}, cost = {{2,400}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[2] = {id = 2, item = {{233,180}}, cost = {{2,800}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[3] = {id = 3, item = {{233,300}}, cost = {{2,600}}, vip = 4, buy_count = 1, title = "黄金礼包"},
+	[1] = {id = 1, item = {{233,500}}, cost = {{2,400}}, vip = 0, buy_count = 1, title = "青铜礼包"},
+	[2] = {id = 2, item = {{233,1000}}, cost = {{2,800}}, vip = 2, buy_count = 1, title = "白银礼包"},
+	[3] = {id = 3, item = {{233,2000}}, cost = {{2,1000}}, vip = 4, buy_count = 1, title = "黄金礼包"},
 	[4] = {id = 4, item = {{224,1000}}, cost = {{2,500}}, vip = 0, buy_count = 1, title = "青铜礼包"},
 	[5] = {id = 5, item = {{224,2000}}, cost = {{2,600}}, vip = 2, buy_count = 1, title = "白银礼包"},
 	[6] = {id = 6, item = {{224,3000}}, cost = {{2,600}}, vip = 4, buy_count = 1, title = "黄金礼包"},

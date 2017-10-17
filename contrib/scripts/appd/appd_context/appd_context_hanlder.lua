@@ -194,7 +194,8 @@ end
 
 -- 整理背包物品
 function PlayerInfo:Hanlde_Bag_Item_Sort(pkt)
-	SortItem(self,false)
+	local bagType = pkt.bag_type
+	SortItem(self,false,bagType)
 end
 
 
@@ -361,7 +362,7 @@ packet.register_on_external_packet(function ( player_ptr, pkt )
 	
 	--解包失败记一下日志
 	if not succeed then
-		logLib.WriteAttackPacker(self:GetGuid(), optcode, ACCACK_PACKET_TYPE_UNPACK, '')
+		logLib.WriteAttackPacker(_player:GetGuid(), optcode, ACCACK_PACKET_TYPE_UNPACK, '')
 	else
 		args.__optcode = optcode		
 		if OpcodeHandlerFuncTable[optcode] then

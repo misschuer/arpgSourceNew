@@ -8,7 +8,10 @@ tb_doujiantai_fight_range = {
 	--  ra:int 等级左范围
 	--  rb:int 等级右范围
 	--  chooseRange:array 选择区间
-	[1] = {id = 1, ra = 1, rb = 20, chooseRange = {{1,1},{2,2},{3,3}}},
-	[2] = {id = 2, ra = 21, rb = 100, chooseRange = {{1,5},{6,10},{11,20}}},
-	[3] = {id = 3, ra = 101, rb = 1000, chooseRange = {{1,50},{51,100},{101,200}}},
+	[1] = {id = 1, ra = 1, rb = 1, chooseRange = {{-3,-3},{-2,-2},{-1,-1}}},
+	[2] = {id = 2, ra = 2, rb = 2, chooseRange = {{-2,-2},{-1,-1},{1,1}}},
+	[3] = {id = 3, ra = 3, rb = 3, chooseRange = {{-1,-1},{1,1},{2,2}}},
+	[4] = {id = 4, ra = 4, rb = 20, chooseRange = {{1,1},{2,2},{3,3}}},
+	[5] = {id = 5, ra = 21, rb = 100, chooseRange = {{1,5},{6,10},{11,20}}},
+	[6] = {id = 6, ra = 101, rb = 1000, chooseRange = {{1,50},{51,100},{101,200}}},
 }

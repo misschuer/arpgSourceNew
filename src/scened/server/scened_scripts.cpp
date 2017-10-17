@@ -122,6 +122,28 @@ extern const struct luaL_reg LMap[] =
 
 	{"GetPlayersAfterCreatureDead",		&Map::LuaGetPlayersAfterCreatureDead},	//野怪死了, 找曾经攻击过的人
 
+	{"AddBossDamage",					&Map::LuaAddBossDamage},					//增加boss伤害
+	{"GetBossDamageRankCount",			&Map::LuaGetBossDamageRankCount},			
+	
+	{"ResetBossDamageRank",				&Map::LuaResetBossDamageRank},
+	{"GetBossDamageRankPlayerInfo",		&Map::LuaGetBossDamageRankPlayerInfo},
+	{"GetBossDamageRank",				&Map::LuaGetBossDamageRank},
+	{"NotifyAllRankUpdate",				&Map::LuaNotifyAllRankUpdate},
+
+	{"ShowMassBossRank",				&Map::LuaShowMassBossRank},
+
+	{"AddBossDamage",					&Map::LuaAddBossDamage},					//增加boss伤害
+	
+	{"SetMassBossHpRate",					&Map::LuaSetMassBossHpRate},
+	{"GetMassBossHpRate",					&Map::LuaGetMassBossHpRate},
+
+	{"SetMassBossEnterCount",					&Map::LuaSetMassBossEnterCount},
+	{"GetMassBossEnterCount",					&Map::LuaGetMassBossEnterCount},
+
+	{"AddDeadTimes",					&Map::LuaAddDeadTimes},
+	{"GetDeadTimes",					&Map::LuaGetDeadTimes},
+
+
 	{NULL, NULL} /* sentinel */ 
 };
 
@@ -246,6 +268,8 @@ extern const struct luaL_reg LPlayer[] =
 	{"SetNeedProtectBuff",			&Player::LuaSetNeedProtectBuff},	//设置是否需要死亡保护
 
 	{"SendToAppdDoSomething",			&Player::LuaSendToAppdDoSomething},	//发送到场景服进行进入逻辑判断
+
+	{"SendToAppdAddOfflineMail",			&Player::LuaSendToAppdAddOfflineMail},	//发送到场景服进行离线邮件增加
 
 	{"GetAllPlayerNearBy",			&Player::LuaGetAllPlayerNearBy},	//获得附近玩家
 
@@ -2422,6 +2446,19 @@ int DoIsRiskMap(uint32 mapid) {
 
 	if(LUA_PCALL(L, 1, 1, 0)) {
 		tea_perror(" lua error:DoIsRiskMap %u", mapid);
+		return 0;
+	}
+
+	return (int)LUA_TONUMBER(L, -1);
+}
+
+int DoIsMassBossMap(uint32 mapid) {
+	LuaStackAutoPopup autoPopup(L);
+	lua_getglobal(L, "isMassBossMap");
+	lua_pushnumber(L, mapid);
+
+	if(LUA_PCALL(L, 1, 1, 0)) {
+		tea_perror(" lua error:DoIsMassBossMap %u", mapid);
 		return 0;
 	}
 

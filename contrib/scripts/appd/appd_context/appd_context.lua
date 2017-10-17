@@ -2332,13 +2332,17 @@ function PlayerInfo:TeleportToRevenge(guid)
 	
 	--检测是否可传送过去
 	local map_id = player:GetMapId()
+	local lineNo = player:GetUInt32(PLAYER_FIELD_LINE_NO)
 	local config = tb_map[map_id]
 	if config and config.type == MAP_TYPE_FIELD then
 		local times = self:GetRevengeTimes()
 		if times > 0 then
 			self:SetRevengeTimes(times - 1)
 			local x, y = player:GetPosition()
-			call_appd_teleport(self:GetScenedFD(),self:GetGuid(),x,y,map_id)
+			--call_appd_teleport(self:GetScenedFD(),self:GetGuid(),x,y,map_id)
+			
+			local params = ''..map_id..'|'..x..'|'..y..'|'..lineNo
+			self:CallScenedDoSomething(APPD_SCENED_TELEPORT, 0,params)
 		else
 			--次数不足
 				self:CallOptResult(OPERTE_TYPE_SOCIAL,OPERTE_TYPE_SOCIAL_REVENGE_TIMES_NOT_ENOUGH)

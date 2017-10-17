@@ -170,6 +170,19 @@ local function on_scened_send_to_appd_do_something( pkt )
 	player:DoGetScenedDoSomething(type,data,str)
 end
 
+local function on_scened_send_to_appd_add_offline_mail(pkt)
+	local ret, guid, str = unpack_send_to_appd_add_offline_mail(pkt)
+	if not ret then return end
+	
+	-- TODO: 这里进行操作
+	local mailInfo = string.split(str, '|')
+	local rewards = mailInfo[ 1 ]
+	local name = mailInfo[ 2 ]
+	local desc = mailInfo[ 3 ]
+	local giftType = tonumber(mailInfo[ 4 ])
+	AddGiftPacksData(guid,0,giftType,os.time(),os.time() + 86400*30, name, desc, rewards, SYSTEM_NAME)
+end
+
 --场景服发给应用服发公告
 local function on_scened_send_ontice( pkt )
 	local ret, id, content, data = unpack_scened_send_notice(pkt)
@@ -323,6 +336,7 @@ appdInsternalHanlders[INTERNAL_OPT_FACTION_UPDATE_TARGET_INFO] = on_scened_send_
 appdInsternalHanlders[INTERNAL_OPT_FACTION_BOSSDEFENSE_WIN] = on_scened_send_faction_bossdefense_win
 appdInsternalHanlders[INTERNAL_OPT_FACTION_BOSSDEFENSE_LEAVE] = on_scened_send_faction_bossdefense_leave
 appdInsternalHanlders[INTERNAL_OPT_RENAME_CHECK_RESULT] = on_logind_send_rename_check_result
+appdInsternalHanlders[INTERNAL_OPT_SEND_TO_APPD_ADD_OFFLINE_MAIL] = on_scened_send_to_appd_add_offline_mail
 
 
 --网络包处理方法

@@ -287,7 +287,7 @@ int LuaGetUInt32(lua_State* scriptL)
 		return 1;
 	}
 	uint32 index = (uint32)LUA_TOINTEGER(scriptL, 2);
-	lua_pushinteger(scriptL, obj->GetUInt32(index));
+	lua_pushnumber(scriptL, obj->GetUInt32(index));
 	return 1;
 }
 

@@ -245,6 +245,7 @@ function PlayerInfo:CreateFaction(server_name, faction_name, icon)
 	local new_guid = guidMgr:Make_New_Guid(guidMgr.ObjectTypeFaction, guidMgr:NewIndex(guidMgr.ObjectTypeFaction), server_name)
 	local faction = app.objMgr:newAndCallPut(new_guid, FACTION_BINLOG_OWNER_STRING)
 	if(not faction)then
+		outFmtDebug("################################ 1")
 		return
 	end
 	
@@ -252,6 +253,7 @@ function PlayerInfo:CreateFaction(server_name, faction_name, icon)
 	local data_guid = guidMgr.replace(new_guid, guidMgr.ObjectTypeFactionData)
 	local factionData = app.objMgr:newAndCallPut(data_guid, FACTION_DATA_OWNER_STRING)
 	if(not factionData)then
+		outFmtDebug("################################ 2")
 		return
 	end
 	
@@ -269,6 +271,7 @@ function PlayerInfo:CreateFaction(server_name, faction_name, icon)
 		app.objMgr:callRemoveObject(new_guid)
 		self:SetFactionId("")
 		self:SetFactionName("")
+		outFmtDebug("################################ 3")
 		return
 	end
 	
@@ -287,6 +290,7 @@ function PlayerInfo:CreateFaction(server_name, faction_name, icon)
 	
 	rankInsertTask(faction:GetGuid(), RANK_TYPE_FACTION)
 	
+	outFmtDebug("################################ 4")
 	return true
 end
 
@@ -521,13 +525,15 @@ function PlayerInfo:Handle_Faction_People( pkt )
 		faction:FactionDonateGiftExchange(self,reserve_int1)
 		
 	elseif opt_type == FACTION_MANAGER_TYPE_BOSSDEFENSE_CHALLENGE then
-		faction:BossDenfenseChallenge(self,reserve_int1)
+		self:CallScenedDoSomething(APPD_SCENED_CHECK_ENTER_FACTION_BOSSDEFENSE,reserve_int1)
+		--faction:BossDenfenseChallenge(self,reserve_int1)
 		
 	elseif opt_type == FACTION_MANAGER_TYPE_BOSSDEFENSE_DAMAGE_LIST then
 		faction:GetBossDenfenseDamageList(self,reserve_int1)
 		
 	elseif opt_type == FACTION_MANAGER_TYPE_TOWER_CHALLENGE then
-		faction:TowerChallenge(self)
+		self:CallScenedDoSomething(APPD_SCENED_CHECK_ENTER_FACTION_TOWER)
+		--faction:TowerChallenge(self)
 		
 	elseif opt_type == FACTION_MANAGER_TYPE_TOWER_SWEEP then
 		faction:TowerSweep(self)

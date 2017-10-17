@@ -239,26 +239,6 @@ function PlayerInfo:Handle_Buy_Xianfu_Item(pkt)
 	self:OnBuyTicket(type, indx, count)
 end
 
-function PlayerInfo:Handle_Doujiantai_Fight(pkt)
-	local rank = pkt.rank
-	-- 不再挑战名次内
-	if rank < 0 or rank >= 3 then
-		return
-	end
-	
-	-- 模块没开 不让进
-	if not self:GetOpenMenuFlag(MODULE_ARENA, MODULE_ARENA_DOUJIANTAI) then
-		return
-	end
-	
-	-- 玩家必须还活着
-	if not self:IsAlive() then
-		return 
-	end
-	
-	self:OnDoujiantaiFight(rank)
-end
-
 function PlayerInfo:Handle_Doujiantai_Enemys_Info(pkt)
 	self:GetEnemyInfo()
 end

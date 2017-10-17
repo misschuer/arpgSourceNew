@@ -157,7 +157,10 @@ config = {
 		CMSG_QUERY_MASS_BOSS_INFO,	-- 查询挑战人员个数
 		CMSG_QUERY_MASS_BOSS_RANK,	-- 查询排行榜
 		CMSG_ENTER_RISK_INSTANCE,
-
+		CMSG_DOUJIANTAI_FIGHT,
+		-------------------------------
+		CMSG_WORLD_BOSS_ENROLL,	-- /*世界BOSS报名*/
+		CMSG_ENTER_PRIVATE_BOSS,	--个人BOSS挑战
 		--CMSG_CHANGE_LINE,
 		--[[
 		CMSG_START_HUNG_UP,--开始挂机*/

@@ -328,6 +328,10 @@ function PlayerInfo:AddEnemy(guid,num)
 		return
 	end
 	
+	if guid == self:GetGuid() then
+		return
+	end
+	
 	local socialMgr = self:getSocialMgr()
 	--socialMgr:addFamiliay(guid,num)
 	local enemy = app.objMgr:getObj(guid)

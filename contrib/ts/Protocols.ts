@@ -2696,10 +2696,12 @@ class Protocols {
 		this._stream.writeUint32 (count);		
 		this._send_func(this._stream);			
 	}
-	public bag_item_sort ():void{
+	public bag_item_sort ( bag_type :number ):void{
 		this._stream.reset();
 		this._stream.optcode = 274;
 		this._stream.writeUint16( 274 );
+			//±³°üÀàĞÍ
+		this._stream.writeUint32 (bag_type);		
 		this._send_func(this._stream);			
 	}
 	public submit_quest_daily2 ():void{

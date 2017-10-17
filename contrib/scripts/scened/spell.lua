@@ -938,7 +938,7 @@ function SpellTargetType(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets
 				attack_mast[1] = pos[1]
 				attack_mast[2] = pos[2]
 				local isfriend = unitLib.IsFriendlyTo(caster, target)
-				if CalHitTest(attack_mast)[1] and isfriend == 0 and not isAngerSpellHitPlayer(spell_id, target) then
+				if (CalHitTest(attack_mast)[1] or checkWhileOnSamePosition(shifang, caster, target)) and isfriend == 0 and not isAngerSpellHitPlayer(spell_id, target) then
 					handle_cast_monomer_spell(caster, target, spell_id, spell_lv, allTargets, buff_table, px, py)
 					_m_count = _m_count + 1
 					hit_target = true
@@ -953,7 +953,7 @@ function SpellTargetType(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets
 						local pos = GetHitAreaPostion({cast_x,cast_y,shifa_x,shifa_y,tar_x,tar_y,angle})
 						attack_mast[1] = pos[1]
 						attack_mast[2] = pos[2]
-						if CalHitTest(attack_mast)[1] and not isAngerSpellHitPlayer(spell_id, attack_target)  then
+						if (CalHitTest(attack_mast)[1] or checkWhileOnSamePosition(shifang, caster, attack_target)) and not isAngerSpellHitPlayer(spell_id, attack_target)  then
 							-- TODO: 这里修改技能
 							handle_cast_monomer_spell(caster, attack_target, spell_id, spell_lv, allTargets, buff_table, px, py)
 							_m_count = _m_count + 1
@@ -979,6 +979,15 @@ function SpellTargetType(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets
 	
 	-- 设置技能族当前技能
 	SetSkillStype(caster, spell_id)
+end
+
+function checkWhileOnSamePosition(shifang, caster, target)
+	if shifang == SPELL_SHIFANG_QUN	or shifang == SPELL_SHIFANG_ZHI or shifang == SPELL_SHIFANG_SHAN then
+		local cast_x, cast_y = unitLib.GetPos(caster)
+		local targ_x, targ_y = unitLib.GetPos(target)
+		return cast_x == targ_x and cast_y == targ_y
+	end
+	return false
 end
 
 --[[

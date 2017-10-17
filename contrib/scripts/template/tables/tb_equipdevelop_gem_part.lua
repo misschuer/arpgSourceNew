@@ -16,6 +16,6 @@ tb_equipdevelop_gem_part = {
 	[6] = {id = 6, gem_array = {4,6,8}, unlock_strength_lv = {0,30,60}, unlock_refine_lv = {0,0,0}},
 	[7] = {id = 7, gem_array = {5,7,9}, unlock_strength_lv = {0,30,60}, unlock_refine_lv = {0,0,0}},
 	[8] = {id = 8, gem_array = {5,7,9}, unlock_strength_lv = {0,30,60}, unlock_refine_lv = {0,0,0}},
-	[9] = {id = 9, gem_array = {9,5,7}, unlock_strength_lv = {0,30,60}, unlock_refine_lv = {0,0,0}},
+	[9] = {id = 9, gem_array = {5,7,9}, unlock_strength_lv = {0,30,60}, unlock_refine_lv = {0,0,0}},
 	[10] = {id = 10, gem_array = {2,1,3}, unlock_strength_lv = {0,30,60}, unlock_refine_lv = {0,0,0}},
 }

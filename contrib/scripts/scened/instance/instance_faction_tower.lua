@@ -70,7 +70,7 @@ function InstanceFactionTower:OnInitScript(  )
 	
 end
 
--- 退出倒计时到了准备退出
+-- 退出倒计时到了继续挑战下一层
 function InstanceFactionTower:prepareToLeave()
 	if self:GetMapState() == self.STATE_FAIL or not tb_faction_tower_floor[self:GetFloor()+1]then
 		mapLib.ExitInstance(self.ptr)

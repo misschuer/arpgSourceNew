@@ -587,3 +587,16 @@ void DoSetNewPlayerInfo(logind_player* player)
 	}
 	return;
 }
+
+int DoIsRiskMap(uint32 mapid) {
+	LuaStackAutoPopup autoPopup(L);
+	lua_getglobal(L, "isRiskMap");
+	lua_pushnumber(L, mapid);
+
+	if(LUA_PCALL(L, 1, 1, 0)) {
+		tea_perror(" lua error:DoIsRiskMap %u", mapid);
+		return 0;
+	}
+
+	return (int)LUA_TONUMBER(L, -1);
+}

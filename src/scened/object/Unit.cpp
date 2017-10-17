@@ -1118,7 +1118,11 @@ void Unit::CalSpellCastInfo()
 		
 		//0就没什么好处理了
 		if(damage == 0)
-		{
+		{	
+			// 玩家打怪物MISS时也要触发
+			if(pVictim->GetTypeId() == TYPEID_UNIT) {
+				dynamic_cast<Creature *>(pVictim)->m_threatMgr.Add(this, 1);
+			}
 			continue;
 		}
 		//目标死了也不要处理了

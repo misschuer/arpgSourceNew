@@ -265,6 +265,9 @@ void Map::PrintAllMap()
 
 //////////////////////////////////////////////////////////////////////////
 //for Map
+std::map<uint8, uint8> Map::massBossHPRate;
+std::map<uint8, uint32> Map::massBossEnterCount;
+std::map<uint8, BossRankInfoVec> Map::massBossRankInfo;
 
 map<uint32, BinLogObject*> Map::all_parent_map_info;		//父级地图变量
 void Map::UpdateParentInfo()
@@ -431,6 +434,8 @@ Map::~Map()
 		m_script_timestamp_callbacks.erase(it++);
 		free(stc);
 	}
+
+	rankInfoVec.clear();
 
 	//释放内存
 	safe_delete(m_grids);
@@ -1077,8 +1082,15 @@ void Map::LeavePlayer(Player *player)
 	player->SetMap(nullptr);	
 	//如果玩家离开的地图不是副本,则记录为数据库坐标
 	if (player->isAlive()) {
-		if(!GetMapTemp()->IsInstance() && !player->GetSession()->IsKuafuPlayer())
-			player->GetSession()->SetToDBPositon(player->GetMapId(),player->GetPositionX(),player->GetPositionY());
+		if((!GetMapTemp()->IsInstance() || DoIsRiskMap(this->GetMapId())) && !player->GetSession()->IsKuafuPlayer()) {
+			// 如果是从幻境小关卡离开的就记录一个标记就行
+			if (DoIsRiskMap(this->GetMapId())) {
+				player->GetSession()->SetLastRiskFlag(1);
+			} else {
+				player->GetSession()->SetLastRiskFlag(0);
+				player->GetSession()->SetToDBPositon(player->GetMapId(),player->GetPositionX(),player->GetPositionY());
+			}
+		}
 	} else {
 		//TODO: 判断下死亡离开需不需要回城
 		float nx,ny;
@@ -1306,6 +1318,220 @@ int Map::LuaGetMapId(lua_State *scriptL)
 	if(_m)
 		id = _m->GetMapId();
 	lua_pushinteger(scriptL, id);
+	return 1;
+}
+
+//增加boss伤害排名
+int Map::LuaAddBossDamage(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n >= 4);
+	Map *_m = (Map*)LUA_TOUSERDATA(scriptL,1,ObjectTypeNone);
+	if(!_m) {
+		tea_perror("LuaAddBossDamage map is NULL");
+		return 0;
+	}
+	Player *player = (Player *)LUA_TOUSERDATA(scriptL,2, ObjectTypeUnit);
+	if (!player) {
+		tea_perror("LuaAddBossDamage player is NULL");
+		return 0;
+	}
+
+	uint32 dam   = (uint32)LUA_TONUMBER(scriptL, 3);
+	uint32 maxHP = (uint32)LUA_TONUMBER(scriptL, 4);
+
+	uint32 level = 0;
+	uint32 vip = 0;
+	if (n >= 5) {
+		level = (uint32)LUA_TONUMBER(scriptL, 5);
+	}
+
+	if (n >= 6) {
+		vip = (uint32)LUA_TONUMBER(scriptL, 6);
+	}
+	addBossDamage(_m->rankInfoVec, player, dam, maxHP, level, vip);
+
+	// 这里判断如果是全民boss的外面观看处理
+	if (DoIsMassBossMap(_m->GetMapId())) {
+		uint32 id = _m->m_parent_map_info->GetUInt32(MAP_MASS_BOSS_INT_FIELD_ID);
+		addMassBossDamage(id, player, dam, maxHP, level, vip);
+	}
+
+	return 0;
+}
+
+int Map::LuaGetBossDamageRankCount(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	uint8 indx = (uint8)LUA_TONUMBER(scriptL, 1);
+	uint32 count = massBossRankInfo.size();
+	lua_pushinteger(scriptL, count);
+	return 1;
+}
+
+int Map::LuaResetBossDamageRank(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	Map *_m = (Map*)LUA_TOUSERDATA(scriptL,1,ObjectTypeNone);
+	if(!_m) {
+		tea_perror("LuaResetBossDamageRank map is NULL");
+		return 0;
+	}
+
+	_m->rankInfoVec.clear();
+
+	// 这里判断如果是全民boss的外面观看处理
+	if (DoIsMassBossMap(_m->GetMapId())) {
+		uint32 id = _m->m_parent_map_info->GetUInt32(MAP_MASS_BOSS_INT_FIELD_ID);
+		resetMassBossDamage(id);
+	}
+
+	return 0;
+}
+
+int Map::LuaGetBossDamageRank(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	Map *_m = (Map*)LUA_TOUSERDATA(scriptL,1,ObjectTypeNone);
+	if(!_m) {
+		tea_perror("LuaGetBossDamageRank map is NULL");
+		return 0;
+	}
+
+	lua_newtable(scriptL);    /* We will pass a table */
+	int i = 0;
+	std::for_each(_m->rankInfoVec.begin(), _m->rankInfoVec.end(),[&i,scriptL](BossRankInfo it){
+		string guid = it.player_guid;
+		lua_pushnumber(scriptL, i+1);   /* Push the table index */
+		lua_pushstring(scriptL, guid.c_str());	
+		lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+		i++;
+	});
+
+	return 1;
+}
+
+int Map::LuaGetBossDamageRankPlayerInfo(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	Map *_m = (Map*)LUA_TOUSERDATA(scriptL,1,ObjectTypeNone);
+	if(!_m) {
+		tea_perror("LuaNotifyAllRankUpdate map is NULL");
+		return 0;
+	}
+
+	uint32 indx = (uint32)LUA_TONUMBER(scriptL, 2);
+	uint32 level = 0;
+	uint32 vip = 0;
+	if (indx >= 0 && indx < _m->rankInfoVec.size()) {
+		level = _m->rankInfoVec[indx].level;
+		vip = _m->rankInfoVec[indx].vip;
+	}
+
+	lua_pushnumber(scriptL, level);
+	lua_pushnumber(scriptL, vip);
+	return 2;
+}
+
+int Map::LuaNotifyAllRankUpdate(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	Map *_m = (Map*)LUA_TOUSERDATA(scriptL,1,ObjectTypeNone);
+	if(!_m) {
+		tea_perror("LuaNotifyAllRankUpdate map is NULL");
+		return 0;
+	}
+
+	vector< rank_info > rankList;
+	map<string, uint32> rankIndx;
+	DoBossRankList(rankList, _m->rankInfoVec, rankIndx);
+
+	PlayerMap players = _m->GetPlayers();
+	for (PlayerMap::iterator iter = players.begin();iter != players.end();++iter) {
+		if (!iter->second)
+			continue;
+		uint32 mine = 0;
+		auto it = rankIndx.find(iter->second->GetGuid());
+		if (it != rankIndx.end()) {
+			mine = it->second;
+		}
+		Player * player = iter->second;
+		Call_boss_rank(player->GetSession()->m_delegate_sendpkt, 2, rankList , mine);
+	}
+
+	return 0;
+}
+
+int Map::LuaShowMassBossRank(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	Player *player = (Player*)LUA_TOUSERDATA(scriptL, 1, ObjectTypeUnit);
+	ASSERT(player);
+
+	uint8 id   = (uint8)LUA_TONUMBER(scriptL, 2);
+	showMassBossRank(player, id);
+
+	return 0;
+}
+
+
+int Map::LuaSetMassBossHpRate(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	uint8 index = (uint32)LUA_TONUMBER(scriptL, 1);
+	uint8 value = (uint32)LUA_TONUMBER(scriptL, 2);
+
+	setMassBossHpRate(index, value);
+
+	return 0;
+}
+
+int Map::LuaGetMassBossHpRate(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	uint8 index = (uint32)LUA_TONUMBER(scriptL, 1);
+	uint8 rate = getMassBossHpRate(index);
+	lua_pushinteger(scriptL, rate);
+	return 1;
+}
+
+int Map::LuaSetMassBossEnterCount(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	uint8 index = (uint32)LUA_TONUMBER(scriptL, 1);
+	uint32 value = (uint32)LUA_TONUMBER(scriptL, 2);
+
+	setMassBossEnterCount(index, value);
+
+	return 0;
+}
+
+int Map::LuaGetMassBossEnterCount(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	uint8 index = (uint32)LUA_TONUMBER(scriptL, 1);
+	uint32 count = getMassBossEnterCount(index);
+
+	lua_pushinteger(scriptL, count);
+	return 1;
+}
+
+int Map::LuaAddDeadTimes(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	Map *_m = (Map*)LUA_TOUSERDATA(scriptL,1,ObjectTypeNone);
+	if(!_m) {
+		tea_perror("LuaAddDeadTimes map is NULL");
+		return 0;
+	}
+	string player_guid = (string)LUA_TOSTRING(scriptL, 2);
+	_m->addDeadTimes(player_guid);
+
+	return 0;
+}
+
+int Map::LuaGetDeadTimes(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	Map *_m = (Map*)LUA_TOUSERDATA(scriptL,1,ObjectTypeNone);
+	if(!_m) {
+		tea_perror("LuaGetDeadTimes map is NULL");
+		return 0;
+	}
+	string player_guid = (string)LUA_TOSTRING(scriptL, 2);
+	uint32 times = _m->getDeadTimes(player_guid);
+	lua_pushnumber(scriptL, times);
+
 	return 1;
 }
 
@@ -3382,6 +3608,10 @@ void InstanceMap::OnePlayerExitInstance(Player *player) {
 	float x,y;
 	string generalId = "";
 	player->GetSession()->GetToDBPosition(map_id, x, y);
+	// 上一次离开是幻境小关卡且当前在其他副本的就回到幻境
+	if (player->GetSession()->IsLastInRisk() && !DoIsRiskMap(this->GetMapId())) {
+		DoScenedGetRiskTeleportInfo(player, map_id, x, y, generalId);
+	}
 	//tea_perror("{guid:%s,mapid%d}退出副本获得的地图ID还在原图",player->GetGuid().c_str(),map_id);
 	player->GetSession()->Teleport(x,y,map_id,generalId);
 }

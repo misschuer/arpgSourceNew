@@ -67,4 +67,6 @@ extern bool DoIsWorldMapID(uint32 map_id);
 extern int DoGetNextSaveTime(uint32 &t);
 //初始化玩家信息
 extern void DoSetNewPlayerInfo(logind_player* player);
+// 是否是冒险地图
+extern int DoIsRiskMap(uint32 mapid);
 #endif	

@@ -57,7 +57,7 @@ end
 
 --当副本状态发生变化时间触发
 function InstanceWorldRisk:OnSetState(fromstate,tostate)
-	if tostate == self.STATE_FINISH then
+	if tostate == self.STATE_FINISH or tostate == self.STATE_FAIL then
 		--10s后结束副本
 		local timestamp = os.time() + InstanceWorldRisk.exit_time
 		self:AddTimeOutCallback(self.Leave_Callback, timestamp)
@@ -260,6 +260,7 @@ end
 
 --当玩家离开时触发
 function InstanceWorldRisk:OnLeavePlayer( player, is_offline)
+	InstanceInstBase.OnLeavePlayer(self, player, is_offline)
 	if not is_offline then
 		self:RemoveTimeOutCallback(self.Leave_Callback)
 	end
@@ -268,7 +269,16 @@ end
 
 --当玩家死亡后触发()
 function InstanceWorldRisk:OnPlayerDeath(player)
+	local seciontId = self:getSectionId()
 	local playerInfo = UnitInfo:new {ptr = player}
+	
+	if tb_risk_data[seciontId].is_boss_section == 1 then
+		self:SetMapState(self.STATE_FAIL)
+		unitLib.Respawn(player, RESURRECTION_SPAWNPOINT, 100)
+		playerInfo:call_send_instance_result(self:GetMapState(), self.exit_time, {}, INSTANCE_SUB_TYPE_RISK, '')
+		return
+	end
+	
 	local mapid = self:GetMapId()
 	local waitTimeList = tb_map[mapid].rebornWaitTime
 	local sec = waitTimeList[ 1 ]
