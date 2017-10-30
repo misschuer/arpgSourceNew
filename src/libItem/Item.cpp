@@ -48,7 +48,7 @@ static void getAttStr(string &str,std::vector<ItemBaseAtt> &ary){
 	for (int i=0;i<len;i+=3)
 	{
 		int key =atoi(tokens[i].c_str());
-		int val =atoi(tokens[i+1].c_str());
+		double val = atof(tokens[i+1].c_str());
 		int qua =atoi(tokens[i+2].c_str());
 		ItemBaseAtt temp;
 		temp.key = key;

@@ -94,4 +94,10 @@ extern int LuaCancelMatchQueue(lua_State *scriptL);
 
 extern int LuaOnProcessMatchQueue(lua_State *scriptL);
 
+
+extern int LuaSetMatchingKuafuType(lua_State *scriptL);
+extern int LuaGetMatchingKuafuType(lua_State *scriptL);
+extern int LuaIsKuafuTypeMatching(lua_State *scriptL);
+extern int LuaGetKuafuTypeMatchingArg(lua_State *scriptL);
+
 #endif

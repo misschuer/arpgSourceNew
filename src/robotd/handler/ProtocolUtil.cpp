@@ -7193,3 +7193,41 @@ int ProtocolUtil::send_enter_private_boss (uint32 id)
 	return 0;
 }
 
+/*申请升级全部技能*/
+int ProtocolUtil::unpack_raise_base_spell_all (ByteArray &bytes ,uint8 &raiseType,string &spellIdStr)
+{
+	int ret=0;
+	//uint8
+	raiseType = bytes.readUnsignedByte();
+	//String
+	spellIdStr = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_raise_base_spell_all (uint8 raiseType,char const*spellIdStr)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_RAISE_BASE_SPELL_ALL);
+	
+	m_bytes.writeBytes((uint8*)&raiseType, sizeof(uint8));
+	m_bytes.writeUTF(spellIdStr);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*使用回复药*/
+int ProtocolUtil::unpack_use_restore_potion (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_use_restore_potion ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_USE_RESTORE_POTION);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+

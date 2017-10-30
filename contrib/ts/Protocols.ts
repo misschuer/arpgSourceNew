@@ -726,6 +726,10 @@ class Protocols {
 	public static  CMSG_SET_WORLD_RISK_LAST_ID :number = 409;	//set_world_risk_last_id
 	/*进入个人Boss*/
 	public static  CMSG_ENTER_PRIVATE_BOSS :number = 410;	//enter_private_boss
+	/*申请升级全部技能*/
+	public static  CMSG_RAISE_BASE_SPELL_ALL :number = 411;	//raise_base_spell_all
+	/*使用回复药*/
+	public static  CMSG_USE_RESTORE_POTION :number = 413;	//use_restore_potion
 	private _FUNCS:Object = new Object();
 		
 		/**
@@ -1012,6 +1016,8 @@ class Protocols {
 		this._FUNCS[408] = "get_moneytree_gift";
 		this._FUNCS[409] = "set_world_risk_last_id";
 		this._FUNCS[410] = "enter_private_boss";
+		this._FUNCS[411] = "raise_base_spell_all";
+		this._FUNCS[413] = "use_restore_potion";
 	}
 		
 	public null_action ():void{
@@ -3267,6 +3273,22 @@ class Protocols {
 		this._stream.writeUint16( 410 );
 			//Bossid
 		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public raise_base_spell_all ( raiseType :number  ,spellIdStr :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 411;
+		this._stream.writeUint16( 411 );
+			//技能类型
+		this._stream.writeUint8 (raiseType);		
+			//技能ID字符串
+		this._stream.writeString (spellIdStr);		
+		this._send_func(this._stream);			
+	}
+	public use_restore_potion ():void{
+		this._stream.reset();
+		this._stream.optcode = 413;
+		this._stream.writeUint16( 413 );
 		this._send_func(this._stream);			
 	}
 }

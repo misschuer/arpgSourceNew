@@ -73,6 +73,60 @@ function PlayerInfo:Handle_Raise_BaseSpell(pkt)
 	self:DoHandleRaiseSpell(raiseType, spellId)
 end
 
+function PlayerInfo:Handle_Raise_BaseSpell_All(pkt)
+	local spellId_str  = pkt.spellIdStr
+	local raiseType = pkt.raiseType
+	
+	local spellMgr = self:getSpellMgr()
+	
+	local tokens = string.split(spellId_str,'|')
+	local spellId_list = {}
+	for _,token in ipairs(tokens) do
+		local id = tonumber(token)
+		if id then
+			local config = tb_skill_base[id]
+			if config and self:hasSpell(id) then
+				table.insert(spellId_list,id)
+			end
+		end
+	end
+	
+	if raiseType == RAISE_BASE_SKILL then
+		-- 系统未激活
+		if (not self:GetOpenMenuFlag(MODULE_SPELL, MODULE_SPELL_ALL)) then
+			return
+		end
+	elseif raiseType == RAISE_MOUNT_SKILL then
+		-- 系统未激活
+		if (not self:GetOpenMenuFlag(MODULE_MOUNT, MODULE_MOUNT_SKILL)) then
+			return
+		end
+	else
+		return
+	end
+	
+	local all_max_level_flag = true
+	for _,spellId in ipairs(spellId_list) do
+		-- 判断是否满级了
+		if not self:isTopLevel(spellId) then
+			all_max_level_flag = false
+		end
+		
+		-- 判断人物等级
+		local index = spellMgr:getSpellUpgradeIndex(spellId)
+		local upLevelConfig = tb_skill_uplevel[index]
+		if self:checkPlayerLevel(upLevelConfig.need_level) then
+			all_max_level_flag = false
+		end
+	end
+	if all_max_level_flag then
+		outFmtDebug("Handle_Raise_BaseSpell_All player has no spellId to upgrade")
+		return
+	end
+	
+	self:DoHandleRaiseSpellAll(raiseType, spellId_list)
+end
+
 -- 怒气技能进阶
 function PlayerInfo:Handle_Upgrade_AngleSpell(pkt)
 	--[[
@@ -516,6 +570,7 @@ function PlayerInfo:Handle_Equipdevelop_Operate(pkt)
 	local reserve_int2 = pkt.reserve_int2   --预留int值2*/
 	local reserve_str1 = pkt.reserve_str1   --预留string值1*/
 	local reserve_str2 = pkt.reserve_str2   --预留string值2*/
+	--outFmtDebug("################### type %d",opt_type)
 	if opt_type == EQUIPDEVELOP_TYPE_STRENGTH_LVUP then
 		-- 系统未激活
 		if (not self:GetOpenMenuFlag(MODULE_MIX, MODULE_MIX_STRENGTH)) then
@@ -526,6 +581,13 @@ function PlayerInfo:Handle_Equipdevelop_Operate(pkt)
 		end
 		
 		self:EquipDevelopStrength(reserve_int1,reserve_int2)
+	elseif opt_type == EQUIPDEVELOP_TYPE_STRENGTH_ALL then
+		-- 系统未激活
+		if (not self:GetOpenMenuFlag(MODULE_MIX, MODULE_MIX_STRENGTH)) then
+			return
+		end
+		
+		self:EquipDevelopStrengthAll()
 	elseif opt_type == EQUIPDEVELOP_TYPE_REFINE_STAR_LVUP then
 		-- 系统未激活
 		if (not self:GetOpenMenuFlag(MODULE_MIX, MODULE_MIX_POLISHED)) then

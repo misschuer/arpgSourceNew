@@ -102,6 +102,15 @@ public:
 		massBossRankInfo.erase(indx);
 	}
 
+	static uint32 getMassBossRankSize(uint8 indx) {
+		uint32 size = 0;
+		auto it = massBossRankInfo.find(indx);
+		if (it != massBossRankInfo.end()) {
+			size = it->second.size();
+		}
+		return size;
+	}
+
 	static void addMassBossDamage(uint8 indx, Player* player, uint32 dam, uint32 BOSS_MAX_HP, uint32 level=0, uint32 vip=0) {
 		if (massBossRankInfo.find(indx) == massBossRankInfo.end()) {
 			BossRankInfoVec rankInfoVec;

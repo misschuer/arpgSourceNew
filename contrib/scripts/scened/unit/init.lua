@@ -2408,5 +2408,13 @@ function UnitInfo:GetLastInstanceParam()
 	return self:GetPlayerUInt32(PLAYER_INT_FIELD_LAST_INSTANCE_PARAM)
 end
 
+function UnitInfo:SetRestorePotionCD(val)
+	self:SetPlayerUInt32(PLAYER_INT_FIELD_RESTORE_POTION_CD,val)
+end
+
+function UnitInfo:GetRestorePotionCD()
+	return self:GetPlayerUInt32(PLAYER_INT_FIELD_RESTORE_POTION_CD)
+end
+
 require 'scened.unit.unit_spell'
 require 'scened.unit.scened_appd_dosomething'

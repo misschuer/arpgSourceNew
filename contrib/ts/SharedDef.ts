@@ -1042,6 +1042,8 @@ class SharedDef
 		public static QUEST_TARGET_TYPE_WINGS_BLESS_TIMES			:number = 73;	// 翅膀祝福X次
 		public static QUEST_TARGET_TYPE_MONEYTREE_TIMES			:number = 74;	// 使用摇钱树X次
 		public static QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES			:number = 75;	// 参与X次全民Boss
+		public static QUEST_TARGET_TYPE_MAIN_SKILL_UPGRADE_LEVEL			:number = 76;	// 升级X个主动技能到Y级
+		public static QUEST_TARGET_TYPE_SUB_SKILL_UPGRADE_LEVEL			:number = 77;	// 升级X个被动技能到Y级
 		// 货币处理类型
 		public static CURRENCY_HANDLE_TYPE_ADD			:number = 0;	// 增加
 		public static CURRENCY_HANDLE_TYPE_SUB			:number = 1;	// 减少
@@ -1533,6 +1535,7 @@ class SharedDef
 		public static APPD_SCENED_TELEPORT			:number = 14;	// 传送
 		public static APPD_SCENED_CHECK_ENTER_FACTION_BOSSDEFENSE			:number = 15;	// 检测进入家族boss
 		public static APPD_SCENED_CHECK_ENTER_FACTION_TOWER			:number = 16;	// 检测进入家族远征
+		public static APPD_SCENED_USE_RESTORE_POTION			:number = 17;	// 使用回复药
 		public static INSTANCE_SUB_TYPE_VIP			:number = 1;	// vip副本
 		public static INSTANCE_SUB_TYPE_TRIAL			:number = 2;	// 试炼塔副本
 		public static INSTANCE_SUB_TYPE_WORLD_BOSS			:number = 3;	// 世界BOSS
@@ -1832,6 +1835,7 @@ class SharedDef
 		public static PLAYER_INT_FIELD_LAST_INSTANCE_TYPE			:number = 1774;	// 上次副本子类型
 		public static PLAYER_INT_FIELD_LAST_INSTANCE_PARAM			:number = 1775;	// 上次副本额外参数
 		public static PLAYER_EXPAND_INT_LAST_IS_RISK			:number = 1776;	// 最后一次进的是幻境
+		public static PLAYER_INT_FIELD_RESTORE_POTION_CD			:number = 1777;	// 回复药功能CD
 		// ////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// 字符串部分
 		public static PLAYER_STRING_FIELD_ACCOUNT			:number = 4;	// 账号
@@ -1918,6 +1922,7 @@ class SharedDef
 		public static EQUIPDEVELOP_TYPE_WASHATTRS_WASH			:number = 6;
 		public static EQUIPDEVELOP_TYPE_WASHATTRS_SAVE			:number = 7;
 		public static EQUIPDEVELOP_TYPE_WASHATTRS_DEL			:number = 8;
+		public static EQUIPDEVELOP_TYPE_STRENGTH_ALL			:number = 9;
 		public static MAX_EXTERIOR_COUNT			:number = 200;	//  最大外观数量
 		// 活动数据int
 		public static PLAYER_ACTIVITTY_DATA_INT_0			:number = 0;
@@ -2829,6 +2834,7 @@ class SharedDef
 		public static MODULE_CHATPERSON			:number = 110;	// 私聊
 		public static MODULE_ACTIVE			:number = 111;	// 活跃
 		public static MODULE_MONEYTREE			:number = 112;	// 摇钱树
+		public static MODULE_FISH			:number = 113;	// 我要变弱
 		public static MODULE_ROLE			:number = 201;	// 角色
 		public static MODULE_SPELL			:number = 202;	// 技能
 		public static MODULE_DIVINE			:number = 203;	// 法宝
@@ -2868,6 +2874,7 @@ class SharedDef
 		public static MODULE_CHATPERSON_ALL			:number = 1;	// 聊天
 		public static MODULE_ACTIVE_ALL			:number = 1;	// 活跃
 		public static MODULE_MONEYTREE_ALL			:number = 1;	// 摇钱树
+		public static MODULE_FISH_ALL			:number = 1;	// 我要变弱
 		public static MODULE_ROLE_ATTR			:number = 1;	// 角色属性
 		public static MODULE_ROLE_ACHIEVE			:number = 2;	// 角色成就
 		public static MODULE_ROLE_TITLE			:number = 3;	// 角色称号
@@ -2941,4 +2948,8 @@ class SharedDef
 		public static VITALITY_TYPE_FACTION_DONATE			:number = 9;	// 家族贡献
 		public static VITALITY_TYPE_DOUJIANTAI			:number = 10;	// 斗剑台
 		public static VITALITY_TYPE_SINGLE_PVP			:number = 11;	// 排位赛
+		public static VITALITY_TYPE_PRIVATE_BOSS			:number = 12;	// 个人boss
+		public static VITALITY_TYPE_SHOP_BUY			:number = 13;	// 商城购买
+		public static VITALITY_TYPE_RANK_LIKE			:number = 14;	// 膜拜高手
+		public static VITALITY_TYPE_DAILY_QUEST			:number = 15;	// 日常任务
 	}

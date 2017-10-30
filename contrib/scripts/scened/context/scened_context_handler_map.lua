@@ -57,4 +57,6 @@ OpcodeHandlerFuncTable[CMSG_WORLD_BOSS_ENROLL] = ScenedContext.Handle_WorldBoss_
 
 OpcodeHandlerFuncTable[CMSG_ENTER_PRIVATE_BOSS] = ScenedContext.Handle_Enter_Private_Boss
 
+OpcodeHandlerFuncTable[CMSG_USE_RESTORE_POTION] = ScenedContext.Handle_Use_Restore_Potion
+
 return OpcodeHandlerFuncTable

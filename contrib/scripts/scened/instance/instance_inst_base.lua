@@ -340,7 +340,7 @@ function InstanceInstBase:OnJoinPlayer(player)
 	
 	local playerInfo = UnitInfo:new{ptr = player}
 	
-	playerInfo:ChangeToPeaceModeAfterTeleport()
+	--playerInfo:ChangeToPeaceModeAfterTeleport()
 	playerInfo:ModifyHealth(playerInfo:GetMaxHealth())
 end
 
@@ -348,8 +348,8 @@ end
 function InstanceInstBase:OnLeavePlayer( player, is_offline)
 	Instance_base.OnLeavePlayer(self, player, is_offline)
 	
-	local playerInfo = UnitInfo:new{ptr = player}
-	playerInfo:ChangeToPeaceModeAfterTeleport()
+	--local playerInfo = UnitInfo:new{ptr = player}
+	--playerInfo:ChangeToPeaceModeAfterTeleport()
 end
 
 return InstanceInstBase

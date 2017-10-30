@@ -734,7 +734,7 @@ bool WayFindingAndAttackMovementGenerator::AttackTarge(Creature &creature, const
 		RandSpell(creature, dis);
 		
 		//如果在攻击距离以内，直接攻击就好不做移动;
-		if(spell && (spell->target_type == 0 || dis <= spell->spell_distance))
+		if(spell && (spell->target_type == 0 || dis <= spell->spell_distance || fabs(dis - spell->spell_distance) <= 1E-1))
 		{
 			if(creature.IsMoving()) {
 				//return true;

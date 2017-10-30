@@ -276,4 +276,6 @@ function PlayerInfo:onPrivateBossWin(id)
 	
 	local instMgr = self:getInstanceMgr()
 	instMgr:updatePrivateBossRecoverTime(id)
+	
+	self:AddActiveItem(VITALITY_TYPE_PRIVATE_BOSS)
 end

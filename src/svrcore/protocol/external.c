@@ -378,6 +378,8 @@ char* OpcodeName[NUM_MSG_TYPES+1] = {
     "CMSG_GET_MONEYTREE_GIFT",
     "CMSG_SET_WORLD_RISK_LAST_ID",
     "CMSG_ENTER_PRIVATE_BOSS",
+    "CMSG_RAISE_BASE_SPELL_ALL",
+    "CMSG_USE_RESTORE_POTION",
 "NUM_MSG_TYPES"
 };
 
@@ -6621,6 +6623,35 @@ int   unpack_enter_private_boss (packet *src ,uint32 *id)
 	ret = packet_read(src,(char*)(id),sizeof(uint32));
 	if(ret) return -1;
 	return ret;
+}
+/*申请升级全部技能*/
+int   pack_raise_base_spell_all (packet**dst ,uint8 raiseType,char const*spellIdStr)
+{
+	*dst = external_protocol_new_packet(CMSG_RAISE_BASE_SPELL_ALL);
+	ASSERT((*dst)->head->optcode == CMSG_RAISE_BASE_SPELL_ALL);	
+	packet_write(*dst,(char *)&raiseType,sizeof(uint8));
+	packet_write_str(*dst,spellIdStr);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_raise_base_spell_all (packet *src ,uint8 *raiseType,char **spellIdStr)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(raiseType),sizeof(uint8));
+	if(ret) return -1;
+	ret = packet_read_str(src,spellIdStr);
+	if(ret) return -1;
+	return ret;
+}
+/*使用回复药*/
+int   pack_use_restore_potion (packet**dst )
+{
+	*dst = external_protocol_new_packet(CMSG_USE_RESTORE_POTION);
+	ASSERT((*dst)->head->optcode == CMSG_USE_RESTORE_POTION);	
+		
+	update_packet_len(*dst);
+	return 0;	
 }
 
 TEA_SVRCORE_API	int pack_rand_send_msg( packet**dst ,const char* message )

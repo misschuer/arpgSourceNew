@@ -634,6 +634,12 @@ Instance_base = {
 	--当玩家加入时触发
 	OnJoinPlayer =
 		function(self,player)
+			local mapid = self:GetMapId()
+			local default_mode = tb_map[mapid].default_mode
+			if default_mode == PEACE_MODE or default_mode == FAMILY_MODE or default_mode == GROUP_MODE then
+				local playerInfo = UnitInfo:new{ptr = player}
+				playerInfo:SetBattleMode(default_mode)
+			end
 		end,
 
 	--当玩家加入后触发

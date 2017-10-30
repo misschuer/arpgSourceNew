@@ -543,6 +543,7 @@ public:
 	static int LuaGetCurSpell(lua_State* scriptL);
 	static int LuaSetCurSpell(lua_State* scriptL);
 	static int LuaHasUnitState(lua_State* scriptL);
+	static int LuaAddUnitState(lua_State* scriptL);
 	static int LuaIsMoving(lua_State* scriptL);
 	static int LuaGetMoveSpeed(lua_State* scriptL);
 	static int LuaSetMoveSpeed(lua_State* scriptL);

@@ -475,6 +475,220 @@ function PlayerInfo:RobotWingsUpgradeTimes(questId, indx)
 	return questOperate
 end
 
+function PlayerInfo:RobotWingsStrengthLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotWingsStrengthLevel callback")
+		self:call_wings_active()
+		self:call_wings_strength()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotWingsStrengthTimes(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotWingsStrengthTimes callback")
+		self:call_wings_active()
+		self:call_wings_strength()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotWingsBlessTimes(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotWingsBlessTimes callback")
+		self:call_wings_active()
+		self:call_wings_bless()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotTalismanLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	local id = config.targets[indx][2]
+	if id == 0 then
+		id = 1
+	end
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotTalismanLevel callback")
+		self:call_talisman_active(id)
+		self:call_talisman_lvup(id)
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotMountStrengthLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotMountStrengthLevel callback")
+		self:call_active_mount()
+		self:call_raise_mount_level_base()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotRefineSuit(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	local pos = config.targets[indx][2]
+	if pos == 0 then
+		pos = 1
+	end
+	questOperate.callback = function()
+		outFmtDebug("RobotRefineSuit callback")
+		self:call_equipdevelop_operate(EQUIPDEVELOP_TYPE_REFINE_STAR_LVUP,pos,0,'','')
+		self:call_equipdevelop_operate(EQUIPDEVELOP_TYPE_REFINE_RANK_LVUP,pos,0,'','')
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotWashSuit(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	local pos = config.targets[indx][2]
+	if pos == 0 then
+		pos = 1
+	end
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotWashSuit callback")
+		self:call_equipdevelop_operate(EQUIPDEVELOP_TYPE_WASHATTRS_WASH,pos,0,'','')
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotMeridianLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotMeridianLevel callback")
+		self:call_meridian_practise()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotGemTotalLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotGemTotalLevel callback")
+		local pos = randInt(1,10)
+		local idx = randInt(1,3)
+		self:call_equipdevelop_operate (EQUIPDEVELOP_TYPE_GEM_ACTIVE ,pos ,idx ,"" ,"")
+		self:call_equipdevelop_operate (EQUIPDEVELOP_TYPE_GEM_LVUP ,pos ,idx ,"" ,"")
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotMoneytreeTimes(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotMoneytreeTimes callback")
+		self:call_use_moneytree()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotJoinMassBossTimeTimes(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotJoinMassBossTimeTimes callback")
+		self:call_try_mass_boss(1)
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+
 Quest_Function = {
 	[QUEST_TARGET_TYPE_PLAYER_LEVEL] 		= PlayerInfo.RobotLvUp,
 --	[QUEST_TARGET_TYPE_PLAYER_FORCE] 		= IQuestPlayerForce,
@@ -522,4 +736,23 @@ Quest_Function = {
 	[QUEST_TARGET_TYPE_SMELT]				= PlayerInfo.RobotSmelt,
 	[QUEST_TARGET_TYPE_GEM_TOTAL_LEVEL]		= PlayerInfo.RobotGemLvUp,
 	[QUEST_TARGET_TYPE_WINGS_UPDRADE_TIMES]	= PlayerInfo.RobotWingsUpgradeTimes,
+	[QUEST_TARGET_TYPE_WINGS_STRENGTH_LEVEL] = PlayerInfo.RobotWingsStrengthLevel,
+	[QUEST_TARGET_TYPE_WINGS_STRENGTH_TIMES] = PlayerInfo.RobotWingsStrengthTimes,
+	[QUEST_TARGET_TYPE_TALISMAN_LEVEL] = PlayerInfo.RobotTalismanLevel,
+	[QUEST_TARGET_TYPE_MOUNT_STRENGTH_LEVEL] = PlayerInfo.RobotMountStrengthLevel,
+	[QUEST_TARGET_TYPE_REFINE_SUIT] = PlayerInfo.RobotRefineSuit,
+	[QUEST_TARGET_TYPE_WASH_SUIT] = PlayerInfo.RobotWashSuit,
+	[QUEST_TARGET_TYPE_MERIDIAN_LEVEL] = PlayerInfo.RobotMeridianLevel,
+	[QUEST_TARGET_TYPE_GEM_TOTAL_LEVEL] = PlayerInfo.RobotGemTotalLevel,
+	[QUEST_TARGET_TYPE_WINGS_BLESS_TIMES] = PlayerInfo.RobotWingsBlessTimes,
+	[QUEST_TARGET_TYPE_MONEYTREE_TIMES] = PlayerInfo.RobotMoneytreeTimes,
+	[QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES] =  PlayerInfo.RobotJoinMassBossTimeTimes,
+	
+--[[
+
+	--QUEST_TARGET_TYPE_JOIN_SINGLE_PVP = 68	-- 参加排位赛X次
+	--QUEST_TARGET_TYPE_SINGLE_PVP_WINS = 69	-- 排位赛胜利X次
+	--QUEST_TARGET_TYPE_ACTIVE_TASK = 70	-- 完成X个活跃任务
+	--QUEST_TARGET_TYPE_DAILY_TASK = 71	-- 完成X轮日常任务
+--]]
 }

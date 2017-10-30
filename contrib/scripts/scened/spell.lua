@@ -246,13 +246,14 @@ function DoSpellCastScript(caster, target, dst_x, dst_y, spell_id, spell_lv, uni
 		-- 普通技能
 		if upLevelConfig.skillEffectType == SKILL_EFFECT_TYPE_NORMAL then
 			SpellTargetType(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets, unit, data)
+			doDelaySpellStop(caster, spell_id, spell_lv)
 		-- 如果是 自己加血, 别人扣血的给自己扣
 		elseif upLevelConfig.skillEffectType == SKILL_EFFECT_TYPE_HUIXUE1 then
 			DoSpellCastHuiXue1(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets, unit, data)
-			
+			doDelaySpellStop(caster, spell_id, spell_lv)
 		elseif upLevelConfig.skillEffectType == SKILL_EFFECT_TYPE_ROAR then -- 吼叫
 			handle_cast_spell_roar(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets, unit, data)
-			
+			doDelaySpellStop(caster, spell_id, spell_lv)
 		elseif upLevelConfig.skillEffectType == SKILL_EFFECT_TYPE_BLADE_STORM or upLevelConfig.skillEffectType == SKILL_EFFECT_TYPE_SNOW_STORM then	--剑刃风暴
 			if(unit == nil)then
 				handle_cast_add_unit_effect_blade_storm(caster, target, spell_id, spell_lv,dst_x,dst_y, allTargets,unit, data)
@@ -264,6 +265,7 @@ function DoSpellCastScript(caster, target, dst_x, dst_y, spell_id, spell_lv, uni
 		elseif upLevelConfig.skillEffectType == SKILL_EFFECT_TYPE_HEAL then	--治疗之泉
 			if unit == nil then
 				handle_cast_add_unit_effect_heal(caster, target, spell_id, spell_lv,dst_x,dst_y, allTargets,unit, data)
+				doDelaySpellStop(caster, spell_id, spell_lv)
 				return false, spell_id
 			else
 				handle_cast_spell_heal(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets, unit, data)
@@ -298,6 +300,10 @@ function DoSpellCastScript(caster, target, dst_x, dst_y, spell_id, spell_lv, uni
 	return true, spell_id
 end
 
+function doDelaySpellStop(caster, spell_id, spell_lv)
+	unitLib.SpellStop(caster)
+end
+
 --剑刃风暴定时器
 function handle_cast_add_unit_effect_blade_storm(caster, target, spell_id, spell_lv,dst_x,dst_y, allTargets,unit, data)
 	local casterInfo = UnitInfo:new{ptr = caster}
@@ -327,7 +333,7 @@ function handle_cast_add_unit_effect_blade_storm(caster, target, spell_id, spell
 		alarmX = dst_x
 		alarmY = dst_y
 	end
-
+	unitLib.AddUnitState(caster, UNIT_STAT_SPELL_PROCESS)
 	casterInfo:CallCastSpellStart(casterInfo:GetIntGuid(),0,spell_id, {angle,alarmX,alarmY}, true)
 end
 
@@ -344,6 +350,7 @@ function handle_cast_spell_blade_storm(caster,target,spell_id,spell_lv,dst_x,dst
 	end
 	casterInfo:CallSpellStop(true)
 	casterInfo:ClearCurSpell(true)
+	doDelaySpellStop(caster, spell_id, spell_lv)
 end
 
 --蓄力技能定时器
@@ -371,7 +378,7 @@ function handle_cast_add_unit_effect_loaded(caster, target, spell_id, spell_lv,d
 		alarmX = dst_x
 		alarmY = dst_y
 	end
-
+	unitLib.AddUnitState(caster, UNIT_STAT_SPELL_PROCESS)
 	casterInfo:CallCastSpellStart(casterInfo:GetIntGuid(),0,spell_id, {angle,alarmX,alarmY}, true)
 end
 
@@ -383,6 +390,7 @@ function handle_cast_spell_loaded(caster,target,spell_id,spell_lv,dst_x,dst_y, a
 		SpellTargetType(caster,target, spell_id,spell_lv,dst_x,dst_y, allTargets, unit, data)
 		casterInfo:ClearCurSpell(true)
 	end
+	doDelaySpellStop(caster, spell_id, spell_lv)
 end
 
 --治疗之泉定时器

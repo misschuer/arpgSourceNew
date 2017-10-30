@@ -1040,11 +1040,11 @@ void Unit::CastSpell(uint32 spell_id, float x, float y)
 {
     //广播XX开始施法    
     SetCurSpell(spell_id);
-    addUnitState(UNIT_STAT_SPELL_PROCESS);			//增加施法标识
+	//增加施法标识
+    addUnitState(UNIT_STAT_CAST_SPELL);
 	SetTargetPos(x, y);
 
-	if(GetMap() == NULL)
-	{
+	if(GetMap() == NULL) {
 		SpellStop();
 		return;
 	}
@@ -1054,8 +1054,7 @@ void Unit::CastSpell(uint32 spell_id, float x, float y)
 	//    return;
 
 	//如果不让施法，停止施法
-	if (IsCantCast()||!isAlive())
-	{
+	if (IsCantCast()||!isAlive()) {
 		if (isCasing())
 			SpellStop();
 		return;
@@ -1084,7 +1083,8 @@ void Unit::CastSpell(uint32 spell_id, float x, float y)
 	
 	DoSpellCastScript(this, GetTarget(), x, y, GetCurSpell(), spellLevel, NULL);
 
-	SpellStop();
+	// 这个是技能放完才用的
+	//TODO: SpellStop();
 }
 
 void Unit::CalSpellCastInfo()
@@ -1814,6 +1814,18 @@ int Unit::LuaHasUnitState(lua_State* scriptL)
 		lua_pushnil(scriptL);		
 	}	
 	return 1;
+}
+
+int Unit::LuaAddUnitState(lua_State* scriptL)
+{
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 2);
+	Unit *unit = (Unit *)LUA_TOUSERDATA(scriptL, 1, ObjectTypeUnit);
+	uint32 state = (uint32)LUA_TONUMBER(scriptL, 2);
+
+	unit->addUnitState(state);
+	return 0;
 }
 
 int Unit::LuaIsMoving(lua_State* scriptL)

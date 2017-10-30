@@ -368,6 +368,8 @@ enum Opcodes
 	CMSG_GET_MONEYTREE_GIFT		= 408,	/*领取摇钱树礼包*/	//get_moneytree_gift
 	CMSG_SET_WORLD_RISK_LAST_ID		= 409,	/*修改幻境最后进入id*/	//set_world_risk_last_id
 	CMSG_ENTER_PRIVATE_BOSS		= 410,	/*进入个人Boss*/	//enter_private_boss
+	CMSG_RAISE_BASE_SPELL_ALL		= 411,	/*申请升级全部技能*/	//raise_base_spell_all
+	CMSG_USE_RESTORE_POTION		= 413,	/*使用回复药*/	//use_restore_potion
 	NUM_MSG_TYPES
 };
 
@@ -1767,6 +1769,12 @@ TEA_SVRCORE_API  int   unpack_set_world_risk_last_id (packet *src ,uint32 *id);
 /*进入个人Boss*/
 TEA_SVRCORE_API	int   pack_enter_private_boss (packet**dst ,uint32 id);
 TEA_SVRCORE_API  int   unpack_enter_private_boss (packet *src ,uint32 *id);
+/*申请升级全部技能*/
+TEA_SVRCORE_API	int   pack_raise_base_spell_all (packet**dst ,uint8 raiseType,char const*spellIdStr);
+TEA_SVRCORE_API  int   unpack_raise_base_spell_all (packet *src ,uint8 *raiseType,char **spellIdStr);
+/*使用回复药*/
+TEA_SVRCORE_API	int   pack_use_restore_potion (packet**dst );
+TEA_SVRCORE_API  int   unpack_use_restore_potion (packet *src );
 /*rand send msg*/
 TEA_SVRCORE_API	int   pack_rand_send_msg (packet**dst ,const char* msg);
 #ifdef __cplusplus
@@ -6568,6 +6576,32 @@ __INLINE__ int Call_enter_private_boss (Delegate_Sendpackt SendPacket ,uint32 id
 	packet *dst = external_protocol_new_packet(CMSG_ENTER_PRIVATE_BOSS);
 		
 	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*申请升级全部技能*/
+__INLINE__ int Call_raise_base_spell_all (Delegate_Sendpackt SendPacket ,uint8 raiseType,char const*spellIdStr)
+{
+	packet *dst = external_protocol_new_packet(CMSG_RAISE_BASE_SPELL_ALL);
+		
+	packet_write(dst,(char *)&raiseType,sizeof(uint8));
+	packet_write_str(dst,spellIdStr);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*使用回复药*/
+__INLINE__ int Call_use_restore_potion (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_USE_RESTORE_POTION);
+		
 	update_packet_len(dst);
 	
 	SendPacket(*dst);

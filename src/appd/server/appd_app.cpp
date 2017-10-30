@@ -89,6 +89,7 @@ bool AppdApp::Open()
 AppdApp::CultivationMap AppdApp::m_cultivationMap;
 std::set<string> AppdApp::enrollSet;
 vector<PvpMatchInfoVec> AppdApp::pvpMatchInfos;
+std::map<string, uint32> AppdApp::kuafuHash;
 uint32 AppdApp::matchLast = 0;
 string AppdApp::XIULIAN_FILE_NAME = "xiulian.yy";
 

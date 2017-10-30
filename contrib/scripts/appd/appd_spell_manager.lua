@@ -19,6 +19,15 @@ function AppSpellMgr:onRaiseSpell(raiseType, spellId)
 	end
 end
 
+-- 升级技能分发
+function AppSpellMgr:onRaiseSpellToLv(raiseType, spellId,lv)
+	if raiseType == RAISE_BASE_SKILL then
+		self:raiseBaseSpellToLv(spellId,lv)
+	elseif raiseType == RAISE_MOUNT_SKILL then
+		self:raiseMountSpellToLv(spellId,lv)
+	end
+end
+
 -- 激活基础技能
 function AppSpellMgr:activeBaseSpell(spellId)
 	-- 激活
@@ -40,6 +49,20 @@ function AppSpellMgr:raiseBaseSpell(spellId)
 	local arry = tb_skill_base[spellId].follow
 	for _, id in pairs(arry) do
 		self:SetBaseSpellLevel(id,  prev+1)
+	end
+end
+
+-- 升级基础技能
+function AppSpellMgr:raiseBaseSpellToLv(spellId,level)
+	local prev = self:getSpellLevel(spellId)
+	
+	-- 加技能等级
+	self:SetBaseSpellLevel(spellId,  level)
+	
+	-- 如果是3连击
+	local arry = tb_skill_base[spellId].follow
+	for _, id in pairs(arry) do
+		self:SetBaseSpellLevel(id,  level)
 	end
 end
 
@@ -258,6 +281,25 @@ function AppSpellMgr:raiseMountSpell(spellId)
 		elseif self:GetUInt16(i, SHORT_SPELL_ID) == spellId then
 			self:SetUInt16(i, SHORT_SPELL_LV, prev + 1)
 			self:SetSpellLevel(spellId, prev+1)
+			-- 任务
+			local player = self:getOwner()
+			local questMgr = player:getQuestMgr()
+			questMgr:OnUpdate(QUEST_TARGET_TYPE_RAISE_MOUNT_SKILL, {spellId})
+			return
+		end
+	end
+end
+
+-- 升级坐骑技能
+function AppSpellMgr:raiseMountSpellToLv(spellId,lv)
+	--local prev = self:getSpellLevel(spellId)
+	
+	for i = SPELL_INT_FIELD_MOUNT_SPELL_START, SPELL_INT_FIELD_MOUNT_SPELL_END-1 do
+		if self:GetUInt16(i, SHORT_SPELL_ID) == 0 then
+			return
+		elseif self:GetUInt16(i, SHORT_SPELL_ID) == spellId then
+			self:SetUInt16(i, SHORT_SPELL_LV, lv)
+			self:SetSpellLevel(spellId, lv)
 			-- 任务
 			local player = self:getOwner()
 			local questMgr = player:getQuestMgr()

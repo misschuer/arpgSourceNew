@@ -150,6 +150,9 @@ require("template.tables.tb_private_boss_base")
 require("template.tables.tb_private_boss_info")
 require("template.tables.tb_private_boss_buff")
 
+--战斗_血瓶
+require("template.tables.tb_restore_potion_base")
+
 for _, ctInfo in pairs(tb_creature_template) do
 	local ps = string.split(ctInfo.spell, ',')
 	local ss = {}

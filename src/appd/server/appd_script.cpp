@@ -63,7 +63,11 @@ static const struct luaL_reg mylib[] = {
 	{"CancelMatchQueue",				&LuaCancelMatchQueue},
 
 	{"OnProcessMatchQueue",				&LuaOnProcessMatchQueue},
-	
+
+	{"SetMatchingKuafuType",				&LuaSetMatchingKuafuType},
+	{"GetMatchingKuafuType",				&LuaGetMatchingKuafuType},
+	{"IsKuafuTypeMatching",					&LuaIsKuafuTypeMatching},
+	{"GetKuafuTypeMatchingArg",				&LuaGetKuafuTypeMatchingArg},
 
 	{NULL, NULL} /* sentinel */ 
 };
@@ -936,4 +940,56 @@ int LuaOnProcessMatchQueue(lua_State *scriptL) {
 	AppdApp::OnProcessLocalSinglePVPMatch();
 
 	return 0;
+}
+
+int LuaSetMatchingKuafuType(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+	uint32 kuafu_type = (uint32)LUA_TONUMBER(scriptL, 2);
+
+	AppdApp::setMatchingKuafuType(guid, kuafu_type);
+
+	return 0;
+}
+
+int LuaGetMatchingKuafuType(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+
+	uint32 kuafu_type = AppdApp::getMatchingKuafuType(guid);
+	lua_pushnumber(scriptL, kuafu_type);
+
+	return 1;
+}
+
+
+int LuaIsKuafuTypeMatching(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n >= 1);
+
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+	uint32 kuafu_type = 0;
+	
+	if (n == 2) {
+		kuafu_type = (uint32)LUA_TONUMBER(scriptL, 2);
+	}
+
+	bool ret = AppdApp::isKuafuTypeMatching(guid, kuafu_type);
+	lua_pushboolean(scriptL, ret);
+
+	return 1;
+}
+
+int LuaGetKuafuTypeMatchingArg(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+
+	uint32 args = AppdApp::getKuafuTypeMatchingArg(guid);
+	lua_pushnumber(scriptL, args);
+
+	return 1;
 }

@@ -122,6 +122,8 @@ function PlayerInfo:shopBuyItem(id, count, timeid)
 	
 	self:AppdAddItems(buyDic,MONEY_CHANGE_TYPE_MALL_BUY,LOG_ITEM_OPER_TYPE_SHOP_BUY,1,itemendtime)
 	
+	self:AddActiveItem(VITALITY_TYPE_SHOP_BUY)
+	
 	if limtype ~= 0 then--ÏÞ¹º
 		self:addShopLimtNum(config.id,count)
 	end

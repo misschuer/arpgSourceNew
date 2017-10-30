@@ -485,15 +485,19 @@ bool Creature::HasSpell(uint32 spell_id)
 //技能组CD结束的组号
 int Creature::GetSpellGroup()
 {
+	uint32 curr = ms_time();
+
 	//先看一下所有真正的技能
 	for (uint32 i = m_spells_cd.size()-1; i > 0; -- i)
 	{
-		if( ms_time()>= (uint32)m_spells_cd[i])
+		uint32 cd = (uint32)m_spells_cd[ i ];
+		if (curr >= cd) {
 			return i;
+		}
 	}
 
 	//好吧，看看普通攻击
-	if(ms_time()>= (uint32)m_spells_cd[0])
+	if(curr >= (uint32)m_spells_cd[ 0 ])
 		return 0;
 	else
 		return -1;
@@ -584,7 +588,7 @@ spell_cast_probability *Creature::RandSpell(float dis)
 			uint32 spell_id = spell->spell_id;
 			int target_type = spell->target_type;
 			//float spell_distance = it->second->spell_distance + 0.0;
-			if(target_type == 0 || spell->spell_distance >= dis) {
+			if(target_type == 0 || dis <= spell->spell_distance || fabs(dis - spell->spell_distance) <= 1E-1) {
 				result = spell;
 			}
 
@@ -595,8 +599,8 @@ spell_cast_probability *Creature::RandSpell(float dis)
 			}
 			//tea_pinfo("【%s】随到一个技能，ID为%d。", creature.GetName(),it->second->spell_id);
 		}
-		if(result == NULL && m_spells.size() > 1)
-			SpellGroupWait(spell_group);
+		//if(result == NULL && m_spells.size() > 1)
+		//	SpellGroupWait(spell_group);
 	}
 	return result;
 }

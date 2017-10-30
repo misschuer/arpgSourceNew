@@ -35,10 +35,14 @@ end
 
 
 --获得物品属性 ps：这里只获得pk属性相关的，不包括特殊属性
-function AppItemInstance:getItemCalculAttr( item ,attrs,suitBaseAttribute)
+function AppItemInstance:getItemCalculAttr( item ,attrs,suitBaseAttribute,suitTable)
 	--先添加基础属性
 	local entry = item:getEntry()
 	local item_tempate = tb_item_template[entry]
+	
+	if not tb_item_template then
+		outFmtDebug("############### entry %d not exist", entry)
+	end
 	local pos = item_tempate.pos
 	local ary = item_tempate.basic_properties
 	
@@ -47,6 +51,15 @@ function AppItemInstance:getItemCalculAttr( item ,attrs,suitBaseAttribute)
 			suitBaseAttribute[ary[i][1]] = 0
 		end
 		suitBaseAttribute[ary[i][1]] = suitBaseAttribute[ary[i][1]] + ary[i][2]
+	end
+	
+	local suitId = item_tempate.suitId
+	if suitId > 0 then
+		if suitTable[suitId] then
+			suitTable[suitId] = suitTable[suitId] + 1
+		else
+			suitTable[suitId] = 1
+		end
 	end
 	
 	local playerInfo = self:getOwner()
@@ -115,9 +128,10 @@ function AppItemInstance:itemCalculAttr( attrs ,suitBaseAttribute)
 	outFmtDebug("zhuangbei chongsuan")
 	--遍历装备包裹
 	local suitBasePoint = 0
+	local suitTable = {}
 	local func = function( ptr )
 		local item = require("appd.appd_item").new(ptr)	
-		local point = self:getItemCalculAttr(item,attrs ,suitBaseAttribute)
+		local point = self:getItemCalculAttr(item,attrs ,suitBaseAttribute,suitTable)
 		suitBasePoint = suitBasePoint + point
 		--local temp_attrs = self:getItemCalculAttr(item)
 		--self:resetItemForce(item)					
@@ -130,24 +144,32 @@ function AppItemInstance:itemCalculAttr( attrs ,suitBaseAttribute)
 	
 	local playerInfo = self:getOwner()
 	local spellMgr = playerInfo:getSpellMgr()
-	--[[
-	-- 全身强化属性
-	local mulId = spellMgr:getStrengMul()
-	if tb_strengthen_mul[mulId] then
-		local pros = tb_strengthen_mul[mulId].mulpro
-		mergeAttrs(attrs, pros)
+	
+	--套装属性
+	for suitId, count in pairs(suitTable) do
+		outFmtDebug("#################### suitId  %d  count %d",suitId,count)
+		local config = tb_equip_suit_base[suitId]
+		local effectId = 0
+		if config then
+			for _,effectInfo in ipairs(config.effectId) do
+				if count >= effectInfo[1] then
+					effectId = effectInfo[2]
+				end
+			end
+			if effectId > 0 then
+				local effect_config = tb_equip_suit_effect[effectId]
+				if effect_config then
+					mergeAttrs(suitBaseAttribute,effect_config.props)
+					suitBasePoint = suitBasePoint + effect_config.force
+					outFmtDebug("################# suitBasePoint %d",suitBasePoint)
+				end
+			end
+		end
+		--suitBaseAttribute
+		--suitBasePoint
 	end
 	
-	-- 全身宝石属性
-	local gemMulId = spellMgr:getGemMul()
-	if tb_gem_mul[gemMulId] then
-		local pros = tb_gem_mul[gemMulId].mulpro
-		mergeAttrs(attrs, pros)
-	end
-	--]]
-	
-	
-	--todo 新装备养成 精炼属性 强化属性 宝石属性 全身奖励
+	--新装备养成 精炼属性 强化属性 宝石属性 全身奖励
 	for pos = 1,EQUIPMENT_COUNT do
 		local refine_rank = spellMgr:GetEquipDevelopRefineRank(pos - 1)
 		local refine_star = spellMgr:GetEquipDevelopRefineStar(pos - 1)
@@ -329,7 +351,7 @@ end
 function AppItemInstance:resetItemForce(item)
 	----[[
 	local temp_attrs = {}
-	local force = self:getItemCalculAttr(item, temp_attrs,{})
+	local force = self:getItemCalculAttr(item, temp_attrs,{},{})
 	local playerInfo = self:getOwner()
 	force = force + DoAnyOneCalcForce( temp_attrs, playerInfo:GetGender())		--计算战斗力
 	local cur_force = item:getAttr(ITEM_OTHER_ATTR_FORCE)

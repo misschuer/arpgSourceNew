@@ -2769,6 +2769,7 @@ end
 
 ------------------------------------------
 
+
 --更新背包大小
 function PlayerInfo:UpdateBagSize(vipLevel)
 	local config = tb_vip_base[vipLevel].bag_size

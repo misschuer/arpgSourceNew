@@ -990,6 +990,41 @@ function ScenedContext:Handle_Enter_Private_Boss (pkt)
 	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_PRIVATE_BOSS_INSTANCE, id)
 end
 
+function ScenedContext:Handle_Use_Restore_Potion(pkt)
+	if not self:IsAlive() then
+		outFmtError("AfterUseRestorePotion player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+	local mapid = unitLib.GetMapID(self.ptr)
+	-- 是否允许使用
+	if not tb_map[mapid] or tb_map[mapid].restore_potion == 0 then
+		outFmtError("AfterUseRestorePotion map %d can not use potion!", mapid)
+		return
+	end
+	
+	local now = os.time()
+	local cd_time = self:GetRestorePotionCD()
+	
+	if now < cd_time then
+		outFmtDebug("UseRestorePotion can not use when cding")
+		return
+	end
+	
+	local config = tb_restore_potion_base[self:GetLevel()]
+	
+	if not config then
+		outFmtDebug("UseRestorePotion config error level %d not exist",self:GetLevel())
+		return
+	end
+	
+	self:SetRestorePotionCD(now + config.cd)
+	
+	local add_hp = math.floor( self:GetMaxHealth() * config.restore_proportion / 10000) + config.restore_fixed
+	
+	
+	self:ModifyHealth(add_hp)
+
+end
 
 local OpcodeHandlerFuncTable = require 'scened.context.scened_context_handler_map'
 

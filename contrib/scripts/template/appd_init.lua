@@ -13,6 +13,7 @@ require("template.tables.tb_item_template")
 require("template.tables.tb_bag_size")
 require("template.tables.tb_item_sort_cd")
 
+
 -- 坐骑
 require("template.tables.tb_mount_base")
 require("template.tables.tb_mount_illusion")
@@ -44,6 +45,10 @@ require("template.tables.tb_equipdevelop_gem_part")
 require("template.tables.tb_equipdevelop_gem")
 require("template.tables.tb_equipdevelop_washattrs")
 require("template.tables.tb_equipdevelop_bonus")
+
+--装备套装表
+require("template.tables.tb_equip_suit_base")
+require("template.tables.tb_equip_suit_effect")
 
 
 --神兵表

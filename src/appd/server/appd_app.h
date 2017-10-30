@@ -215,6 +215,42 @@ public:
 		OnSinglePVPMatched(guid, key, time);
 	}
 
+	// 正在跨服标志
+	static std::map<string, uint32> kuafuHash;
+	//设置正在进行的跨服操作类型
+	static void setMatchingKuafuType(string &player_guid, uint32 kuafu_type) {
+		if (kuafu_type == 0) {
+			kuafuHash.erase(player_guid);
+			return;
+		}
+		kuafuHash.insert(std::make_pair(player_guid, kuafu_type));
+	}
+
+	// 获得正在进行的跨服操作类型
+	static uint32 getMatchingKuafuType(string &player_guid) {
+		uint32 kuafu_type = 0;
+		auto it = kuafuHash.find(player_guid);
+		if (it != kuafuHash.end()) {
+			kuafu_type = it->second;
+		}
+		return kuafu_type;
+	}
+
+	//是否正在进行指定跨服类型操作
+	static bool isKuafuTypeMatching(string &player_guid, uint32 kuafu_type) {
+		uint32 kuafu_match_type = getMatchingKuafuType(player_guid);
+		if (kuafu_type == 0) {
+			return kuafu_match_type > 0;
+		}
+		return (kuafu_match_type & 65535) == kuafu_type;
+	}
+
+	//获得跨服对应的参数数据
+	static uint32 getKuafuTypeMatchingArg(string &player_guid) {
+		uint32 kuafu_match_type = getMatchingKuafuType(player_guid);
+		return kuafu_match_type >> 16; 
+	}
+
 public:
 
 	AppdApp(SvrCoreParams& params,SvrCoreConfig& config);

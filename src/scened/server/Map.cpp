@@ -1363,8 +1363,8 @@ int Map::LuaAddBossDamage(lua_State *scriptL) {
 int Map::LuaGetBossDamageRankCount(lua_State *scriptL) {
 	CHECK_LUA_NIL_PARAMETER(scriptL);
 	uint8 indx = (uint8)LUA_TONUMBER(scriptL, 1);
-	uint32 count = massBossRankInfo.size();
-	lua_pushinteger(scriptL, count);
+	uint32 count = getMassBossRankSize(indx);
+	lua_pushnumber(scriptL, count);
 	return 1;
 }
 

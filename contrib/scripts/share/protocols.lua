@@ -372,6 +372,8 @@ CMSG_USE_MONEYTREE		= 407	-- /*摇动摇钱树*/
 CMSG_GET_MONEYTREE_GIFT		= 408	-- /*领取摇钱树礼包*/	
 CMSG_SET_WORLD_RISK_LAST_ID		= 409	-- /*修改幻境最后进入id*/	
 CMSG_ENTER_PRIVATE_BOSS		= 410	-- /*进入个人Boss*/	
+CMSG_RAISE_BASE_SPELL_ALL		= 411	-- /*申请升级全部技能*/	
+CMSG_USE_RESTORE_POTION		= 413	-- /*使用回复药*/	
 
 
 ---------------------------------------------------------------------
@@ -13411,6 +13413,65 @@ function Protocols.unpack_enter_private_boss (pkt)
 end
 
 
+-- /*申请升级全部技能*/	
+function Protocols.pack_raise_base_spell_all ( raiseType ,spellIdStr)
+	local output = Packet.new(CMSG_RAISE_BASE_SPELL_ALL)
+	output:writeByte(raiseType)
+	output:writeUTF(spellIdStr)
+	return output
+end
+
+-- /*申请升级全部技能*/	
+function Protocols.call_raise_base_spell_all ( playerInfo, raiseType ,spellIdStr)
+	local output = Protocols.	pack_raise_base_spell_all ( raiseType ,spellIdStr)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*申请升级全部技能*/	
+function Protocols.unpack_raise_base_spell_all (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.raiseType = input:readByte()
+	if not ret then
+		return false
+	end
+	ret,param_table.spellIdStr = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*使用回复药*/	
+function Protocols.pack_use_restore_potion (  )
+	local output = Packet.new(CMSG_USE_RESTORE_POTION)
+	return output
+end
+
+-- /*使用回复药*/	
+function Protocols.call_use_restore_potion ( playerInfo )
+	local output = Protocols.	pack_use_restore_potion (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*使用回复药*/	
+function Protocols.unpack_use_restore_potion (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
 
 function Protocols:SendPacket(pkt)
 	external_send(self.ptr_player_data or self.ptr, pkt.ptr)
@@ -13775,6 +13836,8 @@ function Protocols:extend(playerInfo)
 	playerInfo.call_get_moneytree_gift = self.call_get_moneytree_gift
 	playerInfo.call_set_world_risk_last_id = self.call_set_world_risk_last_id
 	playerInfo.call_enter_private_boss = self.call_enter_private_boss
+	playerInfo.call_raise_base_spell_all = self.call_raise_base_spell_all
+	playerInfo.call_use_restore_potion = self.call_use_restore_potion
 end
 
 local unpack_handler = {
@@ -14136,6 +14199,8 @@ local unpack_handler = {
 [CMSG_GET_MONEYTREE_GIFT] =  Protocols.unpack_get_moneytree_gift,
 [CMSG_SET_WORLD_RISK_LAST_ID] =  Protocols.unpack_set_world_risk_last_id,
 [CMSG_ENTER_PRIVATE_BOSS] =  Protocols.unpack_enter_private_boss,
+[CMSG_RAISE_BASE_SPELL_ALL] =  Protocols.unpack_raise_base_spell_all,
+[CMSG_USE_RESTORE_POTION] =  Protocols.unpack_use_restore_potion,
 
 }
 

@@ -69,6 +69,145 @@ function PlayerInfo:DoHandleRaiseSpell(raiseType, spellId)
 	outFmtDebug("raise spell %d success, from %d to %d", spellId, prev, spellLv)
 end
 
+function PlayerInfo:DoHandleRaiseSpellAll(raiseType, spellId_list)
+	local spellMgr = self:getSpellMgr()
+	local playerLv = self:GetLevel()
+	
+	local item_cost = {}
+	local money_cost = {}
+	local tab = {}
+	
+	local item_temp = {}
+	local money_temp = {}
+	
+	local lv_table = {}
+	local uplv_table = {}
+	local flag_table = {}
+	local sort_table = {}
+	
+	local total_uplv = 0
+	
+	
+	outFmtDebug("Start")
+	for index,spellId in ipairs(spellId_list) do
+		--outFmtDebug("index %d spellId %d",index,spellId)
+		local level = spellMgr:getSpellLevel(spellId)
+		lv_table[index] = level
+		uplv_table[index] = 0
+		--outFmtDebug("index %d uplv_table[index] %d",index,uplv_table[index])
+		flag_table[index] = 0
+		table.insert(sort_table,{index,level})
+	end
+	
+	table.sort(sort_table,function(a,b)
+		if a[2] ~= b[2] then
+			return a[2] < b[2]
+		end
+		return a[1] < b[1]
+	end)
+	
+	local sort_index = 1
+	local min_lv = sort_table[sort_index][2]
+	local loop_flag = true
+	
+	while loop_flag do
+		if min_lv == playerLv then
+			break
+		end
+		if sort_index <= #sort_table then
+			for index = sort_index,#sort_table do
+				if sort_table[sort_index][2] == min_lv then
+					flag_table[sort_table[sort_index][1]] = 1
+					sort_index = sort_index + 1
+				else
+					break
+				end
+			end
+		end
+		
+		for index = 1, #flag_table do
+			if flag_table[index] == 1 then
+				local spellId = spellId_list[index]
+				local base_config = tb_skill_base[spellId]
+				local config = tb_skill_uplevel[base_config.uplevel_id[ 1 ] + lv_table[index] + uplv_table[index] - 1]
+				if not config then
+					outFmtDebug("DoHandleRaiseSpellAll reach top level %d can not lvup",lv_table[index] + uplv_table[index])
+					loop_flag = false
+					break
+				end
+				
+				mergeListToList(item_temp,config.uplevel_item)
+				mergeListToList(money_temp,config.uplevel_cost)
+				
+				local tf1,tab1 = self:checkMoneyEnoughIfUseGoldIngot(money_temp)
+				--是否有足够的道具
+				local tf2 = self:hasMulItem(item_temp)
+				
+				if tf1 and tf2 then
+					item_cost = clone(item_temp)
+					money_cost = clone(money_temp)
+					tab = clone(tab1)
+					uplv_table[index] = uplv_table[index] + 1
+					total_uplv = total_uplv + 1
+				else
+					loop_flag = false
+					break
+				end
+			end
+		end
+		if loop_flag then
+			min_lv = min_lv + 1
+		end
+	end
+	
+	if total_uplv == 0 then
+		outFmtError("DoHandleRaiseSpellAll skill can not to lvup")
+		return
+	end
+	
+	if self:useMulItem(item_cost) and self:costMoneys(MONEY_CHANGE_UP_ASSISTSPELL,tab) then
+		for index = 1, #uplv_table do
+			if uplv_table[index] > 0 then
+				local spellId = spellId_list[index]
+				local spellLv = lv_table[index] + uplv_table[index]
+				spellMgr:onRaiseSpellToLv(raiseType,spellId,spellLv)
+				local config = tb_skill_base[spellId]
+				if self:isInitiativeSpell(config.is_initiative) or self:isAngerSpell(spellId) then
+					--同步主动技能到p对象
+					if self:isSloted(spellId) then
+						local slot = config.skill_slot
+						self:replace(slot, spellId, spellLv)
+						--table.insert(spellTable, {spellId, spellLv})
+						
+						-- 如果是连招
+						local arry = tb_skill_base[spellId].follow
+						for _, id in pairs(arry) do
+							self:replace(slot, id, spellLv)
+						--	table.insert(spellTable, {id, spellLv})
+						end
+					else
+						self:SetSpellInfo(spellId, spellLv)
+					end
+				elseif self:isPassiveSpell(config.is_initiative) then
+					self:updatePassive(spellId, spellLv)
+					--table.insert(spellTable, {spellId, spellLv})
+				elseif self:isSupportSpell(config.is_initiative) then
+					self:SetSpellInfo(spellId, spellLv)
+				end
+				local questMgr = self:getQuestMgr()
+				questMgr:OnUpdate(QUEST_TARGET_TYPE_RAISE_SKILL, {spellId})
+				outFmtDebug("raise spell %d success, from %d to %d", spellId, lv_table[index], spellLv)
+			end
+		end
+		
+		-- 重算战斗力(当前和属性绑定在一起)
+		self:RecalcAttrAndBattlePoint()
+		-- 是否发送场景服
+		--self:sendSpellInfoIfEnabled(config.is_initiative, spellTable)
+		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_SKILL_SUCCESS)
+	end
+end
+
 -- 设置技能信息
 function PlayerInfo:SetSpellInfo(spellId, spellLv)
 	playerLib.SetSpellLevel(self.ptr, spellId, spellLv)
@@ -1569,6 +1708,122 @@ function PlayerInfo:EquipDevelopStrength(pos,count)
 
 end
 
+--全部强化 () 
+function PlayerInfo:EquipDevelopStrengthAll()
+	local spellMgr = self:getSpellMgr()
+	local playerLv = self:GetLevel()
+	
+	local item_cost = {}
+	local money_cost = {}
+	local tab = {}
+	
+	local item_temp = {}
+	local money_temp = {}
+	
+	local lv_table = {}
+	local uplv_table = {}
+	local flag_table = {}
+	local sort_table = {}
+	
+	local total_uplv = 0
+	
+	for pos = 1,EQUIPMENT_COUNT do
+		local level = spellMgr:GetEquipDevelopStrengthLv(pos - 1)
+		lv_table[pos] = level
+		uplv_table[pos] = 0
+		flag_table[pos] = 0
+		table.insert(sort_table,{pos,level})
+	end
+	
+	table.sort(sort_table,function(a,b)
+		if a[2] ~= b[2] then
+			return a[2] < b[2]
+		end
+		return a[1] < b[1]
+	end)
+	
+	local sort_index = 1
+	local min_lv = sort_table[sort_index][2]
+	local loop_flag = true
+	
+	while loop_flag do
+		if min_lv == playerLv then
+			break
+		end
+		
+		if sort_index <= #sort_table then
+			for index = sort_index,#sort_table do
+				if sort_table[sort_index][2] == min_lv then
+					flag_table[sort_table[sort_index][1]] = 1
+					sort_index = sort_index + 1
+				else
+					break
+				end
+			end
+		end
+		
+		for pos = 1, EQUIPMENT_COUNT do
+			if flag_table[pos] == 1 then
+				local config = tb_equipdevelop_strength[pos * 1000 + lv_table[pos] + uplv_table[pos] + 1]
+				if not config then
+					outFmtDebug("EquipDevelopStrength reach top level %d can not lvup",lv_table[pos] + uplv_table[pos])
+					loop_flag = false
+					break
+				end
+				
+				mergeListToList(item_temp,config.item_cost)
+				mergeListToList(money_temp,config.money_cost)
+				
+				local tf1,tab1 = self:checkMoneyEnoughIfUseGoldIngot(money_temp)
+				--是否有足够的道具
+				local tf2 = self:hasMulItem(item_temp)
+				
+				if tf1 and tf2 then
+					item_cost = clone(item_temp)
+					money_cost = clone(money_temp)
+					tab = clone(tab1)
+					uplv_table[pos] = uplv_table[pos] + 1
+					total_uplv = total_uplv + 1
+				else
+					loop_flag = false
+					break
+				end
+			end
+		end
+		if loop_flag then
+			min_lv = min_lv + 1
+		end
+	end
+	
+	if total_uplv == 0 then
+		outFmtError("EquipDevelopStrength strength can not to lvup")
+		return
+	end
+	
+	if self:useMulItem(item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab) then
+		for pos = 1, EQUIPMENT_COUNT do
+			if uplv_table[pos] > 0 then
+				spellMgr:SetEquipDevelopStrengthLv(pos - 1,lv_table[pos] + uplv_table[pos])
+				self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_STRENGTH_SUIT, {pos,uplv_table[pos]})
+			end
+		end
+		outFmtInfo("EquipDevelopStrength strength success")
+		
+		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_STRENGTH_SUCCESS)
+		
+		-- 重算战斗力(当前和属性绑定在一起)
+		self:RecalcAttrAndBattlePoint()
+		
+		--检测装备养成 奖励
+		self:UpdateEquipDevelopStrengthBonus(min_lv)
+		--self:EquipDevelopGemActive(pos)
+		
+		--更新开服排行
+		DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_STRENGTH,self})
+		
+		
+	end
+end
 
 --精炼升星 (pos)
 function PlayerInfo:EquipDevelopRefineStarUp(pos)

@@ -1590,3 +1590,12 @@ set_world_risk_last_id,c2s,409,/*修改幻境最后进入id*/,STATUS_NEVER,False
 #
 enter_private_boss,c2s,410,/*进入个人Boss*/,STATUS_NEVER,False
 	id,uint32,False,/*Bossid*/
+	
+#
+raise_base_spell_all,c2s,411,/*申请升级全部技能*/,STATUS_NEVER,False
+	raiseType,uint8,False,/*技能类型*/
+	spellIdStr,String,False,/*技能ID字符串*/
+	
+#
+use_restore_potion,c2s,413,/*使用回复药*/,STATUS_NEVER,False
+

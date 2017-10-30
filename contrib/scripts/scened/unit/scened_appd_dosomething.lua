@@ -32,7 +32,6 @@ function UnitInfo:DoGetAppdDoSomething( ntype, data, str)
 		self:CheckEnterFactionBossDefense(data)
 	elseif ntype == APPD_SCENED_CHECK_ENTER_FACTION_TOWER then
 		self:CheckEnterFactionBossTower()
-		
 	end
 end
 

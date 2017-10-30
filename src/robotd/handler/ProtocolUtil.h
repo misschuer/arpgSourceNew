@@ -1095,6 +1095,12 @@ public:
 	/*进入个人Boss*/
 	int unpack_enter_private_boss (ByteArray &bytes ,uint32 &id);
 	int send_enter_private_boss (uint32 id);
+	/*申请升级全部技能*/
+	int unpack_raise_base_spell_all (ByteArray &bytes ,uint8 &raiseType,string &spellIdStr);
+	int send_raise_base_spell_all (uint8 raiseType,char const*spellIdStr);
+	/*使用回复药*/
+	int unpack_use_restore_potion (ByteArray &bytes );
+	int send_use_restore_potion ();
 };
 
 #endif

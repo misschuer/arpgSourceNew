@@ -1428,6 +1428,19 @@ function  DoGMScripts(player_ptr, gm_commands)
 			player:getItemMgr():exchangePos(2,0,2,1)
 			outFmtDebug("exchangePos 2 0 2 1 count %d",i)
 		end
+	elseif (tokens[ 1 ] == "@全部强化") then
+		player:EquipDevelopStrengthAll()
+	elseif (tokens[ 1 ] == "@全部技能") then
+		local pkt = {}
+		pkt.raiseType = RAISE_BASE_SKILL
+		pkt.spellIdStr = "10022|10023|10024|10025|10019"
+		player:Handle_Raise_BaseSpell_All(pkt)
+		
+	elseif (tokens[ 1 ] == "@远征选择") then
+		local faction = app.objMgr:getObj(player:GetFactionId())
+		faction:OnTowerTodayFloorUpdate(player,98)
+		
+	
 	end
 	
 	return result

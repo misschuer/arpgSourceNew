@@ -13072,3 +13072,69 @@ class c2s_enter_private_boss
 }
 
 
+
+
+
+class c2s_raise_base_spell_all
+{				
+	public optcode:number = 0;
+	public static param_count:number = 2;
+	public static optname:string = "onRaise_base_spell_all"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 技能类型
+	 */
+	public raiseType :number ;	//uint8		
+	/**
+	 * 技能ID字符串
+	 */
+	public spellIdStr :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_raise_base_spell_all, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//技能类型
+		self.raiseType = this.input. readUint8 ();		
+		
+		//技能ID字符串
+		self.spellIdStr = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_use_restore_potion
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onUse_restore_potion"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_use_restore_potion, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+

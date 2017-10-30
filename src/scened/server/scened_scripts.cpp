@@ -156,6 +156,7 @@ extern const struct luaL_reg LUnit[] =
 	{"GetCurSpell",			&Unit::LuaGetCurSpell},			//获得当前正在施放的技能id
 	{"SetCurSpell",			&Unit::LuaSetCurSpell},			//设置当前正在施放的技能id
 	{"HasUnitState",		&Unit::LuaHasUnitState},		//是否有标识,暂时只用于战斗
+	{"AddUnitState",		&Unit::LuaAddUnitState},		//增加标识,暂时只用于战斗
 	{"GetPos",				&Unit::LuaGetPos},				//获取坐标
 	{"SetPos",				&Unit::LuaSetPos},				//设置坐标
 	{"KillUnit",			&Unit::LuaKillUnit},			//秒杀生物

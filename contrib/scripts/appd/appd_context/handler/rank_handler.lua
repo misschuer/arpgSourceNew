@@ -48,6 +48,7 @@ function PlayerInfo:Handle_Rank_Like(pkt)
 		if self:ApplyRankLike(types,guid,target_rank) then
 			local like = player:AddRankLike()
 			self:AddRankLikeResult(types,guid,like)
+			self:AddActiveItem(VITALITY_TYPE_RANK_LIKE)
 		end
 		return
 	end
@@ -72,6 +73,7 @@ function PlayerInfo:Handle_Rank_Like(pkt)
 			
 			local reward = tb_rank_like[1].reward
 			self:AppdAddItems(reward,MONEY_CHANGE_RANK_LIKE)
+			self:AddActiveItem(VITALITY_TYPE_RANK_LIKE)
 		end
 		
 	end

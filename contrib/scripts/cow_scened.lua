@@ -161,6 +161,7 @@ config = {
 		-------------------------------
 		CMSG_WORLD_BOSS_ENROLL,	-- /*世界BOSS报名*/
 		CMSG_ENTER_PRIVATE_BOSS,	--个人BOSS挑战
+		CMSG_USE_RESTORE_POTION,
 		--CMSG_CHANGE_LINE,
 		--[[
 		CMSG_START_HUNG_UP,--开始挂机*/

@@ -62,6 +62,8 @@ require("appd.quest.QuestGemTotalLevel")
 require("appd.quest.QuestWingsBlessTimes")
 require("appd.quest.QuestMoneytreeTimes")
 require("appd.quest.QuestJoinMassBossTimes")
+require("appd.quest.QuestMainSkillUpgradeLevel")
+require("appd.quest.QuestSubSkillUpgradeLevel")
 
 -- 这个一定要放到最后
 require("appd.quest.QuestManager")

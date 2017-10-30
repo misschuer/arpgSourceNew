@@ -33,8 +33,6 @@ function AppdApp:ctor( )
 	self.world_3v3_team_dict = {}
 	-- 3v3组队中个人所在的队伍 player_guid:team_guid
 	self.world_3v3_player_team = {}
-	-- 正在匹配的跨服信息
-	self.kuafu_dict = {}
 	-------------------------------------------
 	-- 跨服排行榜信息
 	self.kuafu_rank = {}
@@ -42,27 +40,28 @@ end
 
 -- 设置正在进行的跨服操作类型
 function AppdApp:SetMatchingKuafuType(player_guid, kuafu_type)
-	self.kuafu_dict[player_guid] = kuafu_type
+	kuafu_type = kuafu_type or 0
+	SetMatchingKuafuType(player_guid, kuafu_type)
 end
 
 -- 获得正在进行的跨服操作类型
 function AppdApp:GetMatchingKuafuType(player_guid)
-	return self.kuafu_dict[player_guid]
+	return GetMatchingKuafuType(player_guid)
 end
 
 -- 是否正在进行指定跨服类型操作
 function AppdApp:IsKuafuTypeMatching(player_guid, kuafu_type)
-	return self.kuafu_dict[player_guid] and self.kuafu_dict[player_guid] % 65536 == kuafu_type 
+	return IsKuafuTypeMatching(player_guid, kuafu_type)
 end
 
 -- 是否在进行跨服操作
 function AppdApp:IsInKuafuTypeMatching(player_guid)
-	return self.kuafu_dict[player_guid]
+	return IsKuafuTypeMatching(player_guid, 0)
 end
 
 -- 获得跨服对应的参数数据
 function AppdApp:GetKuafuTypeMatchingArg(player_guid)
-	return math.floor(self.kuafu_dict[player_guid] / 65536)
+	return GetKuafuTypeMatchingArg(player_guid)
 end
 
 function AppdApp:update( diff )

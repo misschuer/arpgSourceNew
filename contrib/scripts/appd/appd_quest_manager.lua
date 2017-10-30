@@ -711,6 +711,8 @@ function AppQuestMgr:OnSubmitQuestDaily2()
 	end
 	
 	playerInfo:onUpdatePlayerQuest(QUEST_TARGET_TYPE_DAILY_TASK, {})
+	
+	playerInfo:AddActiveItem(VITALITY_TYPE_DAILY_QUEST)
 end
 
 --[[
@@ -755,19 +757,24 @@ function AppQuestMgr:OnInnerPickQuest(start)
 	
 	-- 领取奖励
 	if #tb_quest[questId].rewards > 0 then
-		local gender = playerInfo:GetGender()
-		if #tb_quest[questId].rewards == 1 then
-			gender = 1
+		local gender = 1
+		local jobIndx = getJobIndxByGender(playerInfo:GetGender()) + 1
+		if tb_quest[questId].rewards[jobIndx] then
+			gender = jobIndx
 		end
+		
+		
 		local rewards = tb_quest[questId].rewards[gender]
-		-- 判断背包格子是否足够
-		local itemMgr = playerInfo:getItemMgr()
-		local emptys  = itemMgr:getEmptyCount(BAG_TYPE_MAIN_BAG)
-		if emptys < #rewards then
-			playerInfo:CallOptResult(OPRATE_TYPE_BAG, BAG_RESULT_BAG_FULL)
-			return
+		if rewards then
+			-- 判断背包格子是否足够
+			local itemMgr = playerInfo:getItemMgr()
+			local emptys  = itemMgr:getEmptyCount(BAG_TYPE_MAIN_BAG)
+			if emptys < #rewards then
+				playerInfo:CallOptResult(OPRATE_TYPE_BAG, BAG_RESULT_BAG_FULL)
+				return
+			end
+			playerInfo:AppdAddItems(rewards, MONEY_CHANGE_QUEST, LOG_ITEM_OPER_TYPE_QUEST, 1, 0, ITEM_SHOW_TYPE_MINI_QUEST_BAR)
 		end
-		playerInfo:AppdAddItems(rewards, MONEY_CHANGE_QUEST, LOG_ITEM_OPER_TYPE_QUEST, 1, 0, ITEM_SHOW_TYPE_MINI_QUEST_BAR)
 	end
 	
 	-- 如果是章节最后一个任务 自动领取章节奖励

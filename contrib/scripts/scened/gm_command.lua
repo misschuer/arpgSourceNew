@@ -576,6 +576,7 @@ function  DoGMScripts(player_ptr, gm_commands, runtime)
 			globalNoticeMessage:SetNoticeMessage(NOTICE_MESSAGE_INFO_TYPE_WORLD_BOSS,"")
 		end
 	elseif(tokens[1] == "@扣血")then
+		--[[
 		local target = unitLib.GetTarget(player_ptr)	--获得攻击目标
 		if target == nil then
 			return result
@@ -584,6 +585,13 @@ function  DoGMScripts(player_ptr, gm_commands, runtime)
 		if #paras >= 2 and paras[2] > 0 then
 			if targetInfo:GetHealth() > paras[2] then
 				 targetInfo:ModifyHealth(-paras[2])
+			end
+		end
+		--]]
+		local playerInfo = UnitInfo:new{ptr = player_ptr}
+		if #paras >= 2 and paras[2] > 0 then
+			if playerInfo:GetHealth() > paras[2] then
+				 playerInfo:ModifyHealth(-paras[2])
 			end
 		end
 	elseif(tokens[1] == "@世界boss")then
@@ -1086,7 +1094,9 @@ function  DoGMScripts(player_ptr, gm_commands, runtime)
 		end)
 		playerInfo:SendPacket(output)
 		output:delete()
-		
+	elseif (tokens[ 1 ] == "@回复药") then
+		local playerInfo = UnitInfo:new{ptr = player_ptr}
+		ScenedContext.Handle_Use_Restore_Potion(playerInfo, {})
 	end
 	
 	return result
