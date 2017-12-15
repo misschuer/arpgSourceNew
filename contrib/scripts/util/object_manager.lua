@@ -6,7 +6,7 @@ GLOBAL_VALUE_OWNER_STRING = "global_value"
 WORLD_BINLOG_OWNER_STRING = "world"
 FACTION_BINLOG_OWNER_STRING = "faction"
 FACTION_DATA_OWNER_STRING = "faction_data"
-GROUP_OWNER_STRING = "group"
+GROUP_BINLOG_OWNER_STRING = "group"
 
 function ObjectManager:ctor( )
 	self.__tags = require('util.tags_manager').new()

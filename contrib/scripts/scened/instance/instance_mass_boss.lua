@@ -76,12 +76,13 @@ function InstanceMassBoss:onRefreshBoss()
 		self:SetBossHP(creatureInfo:GetMaxHealth())
 		local rate = math.floor(creatureInfo:GetHealth() * 100 / creatureInfo:GetMaxHealth())
 		mapLib.SetMassBossHpRate(id, rate)
+		mapLib.AddTimer(self.ptr, 'OnTimer_UpdateRank', 1000)
 	end
 end
 
--- 世界BOSS结束了
+-- 全民BOSS结束了
 function InstanceMassBoss:IsEnd()
-	return self:GetMapQuestEndTime() > 0 and self:GetMapQuestEndTime() <= os.time()
+	return self:GetMapQuestEndTime() > 0 and self:GetMapQuestEndTime() <= os.time() or self:GetMapState() == self.STATE_FINISH
 end
 
 --当副本状态发生变化时间触发

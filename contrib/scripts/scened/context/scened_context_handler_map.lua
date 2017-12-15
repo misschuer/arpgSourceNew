@@ -59,4 +59,8 @@ OpcodeHandlerFuncTable[CMSG_ENTER_PRIVATE_BOSS] = ScenedContext.Handle_Enter_Pri
 
 OpcodeHandlerFuncTable[CMSG_USE_RESTORE_POTION] = ScenedContext.Handle_Use_Restore_Potion
 
+OpcodeHandlerFuncTable[CMSG_ENTER_STAGE_INSTANCE] = ScenedContext.Handle_Enter_Stage_Instance
+
+
+
 return OpcodeHandlerFuncTable

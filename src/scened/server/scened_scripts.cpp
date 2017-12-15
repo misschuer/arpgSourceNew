@@ -114,6 +114,8 @@ extern const struct luaL_reg LMap[] =
 	{"OnOpenTreasure",					&Map::LuaOnOpenTreasure},//设置正在开启宝箱的guid
 	{"GetOnOpenGuid",					&Map::LuaGetOnOpenGuid },//获得正在开启宝箱的guid
 
+	{"GetCreatureByGuid",				&Map::LuaGetCreatureByGuid},//通过uintguid获得creature对象
+
 	{"GetGameObjectByGuid",				&Map::LuaGetGameObjectByGuid},//通过uintguid获得gameobject对象
 	{"RemoveGameObjectByEntry",			&Map::LuaRemoveGameObjectByEntry},//通过entry删除gameobject对象
 	{"GetGameObjectByEntry",			&Map::LuaGetGameObjectByEntry},//通过entry获得gameobject对象

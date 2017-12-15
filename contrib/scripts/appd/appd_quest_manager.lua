@@ -385,6 +385,8 @@ function AppQuestMgr:OnDailyQuestReset()
 	
 	-- 日常任务
 	self:OnAddFirstDaily2Quest(tb_quest_daily2_base[ 1 ].npcQuest)
+	
+	self:OnResetAdventureQuest()
 end
 
 --[[
@@ -458,6 +460,22 @@ function AppQuestMgr:OnAddFirstDaily2Quest(firstQuestId)
 	
 end
 
+-- 重置冒险任务
+function AppQuestMgr:OnResetAdventureQuest()
+	local playerInfo = self:getOwner()
+	for start = QUEST_FIELD_ADVENTURE_QUEST_START, QUEST_FIELD_ADVENTURE_QUEST_END - 1, MAX_QUEST_INFO_COUNT do
+		local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
+		if questId > 0 then
+			self:OnRemoveQuest(start)
+		end
+	end
+	
+	for _,info in ipairs(tb_quest_adventure_base) do
+		if tb_quest[info.quest_id].level <= playerInfo:GetLevel() then
+			self:OnAddQuest(info.quest_id,QUEST_FIELD_ADVENTURE_QUEST_START,QUEST_FIELD_ADVENTURE_QUEST_END)
+		end
+	end
+end
 
 -- 随机生成日常任务
 function AppQuestMgr:RandomGenerateDaily2Quest()
@@ -518,6 +536,18 @@ function AppQuestMgr:ActiveFlowingQuests(questId)
 			self:RandomGenerateDaily2Quest()
 		end
 		return
+	end
+	
+	-- 境界突破任务 下一个任务
+	if config.type == QUEST_TYPE_REALMBREAK then
+		if #config.acitveIds then
+			for _, id in pairs(config.acitveIds) do
+				if tb_quest[id] then
+					self:OnAddQuest(id,QUEST_FIELD_REALMBREAK_QUEST_START,QUEST_FIELD_REALMBREAK_QUEST_END)
+				end
+			end
+			return
+		end
 	end
 	
 	-- 是否有下一个主线
@@ -612,6 +642,33 @@ function AppQuestMgr:OnPickDailyQuest(indx)
 	end
 end
 
+-- 提交冒险任务
+function AppQuestMgr:OnPickAdventureQuest(indx)
+	local start = QUEST_FIELD_ADVENTURE_QUEST_START + indx * MAX_QUEST_INFO_COUNT
+	
+	local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
+	local state   = self:GetUInt16(start + QUEST_INFO_ID, 1)
+	if questId > 0 then
+		--[[if state == QUEST_STATUS_COMPLETE then
+			self:OnInnerPickQuest(start)
+		else--]]
+		if state == QUEST_STATUS_INCOMPLETE then
+			self:CheckIfTheTurnItemInQuest(start)
+		end
+	end
+end
+
+-- 提交境界任务
+function AppQuestMgr:OnPickRealmbreakQuest(indx)
+	local start = QUEST_FIELD_REALMBREAK_QUEST_START + indx * MAX_QUEST_INFO_COUNT
+	
+	local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
+	local state   = self:GetUInt16(start + QUEST_INFO_ID, 1)
+	if questId > 0 and state == QUEST_STATUS_COMPLETE then
+		self:OnInnerPickQuest(start)
+	end
+end
+
 -- 上交任务的判断
 function AppQuestMgr:CheckIfTheTurnItemInQuest(start)
 	local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
@@ -629,7 +686,7 @@ function AppQuestMgr:CheckIfTheTurnItemInQuest(start)
 	end
 	
 	-- 扣道具成功
-	if playerInfo:useMulItem({{entry, count}}) then
+	if playerInfo:useAllItems(MONEY_CHANGE_USE_ITEM,{{entry, count}}) then
 		-- 设置进度信息
 		local qtIndx = GetOneQuestTargetStartIndx(start, 0)
 		self:SetUInt32(qtIndx + QUEST_TARGET_INFO_PROCESS, count)
@@ -729,7 +786,7 @@ end
 --]]
 
 -- 内部领取奖励
-function AppQuestMgr:OnInnerPickQuest(start)
+function AppQuestMgr:OnInnerPickQuest(start, fixedReward)
 	local playerInfo = self:getOwner()
 	local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
 
@@ -744,6 +801,12 @@ function AppQuestMgr:OnInnerPickQuest(start)
 		if not self:IsDaily2Submited() then
 			self:AddDaily2Finished()
 		end
+	elseif tb_quest[questId].type == QUEST_TYPE_ADVENTURE then
+		playerInfo:onUpdatePlayerQuest(QUEST_TARGET_TYPE_ADVENTURE_QUEST_FINISH_TIMES,{})
+		playerInfo:onUpdatePlayerQuest(QUEST_TARGET_TYPE_ADVENTURE_QUEST_FINISH_TODAY,{questId})
+		playerInfo:AddRealmbreakDailyQuestCount(1)
+		
+		playerInfo:AddActiveItem(VITALITY_TYPE_ADVENTURE_QUEST)
 	else
 		self:OnRemoveQuest(start)
 	end
@@ -763,8 +826,7 @@ function AppQuestMgr:OnInnerPickQuest(start)
 			gender = jobIndx
 		end
 		
-		
-		local rewards = tb_quest[questId].rewards[gender]
+		local rewards = fixedReward or tb_quest[questId].rewards[gender]
 		if rewards then
 			-- 判断背包格子是否足够
 			local itemMgr = playerInfo:getItemMgr()
@@ -775,6 +837,12 @@ function AppQuestMgr:OnInnerPickQuest(start)
 			end
 			playerInfo:AppdAddItems(rewards, MONEY_CHANGE_QUEST, LOG_ITEM_OPER_TYPE_QUEST, 1, 0, ITEM_SHOW_TYPE_MINI_QUEST_BAR)
 		end
+	end
+	
+	-- 
+	if tb_quest[questId].countType >0 and tb_quest[questId].countType <= 5 then
+		self:AddQuestCountType(tb_quest[questId].countType - 1,1)
+		playerInfo:onUpdatePlayerQuest(QUEST_TARGET_TYPE_FINISH_QUEST_COUNT_TYPE_TIMES, {})
 	end
 	
 	-- 如果是章节最后一个任务 自动领取章节奖励
@@ -830,6 +898,13 @@ function AppQuestMgr:OnAddQuest(addQuestId, binlogStart, binlogEnd)
 	local playerInfo = self:getOwner()
 	binlogStart = binlogStart or QUEST_FIELD_QUEST_START
 	binlogEnd = binlogEnd or QUEST_FIELD_QUEST_END
+	
+	for start = binlogStart, binlogEnd - 1, MAX_QUEST_INFO_COUNT do
+		local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
+		if questId == addQuestId then
+			return
+		end
+	end
 	
 	for start = binlogStart, binlogEnd - 1, MAX_QUEST_INFO_COUNT do
 		local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
@@ -921,18 +996,25 @@ function AppQuestMgr:OnUpdate(questTargetType, params)
 	
 	-- 日常任务
 	self:OnInnerUpdate(questTargetType, params, QUEST_FIELD_DAILY2_QUEST_START, QUEST_FIELD_DAILY2_QUEST_END)
+	
+	-- 押镖任务
+	self:OnInnerUpdate(questTargetType, params, QUEST_FIELD_ESCORT_QUEST_START, QUEST_FIELD_ESCORT_QUEST_END)
+	
+	-- 境界突破任务
+	self:OnInnerUpdate(questTargetType, params, QUEST_FIELD_REALMBREAK_QUEST_START, QUEST_FIELD_REALMBREAK_QUEST_END)
 end
 
 function AppQuestMgr:OnInnerUpdate(questTargetType, params, binlogStart, binlogEnd)
 	for start = binlogStart, binlogEnd - 1, MAX_QUEST_INFO_COUNT do
 		local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
 		local state   = self:GetUInt16(start + QUEST_INFO_ID, 1)
-
 		local config = tb_quest[questId]
 		if config and QUEST_STATUS_INCOMPLETE == state then
 			local updated = self:CheckQuestUpdate(questTargetType, start, params)
+			--outFmtDebug("========= OnInnerUpdate questId = %d updated = %s", questId, updated)
 			-- 所有任务是否完成
 			if updated then
+				self:getOwner():UpdateFinishGuideIdByTaskId(questId)
 				self:CheckQuestFinish(start)
 			end
 		end
@@ -986,9 +1068,49 @@ function AppQuestMgr:CheckQuestFinish(start)
 		return
 	end
 	
+	local fixedRewards = nil
+	if targets[ 1 ][ 1 ] == QUEST_TARGET_TYPE_TALK and config.type == QUEST_TYPE_ESCORT  then
+		local escort_config = tb_escort_base[1]
+		local quest_count = self:getOwner():CountItem(escort_config.quest_item_id)
+		local count = quest_count * escort_config.convert_ratio
+		
+		self:getOwner():getItemMgr():delItem(escort_config.quest_item_id,quest_count)
+		
+		--todo 清空任务状态
+		self:getOwner():SetEscortState(QUEST_ESCORT_STATE_NONE)
+		self:SetQuestEscortFinishTime(0)
+		
+		
+		
+		fixedRewards = {{escort_config.reward_item_id,count}}
+		
+	end
+	
 	-- 是对话的直接跳到下一步
-	self:OnInnerPickQuest(start)
+	self:OnInnerPickQuest(start, fixedRewards)
 end
+
+
+--QUEST_FIELD_COUNT_TYPE_START
+function AppQuestMgr:GetQuestCountType(index)
+	return self:GetUInt32(QUEST_FIELD_COUNT_TYPE_START + index)
+end
+
+function AppQuestMgr:AddQuestCountType(index,value)
+	self:AddUInt32(QUEST_FIELD_COUNT_TYPE_START + index,value)
+end
+
+
+--押镖结束时间
+function AppQuestMgr:GetQuestEscortFinishTime()
+	return self:GetUInt32(QUEST_FIELD_ESCORT_QUEST_FINISH_TIME)
+end
+
+function AppQuestMgr:SetQuestEscortFinishTime(value)
+	self:SetUInt32(QUEST_FIELD_ESCORT_QUEST_FINISH_TIME,value)
+end
+
+
 
 -------------------------------上面是任务-------------------------------
 -- 获得玩家guid

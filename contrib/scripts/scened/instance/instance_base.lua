@@ -794,8 +794,16 @@ Instance_base = {
 	-- 检查生物攻击生物
 	CheckCreatureToCreature = 
 		function (self, killer_ptr, target_ptr)
+			local killerInfo = UnitInfo:new {ptr = killer_ptr}
+			local targetInfo = UnitInfo:new {ptr = target_ptr}
+			
+			if tb_creature_template[killerInfo:GetEntry()].robot == 1 or tb_creature_template[targetInfo:GetEntry()].robot == 1 then
+				return false
+			end
+			
 			local host1 = creatureLib.GetMonsterHost(killer_ptr)
 			local host2 = creatureLib.GetMonsterHost(target_ptr)
+			
 			return self:DoIsMate(host1, host2)
 		end,
 

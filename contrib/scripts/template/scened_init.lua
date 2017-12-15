@@ -153,6 +153,18 @@ require("template.tables.tb_private_boss_buff")
 --战斗_血瓶
 require("template.tables.tb_restore_potion_base")
 
+-- 冒险任务
+require("template.tables.tb_quest_adventure_base")
+require("template.tables.tb_adventure_death_drop")
+require("template.tables.tb_escort_base")
+require("template.tables.tb_adventure_robot_base")
+require("template.tables.tb_realmbreak_dailyquest_base")
+
+--闯关
+require("template.tables.tb_instance_stage")
+require("template.tables.tb_instance_stage_base")
+
+
 for _, ctInfo in pairs(tb_creature_template) do
 	local ps = string.split(ctInfo.spell, ',')
 	local ss = {}

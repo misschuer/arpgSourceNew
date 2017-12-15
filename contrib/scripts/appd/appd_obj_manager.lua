@@ -6,6 +6,7 @@ local AppItemMgr = require('appd.appd_item_mgr')
 local AppLogicalMgr = require('appd.appd_logical_mgr')
 local FactionInfo = require('appd.faction_info')
 local FactionDataInfo = require('appd.faction_data_info')
+local GroupInfo = require('appd.group_info')
 local AppSpellMgr = require('appd.appd_spell_manager')
 local AppInstanceMgr = require('appd.appd_instance_manager')
 local AppSocialMgr = require('appd.appd_social_manager')
@@ -23,6 +24,7 @@ function AppObjectManager:ctor( )
 	self.binlogTypes[guidMgr.ObjectTypeLogical]  = AppLogicalMgr --业务逻辑
 	self.binlogTypes[guidMgr.ObjectTypeFaction]  = FactionInfo	--帮派
 	self.binlogTypes[guidMgr.ObjectTypeFactionData]  = FactionDataInfo	--帮派数据
+	self.binlogTypes[guidMgr.ObjectTypeGroup]  = GroupInfo	--帮派
 	self.binlogTypes[guidMgr.ObjectTypeSpell]    = AppSpellMgr	--技能
 	self.binlogTypes[guidMgr.ObjectTypeInstance] = AppInstanceMgr	--副本
 	self.binlogTypes[guidMgr.ObjectTypeQuest]    = AppQuestMgr	--任务
@@ -87,6 +89,10 @@ end
 -- 判断GUID是否是帮派的guid
 function AppObjectManager:IsPlayerGuid(guid)
 	return string.sub(guid, 1, 1) == guidMgr.ObjectTypePlayer
+end
+
+function AppObjectManager:IsGroupGuid(guid)
+	return string.sub(guid, 1, 1) == guidMgr.ObjectTypeGroup
 end
 
 return AppObjectManager

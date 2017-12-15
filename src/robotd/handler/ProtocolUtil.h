@@ -694,8 +694,8 @@ public:
 	int unpack_pick_quest_reward (ByteArray &bytes ,uint8 &indx);
 	int send_pick_quest_reward (uint8 indx);
 	/*和npc对话*/
-	int unpack_talk_with_npc (ByteArray &bytes ,uint16 &entry,uint16 &questId);
-	int send_talk_with_npc (uint16 entry,uint16 questId);
+	int unpack_talk_with_npc (ByteArray &bytes ,uint32 &u_guid,uint16 &questId);
+	int send_talk_with_npc (uint32 u_guid,uint16 questId);
 	/*使用虚拟物品*/
 	int unpack_use_virtual_item (ByteArray &bytes ,uint16 &entry);
 	int send_use_virtual_item (uint16 entry);
@@ -805,8 +805,8 @@ public:
 	int unpack_attribute_changed (ByteArray &bytes );
 	int send_attribute_changed ();
 	/*背包有更强装备*/
-	int unpack_bag_find_equip_better (ByteArray &bytes ,uint32 &item_id,uint32 &pos);
-	int send_bag_find_equip_better (uint32 item_id,uint32 pos);
+	int unpack_bag_find_equip_better (ByteArray &bytes ,uint32 &item_id,uint32 &pos,uint32 &force);
+	int send_bag_find_equip_better (uint32 item_id,uint32 pos,uint32 force);
 	/*模块解锁*/
 	int unpack_module_active (ByteArray &bytes ,uint32 &moduleId);
 	int send_module_active (uint32 moduleId);
@@ -1101,6 +1101,45 @@ public:
 	/*使用回复药*/
 	int unpack_use_restore_potion (ByteArray &bytes );
 	int send_use_restore_potion ();
+	/*提交冒险任务*/
+	int unpack_pick_quest_adventure (ByteArray &bytes ,uint32 &indx);
+	int send_pick_quest_adventure (uint32 indx);
+	/*升级冒险技能*/
+	int unpack_raise_adventurespell (ByteArray &bytes ,uint32 &spellId);
+	int send_raise_adventurespell (uint32 spellId);
+	/*领取境界任务奖励*/
+	int unpack_pick_quest_realmbreak (ByteArray &bytes ,uint32 &indx);
+	int send_pick_quest_realmbreak (uint32 indx);
+	/*领取境界每日奖励*/
+	int unpack_pick_realmbreak_daily_reward (ByteArray &bytes );
+	int send_pick_realmbreak_daily_reward ();
+	/*创建队伍*/
+	int unpack_group_create (ByteArray &bytes );
+	int send_group_create ();
+	/*申请加入队伍*/
+	int unpack_group_join_request (ByteArray &bytes ,string &guid);
+	int send_group_join_request (char const*guid);
+	/*同意加入队伍*/
+	int unpack_group_join_accept (ByteArray &bytes ,string &guid);
+	int send_group_join_accept (char const*guid);
+	/*退出队伍*/
+	int unpack_group_quit (ByteArray &bytes );
+	int send_group_quit ();
+	/*移交队伍队长*/
+	int unpack_group_give_captain (ByteArray &bytes ,string &guid);
+	int send_group_give_captain (char const*guid);
+	/*踢队员*/
+	int unpack_group_kick (ByteArray &bytes ,string &guid);
+	int send_group_kick (char const*guid);
+	/*显示掉落东西*/
+	int unpack_show_loot_animate (ByteArray &bytes ,string &info);
+	int send_show_loot_animate (char const*info);
+	/*进入闯关副本*/
+	int unpack_enter_stage_instance (ByteArray &bytes );
+	int send_enter_stage_instance ();
+	/*领取闯关副本奖励*/
+	int unpack_pick_stage_instance_bonus (ByteArray &bytes ,uint32 &id);
+	int send_pick_stage_instance_bonus (uint32 id);
 };
 
 #endif

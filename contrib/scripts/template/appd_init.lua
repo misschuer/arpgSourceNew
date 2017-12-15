@@ -163,6 +163,16 @@ require("template.tables.tb_quest_daily2_base")
 require("template.tables.tb_quest_daily2_set")
 require("template.tables.tb_quest_daily2_finish_reward")
 
+-- 冒险任务
+require("template.tables.tb_quest_adventure_base")
+require("template.tables.tb_adventure_death_drop")
+require("template.tables.tb_adventure_skill_base")
+
+--押镖
+require("template.tables.tb_escort_base")
+
+
+
 
 --竞技
 require("template.tables.tb_kuafu3v3_base")
@@ -266,6 +276,15 @@ require("template.tables.tb_moneytree_lv")
 require("template.tables.tb_private_boss_base")
 require("template.tables.tb_private_boss_info")
 require("template.tables.tb_private_boss_buff")
+
+--境界突破
+require("template.tables.tb_realmbreak_base")
+require("template.tables.tb_realmbreak_dailyquest_base")
+
+--闯关
+require("template.tables.tb_instance_stage")
+require("template.tables.tb_instance_stage_bonus")
+require("template.tables.tb_instance_stage_base")
 
 --- 数据预处理
 require("template.tabset")

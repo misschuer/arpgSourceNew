@@ -39,6 +39,7 @@ class OprateResult
 		public static OPRATE_TYPE_DOUJIAN			:number = 33;	// 斗剑台
 		public static OPRATE_TYPE_GEM			:number = 34;	// 宝石
 		public static OPRATE_TYPE_MONEYTREE			:number = 35;	// 摇钱树
+		public static OPRATE_TYPE_NEED_NOTICE			:number = 36;	// 需要跑马灯
 		// 登录相关操作返回
 		public static OPRATE_RESULT_SUCCESS			:number = 1;	// 成功
 		public static OPRATE_RESULT_NAME_REPEAT			:number = 2;	// 名称重复
@@ -268,6 +269,7 @@ class OprateResult
 		public static DOUJIAN_OPERATE_SELF_BATTLE			:number = 7;	// 自己正在被别人挑战
 		public static DOUJIAN_OPERATE_OTHER_BATTLE			:number = 8;	// 挑战的人正在被别人挑战
 		public static DOUJIAN_OPERATE_COUNTDOWN			:number = 9;	// 刷新在冷却中
+		public static DOUJIAN_OPERATE_REFRESH			:number = 10;	// 刷新完成
 		// 游戏关闭信息
 		public static PLAYER_CLOSE_OPERTE_APPD_ONE1			:number = 1000;	// 插入单个物品时，包裹id 超过最大值
 		public static PLAYER_CLOSE_OPERTE_APPD_ONE2			:number = 1001;	// 创建玩家其他的对象的时候，发现之前已经创建过了
@@ -520,5 +522,16 @@ class OprateResult
 		public static GEM_TYPE_CRIT			:number = 0;	// 宝石暴击
 		public static MONEYTREE_TYPE_NORMAL			:number = 0;	// 普通
 		public static MONEYTREE_TYPE_CRIT			:number = 1;	// 暴击
+		public static NEED_NOTICE_TYPE_WING_RANKUP			:number = 0;	// 翅膀进阶
+		public static NEED_NOTICE_TYPE_WING_STRENGTH			:number = 1;	// 翅膀强化
+		public static NEED_NOTICE_TYPE_MOUNT_RANKUP			:number = 2;	// 坐骑进阶
+		public static NEED_NOTICE_TYPE_TALISMAN_ACTIVE			:number = 3;	// 法宝激活
+		public static NEED_NOTICE_TYPE_TALISMAN_LVUP			:number = 4;	// 法宝升级
+		public static NEED_NOTICE_TYPE_TRIAL_WIN			:number = 5;	// 试炼塔
+		public static NEED_NOTICE_TYPE_RISK_CHAPTER			:number = 6;	// 幻境挂机
+		public static NEED_NOTICE_TYPE_DOUJIANTAI_RANKUP			:number = 7;	// 斗剑台
+		public static NEED_NOTICE_TYPE_PAIWEI_RANKUP			:number = 8;	// 排位赛
+		public static NEED_NOTICE_TYPE_ADVENTURE_ROB			:number = 9;	// 野外资源抢夺
+		public static NEED_NOTICE_TYPE_ADVENTURE_ROBED			:number = 10;	// 野外资源被抢夺
 		// _OPRATE_RESULT_H
 	}

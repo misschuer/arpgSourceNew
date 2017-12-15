@@ -49,7 +49,7 @@ function unpack_quest_add_item( pkt )
 end
 
 function unpack_add_items( pkt )
-	local ret, player_guid, len, logtype, bagFullCategory
+	local ret, player_guid, len, logtype, bagFullCategory, noticeValue
 	local itemDict = {}
 	
 	ret, player_guid = pkt:readUTF()
@@ -69,8 +69,11 @@ function unpack_add_items( pkt )
 	ret, logtype = pkt:readByte()
 	if not ret then return false end
 	ret, bagFullCategory = pkt:readByte()
+	if not ret then return false end
+	ret, noticeValue = pkt:readByte()
+	if not ret then return false end
 	
-	return true, player_guid, itemDict, logtype, bagFullCategory
+	return true, player_guid, itemDict, logtype, bagFullCategory, noticeValue
 end
 
 function unpack_player_upgrade( pkt )

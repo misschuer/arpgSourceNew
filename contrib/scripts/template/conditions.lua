@@ -396,6 +396,7 @@ local equip_attr_type = {
 	[EQUIP_ATTR_CONTROL_ENHANCE_RATE] = "control_enhance_rate",	--控制增强
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = "control_resist_rate",	--控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = "strength_armor",	--强化护甲
+	[EQUIP_ATTR_DAO] = "dao",				--境界
 	
 	[ITEM_OTHER_ATTR_FAIL_TIME 	] = "ifailtm",
 	[ITEM_OTHER_ATTR_STRONG_LV 	] = "istronglv",

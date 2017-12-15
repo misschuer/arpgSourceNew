@@ -244,6 +244,9 @@ function AppItemMgr:exchangePos(src_bag, src_pos, dst_bag, dst_pos)
 		--属性重算
 		self:resetItemForce(src_item)
 		playerLib.SendAttr(owner.ptr)
+		-- 任务
+		local questMgr = owner:getQuestMgr()
+		questMgr:OnUpdate(QUEST_TARGET_TYPE_EQUIPS_FIT_REQUIRE, {})
 	end
 	
 	if dst_bag == BAG_TYPE_EQUIP then
@@ -261,6 +264,8 @@ function AppItemMgr:exchangePos(src_bag, src_pos, dst_bag, dst_pos)
 		-- 任务
 		local questMgr = owner:getQuestMgr()
 		questMgr:OnUpdate(QUEST_TARGET_TYPE_SUIT, {update_pos, src_item:getEntry()})
+		questMgr:OnUpdate(QUEST_TARGET_TYPE_EQUIPS_FIT_REQUIRE, {})
+		
 	end
 	return true
 end

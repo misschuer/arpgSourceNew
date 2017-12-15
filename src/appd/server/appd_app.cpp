@@ -196,6 +196,8 @@ void AppdApp::Update(uint32 diff)
 	}
 	else if(m_status == APP_STATUS_LOGIND_READY_OK)
 	{
+		// 组队信息
+		ObjMgr.CallAddTagWatch(GROUP_BINLOG_OWNER_STRING);
 		// 帮派信息
 		ObjMgr.CallAddTagWatch(FACTION_BINLOG_OWNER_STRING);
 		// 帮派数据(送礼物)

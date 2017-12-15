@@ -4531,22 +4531,22 @@ int ProtocolUtil::send_pick_quest_reward (uint8 indx)
 }
 
 /*和npc对话*/
-int ProtocolUtil::unpack_talk_with_npc (ByteArray &bytes ,uint16 &entry,uint16 &questId)
+int ProtocolUtil::unpack_talk_with_npc (ByteArray &bytes ,uint32 &u_guid,uint16 &questId)
 {
 	int ret=0;
-	//uint16
-	entry = bytes.readUnsignedShort();
+	//uint32
+	u_guid = bytes.readUnsignedInt();
 	//uint16
 	questId = bytes.readUnsignedShort();
 	return ret;
 }
 
-int ProtocolUtil::send_talk_with_npc (uint16 entry,uint16 questId)
+int ProtocolUtil::send_talk_with_npc (uint32 u_guid,uint16 questId)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_TALK_WITH_NPC);
 	
-	m_bytes.writeBytes((uint8*)&entry, sizeof(uint16));
+	m_bytes.writeBytes((uint8*)&u_guid, sizeof(uint32));
 	m_bytes.writeBytes((uint8*)&questId, sizeof(uint16));
 	SendToServer(m_bytes);
 	return 0;
@@ -5238,23 +5238,26 @@ int ProtocolUtil::send_attribute_changed ()
 }
 
 /*背包有更强装备*/
-int ProtocolUtil::unpack_bag_find_equip_better (ByteArray &bytes ,uint32 &item_id,uint32 &pos)
+int ProtocolUtil::unpack_bag_find_equip_better (ByteArray &bytes ,uint32 &item_id,uint32 &pos,uint32 &force)
 {
 	int ret=0;
 	//uint32
 	item_id = bytes.readUnsignedInt();
 	//uint32
 	pos = bytes.readUnsignedInt();
+	//uint32
+	force = bytes.readUnsignedInt();
 	return ret;
 }
 
-int ProtocolUtil::send_bag_find_equip_better (uint32 item_id,uint32 pos)
+int ProtocolUtil::send_bag_find_equip_better (uint32 item_id,uint32 pos,uint32 force)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(SMSG_BAG_FIND_EQUIP_BETTER);
 	
 	m_bytes.writeBytes((uint8*)&item_id, sizeof(uint32));
 	m_bytes.writeBytes((uint8*)&pos, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&force, sizeof(uint32));
 	SendToServer(m_bytes);
 	return 0;
 }
@@ -7227,6 +7230,241 @@ int ProtocolUtil::send_use_restore_potion ()
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_USE_RESTORE_POTION);
 	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*提交冒险任务*/
+int ProtocolUtil::unpack_pick_quest_adventure (ByteArray &bytes ,uint32 &indx)
+{
+	int ret=0;
+	//uint32
+	indx = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_pick_quest_adventure (uint32 indx)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_PICK_QUEST_ADVENTURE);
+	
+	m_bytes.writeBytes((uint8*)&indx, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*升级冒险技能*/
+int ProtocolUtil::unpack_raise_adventurespell (ByteArray &bytes ,uint32 &spellId)
+{
+	int ret=0;
+	//uint32
+	spellId = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_raise_adventurespell (uint32 spellId)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_RAISE_ADVENTURESPELL);
+	
+	m_bytes.writeBytes((uint8*)&spellId, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*领取境界任务奖励*/
+int ProtocolUtil::unpack_pick_quest_realmbreak (ByteArray &bytes ,uint32 &indx)
+{
+	int ret=0;
+	//uint32
+	indx = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_pick_quest_realmbreak (uint32 indx)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_PICK_QUEST_REALMBREAK);
+	
+	m_bytes.writeBytes((uint8*)&indx, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*领取境界每日奖励*/
+int ProtocolUtil::unpack_pick_realmbreak_daily_reward (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_pick_realmbreak_daily_reward ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_PICK_REALMBREAK_DAILY_REWARD);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*创建队伍*/
+int ProtocolUtil::unpack_group_create (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_group_create ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_CREATE);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*申请加入队伍*/
+int ProtocolUtil::unpack_group_join_request (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_join_request (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_JOIN_REQUEST);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*同意加入队伍*/
+int ProtocolUtil::unpack_group_join_accept (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_join_accept (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_JOIN_ACCEPT);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*退出队伍*/
+int ProtocolUtil::unpack_group_quit (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_group_quit ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_QUIT);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*移交队伍队长*/
+int ProtocolUtil::unpack_group_give_captain (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_give_captain (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_GIVE_CAPTAIN);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*踢队员*/
+int ProtocolUtil::unpack_group_kick (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_kick (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_KICK);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*显示掉落东西*/
+int ProtocolUtil::unpack_show_loot_animate (ByteArray &bytes ,string &info)
+{
+	int ret=0;
+	//String
+	info = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_show_loot_animate (char const*info)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_SHOW_LOOT_ANIMATE);
+	
+	m_bytes.writeUTF(info);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*进入闯关副本*/
+int ProtocolUtil::unpack_enter_stage_instance (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_enter_stage_instance ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_ENTER_STAGE_INSTANCE);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*领取闯关副本奖励*/
+int ProtocolUtil::unpack_pick_stage_instance_bonus (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_pick_stage_instance_bonus (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_PICK_STAGE_INSTANCE_BONUS);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
 	SendToServer(m_bytes);
 	return 0;
 }

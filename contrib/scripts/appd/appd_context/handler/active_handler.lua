@@ -55,7 +55,14 @@ end
 
 --添加活跃度
 function PlayerInfo:AddActiveItem(id)
+	
+	--经脉活跃度
+	outFmtDebug("PlayerInfo:AddActiveItem  onAddMeridianExpSource-------------")
+	self:onAddMeridianExpSource(id)
+	
+	--每日活跃度
 	outFmtDebug("PlayerInfo:AddActiveItem-------------")
+	
 	local config = tb_activity_base[id]
 	if config == nil then
 		outFmtDebug("add active fail,no data %d",id)

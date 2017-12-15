@@ -527,10 +527,12 @@ bool Map::Load()
 	for (auto iter = m_template->m_monsters.begin();
 		iter!=m_template->m_monsters.end();++iter)
 	{
+		creature_template *temp = creature_template_db[iter->second.templateid];
+		uint32 rebornTime = temp->rebornTime;
 		AddCreature(iter->second.templateid,
 			float(iter->second.x),float(iter->second.y),float(iter->second.toward),
-			iter->second.respawn_time,
-			iter->second.move_type,
+			rebornTime,
+			-1,
 			iter->second.flag,
 			iter->second.alias_name);
 	}
@@ -942,13 +944,21 @@ Creature *Map::AddCreature(uint32 templateid,float x,float y,float toward/* = 0*
 	string lguid = CreateNewCreatureID();
 	Creature *new_creature = new Creature;
 	new_creature->SetUInt32(UNIT_INT_FIELD_RISK_CREATURE_ID, riskId);
+	creature_template *temp = creature_template_db[templateid];
+	if (movetype == uint32(-1)) {
+		movetype = temp->move_type;
+	}
 	//需要确保地图怪物刷新点不删除		
 	if(!new_creature->Create(this,lguid,templateid,respan_time,movetype,ainame,level, attackType))
 	{
 		safe_delete(new_creature);
 		return NULL;
 	}
+
 	
+	if (temp->npcflag == 0 && temp->monster_type == 1) {
+		new_creature->SetUnitFlags(UNIT_FIELD_FLAGS_IS_BOSS_CREATURE);
+	}
 	new_creature->SetBornPos(x,y);
 	new_creature->SetPosition(x,y);
 	new_creature->SetOrientation((float)toward);
@@ -1649,7 +1659,7 @@ int Map::LuaAddCreature(lua_State *scriptL)
 	//LuaStackAutoPopup autoPopup(scriptL);
 	uint32 templateid;
 	float x,y,toward = 0.0f;
-	uint32 respan_time = 0,movetype = 0,npcflag = 0,level = 0,attackType=0;
+	uint32 respan_time = 0,movetype = -1,npcflag = 0,level = 0,attackType=0;
 	uint32 riskId = 0;
 	vector<uint32> npcflags;
 	const char *alias_name = NULL;
@@ -1935,15 +1945,17 @@ int Map::LuaGetCreatureEntryCount(lua_State *scriptL) {
 	for (CreaturesMap::iterator it = _m->m_alive_creatures.begin();
 		it != _m->m_alive_creatures.end();++it) {
 			if (it->second->isAlive()) {
-				hash.insert(it->second->GetEntry());
-				entry = it->second->GetEntry();
+				//修改为返回riskCreatureId 计数
+				hash.insert(it->second->GetUInt32(UNIT_INT_FIELD_RISK_CREATURE_ID));
+				entry = it->second->GetUInt32(UNIT_INT_FIELD_RISK_CREATURE_ID);
 			}
 	}
 	// 在创建列表的
 	for (Unit* addit : _m->m_worldObject_toadd) {
 		if (addit->GetTypeId() == TYPEID_UNIT) {
-			hash.insert(addit->GetEntry());
-			entry = addit->GetEntry();
+			//修改为返回riskCreatureId 计数
+			hash.insert(addit->GetUInt32(UNIT_INT_FIELD_RISK_CREATURE_ID));
+			entry = addit->GetUInt32(UNIT_INT_FIELD_RISK_CREATURE_ID);
 		}
 	}
 
@@ -3967,6 +3979,36 @@ int Map::LuaGetMaxinumFieldBossDamage(lua_State *scriptL) {
 	lua_pushstring(scriptL, guid.c_str());
 	return 1;
 }
+
+//通过uintguid获取生物对象
+int Map::LuaGetCreatureByGuid(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 2);
+
+	Map *map = (Map*)LUA_TOUSERDATA(scriptL, 1, ObjectTypeNone);
+	ASSERT(map);
+	uint32 guid = (uint32)LUA_TONUMBER(scriptL, 2);
+
+	char ch[23];
+	sprintf(ch, "%c%u", ObjectTypeUnit, guid);
+	string creatureGuid = ch;
+
+	Creature* creature = nullptr;
+	auto it = map->m_alive_creatures.find(creatureGuid);
+	if (it != map->m_alive_creatures.end()) {
+		creature = it->second;
+	}
+
+	if (creature) {
+		lua_pushlightuserdata(scriptL, creature);
+	} else {
+		lua_pushnil(scriptL);
+	}
+
+	return 1;
+}
+
 
 //通过uintguid获取游戏对象
 int Map::LuaGetGameObjectByGuid(lua_State *scriptL) {

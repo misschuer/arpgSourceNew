@@ -3044,6 +3044,8 @@ function FactionInfo:AddBuildingId(id)
 		if self:GetBuildingId(pos) == 0 then
 			self:SetBuildingId(pos,id)
 			return true
+		elseif math.floor(self:GetBuildingId(pos)/100) == math.floor(id/100) then
+			return false
 		end
 	end
 	return false
@@ -4621,6 +4623,7 @@ function FactionInfo:OnTowerTodayFloorUpdate(player,floor)
 	local clear_floor = player:GetFactionTowerClearFloor()
 	if floor > clear_floor then
 		player:SetFactionTowerClearFloor(floor)
+		player:onUpdatePlayerQuest(QUEST_TARGET_TYPE_FACTION_TOWER_FLOOR, {})
 	end
 	
 	local index = self:FindPlayerIndex(player:GetGuid())
@@ -4730,7 +4733,7 @@ function FactionInfo:FactionSkillLvup(player,id)
 		player:updatePassive(skill_id,learn_lv + 1)
 		
 		player:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_FACTIONSKILL_LVUP)
-		
+		player:onUpdatePlayerQuest(QUEST_TARGET_TYPE_FACTION_SKILL_MULTI_LEVEL, {})
 		outFmtDebug("OnFactionSkillBuildingLvChange skill %d lv %d",skill_id,learn_lv + 1)
 	end
 	

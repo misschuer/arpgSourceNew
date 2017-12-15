@@ -271,6 +271,7 @@ end
 
 --当玩家离开时触发
 function InstanceResBase:OnLeavePlayer( player, is_offline)
+	InstanceInstBase.OnLeavePlayer(self, player, is_offline)
 	if not is_offline then
 		self:RemoveTimeOutCallback(self.Time_Out_Fail_Callback)
 		self:RemoveTimeOutCallback(self.Leave_Callback)

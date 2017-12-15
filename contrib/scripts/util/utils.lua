@@ -634,6 +634,7 @@ attrKeys = {
 	[EQUIP_ATTR_CONTROL_ENHANCE_RATE] = PLAYER_FIELD_CONTROL_ENHANCE_RATE,	--控制增强
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = PLAYER_FIELD_CONTROL_RESIST_RATE,	--控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = PLAYER_FIELD_STRENGTH_ARMOR,	--强化护甲
+	[EQUIP_ATTR_DAO] = PLAYER_FIELD_DAO,						--境界
 }
 
 -- 得到属性对应的区间所所表示的颜色
@@ -691,7 +692,7 @@ end
 
 -- 是否是冒险关卡小关
 function isRiskMap(mapId)
-	if tb_map[mapId].inst_sub_type == INSTANCE_SUB_TYPE_RISK and tb_map[mapId].is_boss_risk == 0 then
+	if tb_map[mapId].inst_sub_type == INSTANCE_SUB_TYPE_RISK then-- and tb_map[mapId].is_boss_risk == 0 then
 		return 1
 	end
 	return 0
@@ -865,4 +866,12 @@ function list1DToString(list)
 	end
 	str = str .. "}"
 	return str
+end
+
+function getShowName(sName)
+	if sName ~= "" then
+		local tName = lua_string_split(sName,",")
+		sName = tName[#tName]
+	end
+	return sName
 end

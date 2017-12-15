@@ -1064,6 +1064,11 @@ bool Load_creature_template (lua_State *L)
 		lua_getfield(L, -1, "exp");
 		info->exp = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
+
+		lua_getfield(L, -1, "rebornTime");
+		info->rebornTime = (int)LUA_TONUMBER(L, -1);
+		lua_pop(L,1);
+
 		lua_getfield(L, -1, "reward_id");
 		int it_reward_id = lua_gettop(L);
 		lua_pushnil(L);
@@ -1079,6 +1084,11 @@ bool Load_creature_template (lua_State *L)
 			lua_pop(L,1);
 		}
 		lua_pop(L,1);
+
+		lua_getfield(L, -1, "move_type");
+		info->move_type = (int)LUA_TONUMBER(L, -1);
+		lua_pop(L,1);
+		
 		/**
 		lua_getfield(L, -1, "dialogue");
 		strncpy(info->dialogue ,LUA_TOSTRING(L, -1),50);

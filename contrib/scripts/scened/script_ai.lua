@@ -103,7 +103,39 @@ AI_Base = {
 		end,		--闲聊选项
 	LootAllot = 	--生成战利品
 		function(self, owner, player, killer, drop_rate_multiples, boss_type, fcm)
-			local playerInfo = UnitInfo:new{ptr = player}
+			local map_ptr = unitLib.GetMap(owner)
+			local mapid = mapLib.GetMapID(map_ptr)
+			local instanceInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
+			local ownerInfo = UnitInfo:new{ptr = owner}
+			local entry = ownerInfo:GetEntry()
+			
+			if tb_creature_template[entry].robot == 1 then
+				local playerInfo = UnitInfo:new{ptr = player}
+				local killerInfo = UnitInfo:new{ptr = killer}
+				if playerInfo:GetPlayerUInt32(PLAYER_INT_FIELD_ADVENTURE_ROBOT_KILL_COUNT) < tb_adventure_robot_base[1].drop_limit then
+					local items = tb_creature_template[entry].robot_reward
+					local desc = string.format(tb_adventure_robot_base[1].mail_desc,binLogLib.GetStr(owner,BINLOG_STRING_FIELD_NAME))
+					local mailInfo = {items, tb_adventure_robot_base[1].mail_name, desc, GIFT_PACKS_TYPE_ESCORT_ROB}
+					local str = string.join("|", mailInfo)
+					playerLib.SendToAppdDoSomething(killer, SCENED_APPD_ADD_MAIL, 0, str)
+					
+					
+					playerInfo:AddPlayerUInt32(PLAYER_INT_FIELD_ADVENTURE_ROBOT_KILL_COUNT,1)
+				end
+			end
+			
+			local dict = {}
+			DoRandomDropTable(tb_creature_template[entry].reward_id, dict)
+			
+			-- 客户端显示拾取假动画
+			local destX, destY = unitLib.GetPos(owner)
+			noticeClientShowPickLootAnimate(player, dict, destX, destY)
+			
+			--outFmtDebug("=========== LootAllot =========")
+			PlayerAddRewards(player, dict, MONEY_CHANGE_SELECT_LOOT, LOG_ITEM_OPER_TYPE_LOOT, 0, false)
+			
+			
+			--[[local playerInfo = UnitInfo:new{ptr = player}
 			local player_guid = playerInfo:GetPlayerGuid()
 			local player_lv = playerInfo:GetLevel()
 			local player_gender = playerInfo:GetGender()		--CHAR_GENDER_MALE,CHAR_GENDER_FEMALE
@@ -112,7 +144,7 @@ AI_Base = {
 			local creature_entry = createInfo:GetEntry()
 			local map_ptr = unitLib.GetMap(owner)
 			local info = tb_creature_template[creature_entry]
-			if not info then return end
+			if not info then return end--]]
 			--[[
 			--先处理铜钱掉落
 			for i = 1, info.money_num do

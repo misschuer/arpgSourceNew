@@ -254,6 +254,7 @@ function PlayerInfo:Handle_Doujiantai_Refresh_Enemys(pkt)
 	self:SetDoujiantaiLastRefreshTime(os.time())
 	self:RefreshDoujiantaiEnemy()
 	self:GetEnemyInfo()
+	self:CallOptResult(OPRATE_TYPE_DOUJIAN, DOUJIAN_OPERATE_REFRESH)
 end
 
 function PlayerInfo:Handle_Doujian_BuyTimes(pkt)

@@ -229,6 +229,7 @@ function AppInstanceMgr:sweepResInstance(id)
 		--tb_instance_reward
 		local baseconfig = tb_instance_res[id]
 		local times = self:GetByte(baseIdx, 0)
+		local mapid = baseconfig.mapid
 		
 		local allTime = baseconfig.times
 		local player = self:getOwner()
@@ -273,6 +274,10 @@ function AppInstanceMgr:sweepResInstance(id)
 		player:AddActiveItem(VITALITY_TYPE_RES_INSTANCE)
 		
 		protocols.call_sweep_instance_reward ( player, INSTANCE_SUB_TYPE_RES, id, 0, 0, list)
+		
+		
+		local questMgr = player:getQuestMgr()
+		questMgr:OnUpdate(QUEST_TARGET_TYPE_RESOURCE_INSTANCE, {mapid})
 		
 	else
 		outFmtDebug("not first res instance")
@@ -970,6 +975,55 @@ function AppInstanceMgr:updatePrivateBossRecoverTime(id)
 	else
 		self:SetPrivateBossRecoverTime(id - 1,now_time + config.rebornTime * 60)
 	end
+end
+
+
+-----------------------------------------------
+--ÁìÈ¡´³¹Ø±¦Ïä
+
+function AppInstanceMgr:GetStageInstanceBonusFlag(id)
+	local index, offset = getRealOffset(id,32)
+	
+	if index >= MAX_STAGE_INSTANCE_BONUS_FLAG_COUNT then
+		outFmtDebug("GetStageInstanceBonusFlag index %d >= MAX_STAGE_INSTANCE_BONUS_FLAG_COUNT %d  !!!!!!!!!!!!!!",index,MAX_STAGE_INSTANCE_BONUS_FLAG_COUNT)
+		return false
+	end
+	
+	return self:GetBit(INSTANCE_INT_FIELD_STAGE_INSTANCE_BONUS_FLAG_START + index,offset)
+end
+
+function AppInstanceMgr:SetStageInstanceBonusFlag(id)
+	local index, offset = getRealOffset(id,32)
+	
+	if index >= MAX_STAGE_INSTANCE_BONUS_FLAG_COUNT then
+		outFmtDebug("SetStageInstanceBonusFlag index %d >= MAX_STAGE_INSTANCE_BONUS_FLAG_COUNT %d  !!!!!!!!!!!!!!",index,MAX_STAGE_INSTANCE_BONUS_FLAG_COUNT)
+		return
+	end
+	
+	self:SetBit(INSTANCE_INT_FIELD_STAGE_INSTANCE_BONUS_FLAG_START + index,offset)
+end
+
+function AppInstanceMgr:checkPickStageInstanceBonus(id)
+	local config = tb_instance_stage_bonus[ id ]
+	
+	if not config then 
+		return
+	end
+	
+	local player = self:getOwner()
+	local passedStageId = player:GetPassedStageInstanceId()
+	
+	if passedStageId < config.stage then
+		return
+	end
+	
+	if self:GetStageInstanceBonusFlag(id) then
+		return
+	end
+	
+	player:AppdAddItems(config.reward, MONEY_CHANGE_STAGE_BONUS, LOG_ITEM_OPER_TYPE_STAGE_BONUS)
+	
+	self:SetStageInstanceBonusFlag(id)
 end
 
 -------------------------------------------------------------------------------

@@ -154,6 +154,10 @@ function PlayerInfo:onRealReset()
 	self:DailyResetActive()
 	
 	self:DailyResetMoneytree()
+	
+	self:DailyResetEscortRobCount()
+	
+	self:DailyResetRealmbreakDailyQuestState()
 end
 
 function PlayerInfo:resetWeeklyInfo()

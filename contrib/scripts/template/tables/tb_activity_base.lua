@@ -4,7 +4,7 @@
 
 
 tb_activity_base = {
-	--  id:int ID
+	--  id:int 活跃类型ID
 	--  nums:int 活动次数上限
 	--  active:int 单次活跃度
 	--  time:array 活动时间
@@ -21,9 +21,8 @@ tb_activity_base = {
 	[8] = {id = 8, nums = 1, active = 5, time = {}, limtype = 1, limdata = 80, basereward = {{1301,1},{1201,10},{1202,1},{1301,13}}, reward = {{1301,1},{1201,10},{1202,1},{1301,13}}},
 	[9] = {id = 9, nums = 3, active = 3, time = {}, limtype = 1, limdata = 35, basereward = {{1301,1},{1201,10},{1202,1},{1301,16}}, reward = {{1301,1},{1201,10},{1202,1},{1301,16}}},
 	[10] = {id = 10, nums = 5, active = 5, time = {}, limtype = 1, limdata = 32, basereward = {{1401,1},{1201,10},{1202,1},{1301,10}}, reward = {{1301,1},{1201,10},{1202,1},{1301,10}}},
-	[11] = {id = 11, nums = 1, active = 10, time = {{12,0,24,0}}, limtype = 1, limdata = 80, basereward = {{1301,1},{1201,10},{1202,1},{1301,11}}, reward = {{1301,1},{1201,10},{1202,1},{1301,11}}},
+	[11] = {id = 11, nums = 1, active = 10, time = {{12,0,24,0}}, limtype = 1, limdata = 90, basereward = {{1301,1},{1201,10},{1202,1},{1301,11}}, reward = {{1301,1},{1201,10},{1202,1},{1301,11}}},
 	[12] = {id = 12, nums = 1, active = 10, time = {}, limtype = 1, limdata = 30, basereward = {{1401,1},{1201,10},{1202,1},{1301,10}}, reward = {{1301,1},{1201,10},{1202,1},{1301,10}}},
 	[13] = {id = 13, nums = 1, active = 10, time = {}, limtype = 1, limdata = 20, basereward = {{1301,1},{1201,10},{1202,1},{1301,11}}, reward = {{1301,1},{1201,10},{1202,1},{1301,11}}},
 	[14] = {id = 14, nums = 1, active = 5, time = {}, limtype = 1, limdata = 60, basereward = {{1401,1},{1201,10},{1202,1},{1301,10}}, reward = {{1301,1},{1201,10},{1202,1},{1301,10}}},
-	[15] = {id = 15, nums = 1, active = 10, time = {}, limtype = 1, limdata = 52, basereward = {{1301,1},{1201,10},{1202,1},{1301,11}}, reward = {{1301,1},{1201,10},{1202,1},{1301,11}}},
 }

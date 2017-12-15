@@ -297,6 +297,8 @@ void Player::OnAfterPlayerDataUpdate(SyncEventRecorder *data,int flags,UpdateMas
 		if(mask.GetBit(PLAYER_FIELD_FLAGS) || is_new)
 			SET_VALUE(this, UNIT_FIELD_FLAGS, self->GetUInt32(PLAYER_FIELD_FLAGS));
 
+		if(mask.GetBit(PLAYER_FIELD_ANGER) || is_new)
+			SET_VALUE(this, UNIT_FIELD_ANGER, self->GetUInt32(PLAYER_FIELD_ANGER));
 		/**
 		if(mask.GetBit(PLAYER_FIELD_EQUIPMENT + EQUIPMENT_TYPE_COAT) || is_new) {
 			// 没有时装

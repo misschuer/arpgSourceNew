@@ -705,6 +705,9 @@ function OperationFailedToString(type, reason, data){
 		if (reason ==OprateResult.DOUJIAN_OPERATE_COUNTDOWN){
 			return " 野外BOSS - 刷新在冷却中 - " + data; 
 		}
+		if (reason ==OprateResult.DOUJIAN_OPERATE_REFRESH){
+			return " 野外BOSS - 刷新完成 - " + data; 
+		}
 		return "未知错误1  OPERTE_TYPE_FIELD_BOSS " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPERTE_TYPE_WORLD_BOSS){
@@ -1204,6 +1207,15 @@ function OperationFailedToString(type, reason, data){
 			return " 摇钱树 - 世界BOSS开始报名 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_MONEYTREE " + reason + "    "  + data
+	}
+	if(type == OprateResult.OPRATE_TYPE_NEED_NOTICE){
+		if (reason ==OprateResult.MOUNT_QICHENG_FIGHT){
+			return " 需要跑马灯 - 战斗状态不能骑乘 - " + data; 
+		}
+		if (reason ==OprateResult.MOUNT_QICHENG_JUMP){
+			return " 需要跑马灯 - 跳跃状态不能骑乘 - " + data; 
+		}
+		return "未知错误1  OPRATE_TYPE_NEED_NOTICE " + reason + "    "  + data
 	}
 	return "未知错误2   " + type + "  " + reason + "    "  + data
 }

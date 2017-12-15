@@ -711,6 +711,9 @@ function OperationFailedToString(type, reason, data)
 		if (reason ==DOUJIAN_OPERATE_COUNTDOWN)then
 			return "ShowOperationFailed OPERTE_TYPE_FIELD_BOSS野外BOSS - DOUJIAN_OPERATE_COUNTDOWN刷新在冷却中 - " .. data 
 		end
+		if (reason ==DOUJIAN_OPERATE_REFRESH)then
+			return "ShowOperationFailed OPERTE_TYPE_FIELD_BOSS野外BOSS - DOUJIAN_OPERATE_REFRESH刷新完成 - " .. data 
+		end
 		return "未知错误1  OPERTE_TYPE_FIELD_BOSS " .. reason .. "    "  .. data
 	end
 	if(type == OPERTE_TYPE_WORLD_BOSS)then
@@ -1210,6 +1213,15 @@ function OperationFailedToString(type, reason, data)
 			return "ShowOperationFailed OPRATE_TYPE_MONEYTREE摇钱树 - WORLD_BOSS_OPERTE_ENROLL世界BOSS开始报名 - " .. data 
 		end
 		return "未知错误1  OPRATE_TYPE_MONEYTREE " .. reason .. "    "  .. data
+	end
+	if(type == OPRATE_TYPE_NEED_NOTICE)then
+		if (reason ==MOUNT_QICHENG_FIGHT)then
+			return "ShowOperationFailed OPRATE_TYPE_NEED_NOTICE需要跑马灯 - MOUNT_QICHENG_FIGHT战斗状态不能骑乘 - " .. data 
+		end
+		if (reason ==MOUNT_QICHENG_JUMP)then
+			return "ShowOperationFailed OPRATE_TYPE_NEED_NOTICE需要跑马灯 - MOUNT_QICHENG_JUMP跳跃状态不能骑乘 - " .. data 
+		end
+		return "未知错误1  OPRATE_TYPE_NEED_NOTICE " .. reason .. "    "  .. data
 	end
 	return "未知错误2   " .. type .. "  " .. reason .. "    "  .. data
 end

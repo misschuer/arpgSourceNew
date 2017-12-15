@@ -80,7 +80,7 @@ config = {
 	monster_random_radius_percent = 0.16	,--怪物随机移动半径与怪物视野关径的比率,目前是 13*0.166
 	red_name_time = 60						,--主动砍人后红名时间
 	safe_distance = 6						,--复活点安全半径
-	use_gameobject_diff = 0					,--使用需要读条的GO允许的时间差
+	use_gameobject_diff = 1000				,--使用需要读条的GO允许的时间差
 	max_npc_distance = 20					,--允许与NPC的最长距离
 
 	can_move_dis_map				= {57},--允许坐标不同步的地图
@@ -162,6 +162,7 @@ config = {
 		CMSG_WORLD_BOSS_ENROLL,	-- /*世界BOSS报名*/
 		CMSG_ENTER_PRIVATE_BOSS,	--个人BOSS挑战
 		CMSG_USE_RESTORE_POTION,
+		CMSG_ENTER_STAGE_INSTANCE,
 		--CMSG_CHANGE_LINE,
 		--[[
 		CMSG_START_HUNG_UP,--开始挂机*/
@@ -230,6 +231,7 @@ config = {
 	},
 }
 
+
 --校验协议注册是否有效
 print("check external_router_map")
 CheckRouterMap(config.external_router_map)
@@ -294,6 +296,12 @@ function load_lua_scripts()
 		{'全民boss'				,'scened/instance/instance_mass_boss'},
 		{'个人boss'				,'scened/instance/instance_private_boss'},
 		{'跨服组队副本'			,'scened/instance/instance_kuafu_group'},
+		
+		{'闯关副本 基类'			,'scened/instance/instance_stage_base'},
+		{'闯关副本 区域'			,'scened/instance/instance_stage_group'},
+		{'闯关副本 单队'			,'scened/instance/instance_stage_queue_single'},
+		{'闯关副本 双队'			,'scened/instance/instance_stage_queue_double'},
+		
 		
 		{'LUA之GM命令'		,'scened/gm_command'},
 	}
@@ -384,6 +392,15 @@ function initScriptTable()
 	
 	--  grBoss:array 个人BOSS
 	onRangeMapping(tb_script_base[ 1 ].grBoss, InstancePrivateBoss)
+	
+	--  stage_group:array 闯关 区域
+	onRangeMapping(tb_script_base[ 1 ].stage_group, InstanceStageGroup)
+	
+	--  stage_quene_single:array 闯关 单队
+	onRangeMapping(tb_script_base[ 1 ].stage_queue_single, InstanceStageQueueSingle)
+	
+	--  stage_quene_double:array 闯关 双队
+	onRangeMapping(tb_script_base[ 1 ].stage_queue_double, InstanceStageQueueDouble)
 end
 
 initScriptTable()

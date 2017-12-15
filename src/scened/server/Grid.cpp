@@ -881,6 +881,12 @@ void GridManager::RefreshGrid(Unit* wo)
 				
 				if((*it)->active)
 					(*it)->AddCreateBlock(bytes);
+			} else  {
+				// 防止多个对象到 与运动方向垂直的包含new_grid的一条线的grid内, 没法通知到在这条线内的grid中的player的BUG
+				// 如grid 8 和grid 10的对象同时走到grid 9
+				if((*it)->active) {
+					(*it)->AddCreateBlock(bytes);
+				}
 			}
 		}
 	}

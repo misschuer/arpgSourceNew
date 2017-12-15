@@ -6,6 +6,7 @@ local GuidManager = class('GuidManager', assert(BinLogObject))
 GuidManager.ObjectTypeNone					= ' '	--//无效的前缀
 GuidManager.ObjectTypeAccount				= 'A'	--//账户信息
 GuidManager.ObjectTypeGlobalValue			= 'G'	--//全局对象
+GuidManager.ObjectTypeGroup 				= 'T'	--//组队
 GuidManager.ObjectTypeUnit					= 'U'	--//生物
 GuidManager.ObjectTypePlayer				= 'p'	--//玩家
 GuidManager.ObjectTypeItemMgr				= 'I'	--//物品

@@ -23,6 +23,7 @@ struct TimerHolder;
 #define FACTION_BINLOG_OWNER_STRING "faction"
 #define FACTION_DATA_OWNER_STRING	"faction_data"
 #define WORLD_BINLOG_OWNER_STRING "world"
+#define GROUP_BINLOG_OWNER_STRING "group"
 
 //某所有者下所有数据
 class OwnerDataSet

@@ -1097,6 +1097,9 @@ function  DoGMScripts(player_ptr, gm_commands, runtime)
 	elseif (tokens[ 1 ] == "@回复药") then
 		local playerInfo = UnitInfo:new{ptr = player_ptr}
 		ScenedContext.Handle_Use_Restore_Potion(playerInfo, {})
+	elseif (tokens[ 1 ] == "@闯关副本") then
+		local playerInfo = UnitInfo:new{ptr = player_ptr}
+		ScenedContext.Handle_Enter_Stage_Instance(playerInfo, {})
 	end
 	
 	return result

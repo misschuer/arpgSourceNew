@@ -728,3 +728,125 @@ function PlayerInfo:Handle_Cancel_Equip_Appearance(pkt)
 	self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_FASHION_ILLUSION_UNSET)
 	self:RecalcAttrAndBattlePoint()
 end
+
+function PlayerInfo:Handle_Raise_AdventureSpell(pkt)
+	local spellId  = pkt.spellId
+	local config   = tb_skill_base[spellId]
+	if not config then
+		return
+	end
+	
+	local spellMgr = self:getSpellMgr()
+	
+	local adventure_config  =  tb_adventure_skill_base[spellId]
+	if not adventure_config then
+		return
+	end
+	
+	-- 系统未激活
+	--if (not self:GetOpenMenuFlag(MODULE_SPELL, MODULE_SPELL_ADVENTURE)) then
+	--	return
+	--end
+	
+	
+	
+	-- 判断是否满级了
+	if self:isTopLevel(spellId) then
+		--outFmtError("spellId %d is in topLevel", spellId)
+		return
+	end
+	
+	--等级
+	local prev = spellMgr:getSpellLevel(spellId)
+	if  prev > 0 then
+		local index = spellMgr:getSpellUpgradeIndex(spellId)
+		local upLevelConfig = tb_skill_uplevel[index]
+		if not self:checkPlayerLevel(upLevelConfig.need_level) then
+			outFmtError("spellId %d, player level not enough, need level = %d", spellId, upLevelConfig.need_level)
+			return
+		end
+		
+		-- 判断消耗道具
+		if #upLevelConfig.uplevel_item > 0 then
+			if not self:hasMulItem(upLevelConfig.uplevel_item) then
+				outFmtError("item not enough")
+				return
+			end
+		end
+		
+		-- 判断消耗资源
+		if #upLevelConfig.uplevel_cost > 0 then
+			if not self:checkMoneyEnoughs(upLevelConfig.uplevel_cost) then
+				outFmtError("resouce not enough")
+				return
+			end
+		end
+		
+		-- 扣除道具
+		if #upLevelConfig.uplevel_item > 0 then
+			if not self:useMulItem(upLevelConfig.uplevel_item) then
+				outFmtError("use item fail")
+				return
+			end
+		end
+		
+		-- 扣除资源
+		if #upLevelConfig.uplevel_cost > 0 then
+			if not self:costMoneys(MONEY_CHANGE_UP_ASSISTSPELL, upLevelConfig.uplevel_cost) then
+				outFmtError("sub resouce fail")
+				return
+			end
+		end
+	else
+		if #adventure_config.prev_limit ~= 0 then
+			for _,limit in ipairs(adventure_config.prev_limit) do
+				if limit[1] == ADVENTURE_UNLOCK_LIMIT_WORLDRISK then
+					if self:getLastPassedSectionId() < limit[2] then
+						return
+					end
+				elseif limit[1] == ADVENTURE_UNLOCK_LIMIT_KILLMONSTER then
+					return
+				elseif limit[1] == ADVENTURE_UNLOCK_LIMIT_FORCE then
+					if self:GetForce() < limit[2] then
+						return
+					end
+					
+				elseif limit[1] == ADVENTURE_UNLOCK_LIMIT_LEVEL then
+					if self:GetLevel() < limit[2] then
+						return
+					end
+				elseif limit[1] == ADVENTURE_UNLOCK_LIMIT_WING then
+					if self:GetUInt32(PLAYER_INT_FIELD_WINGS_RANK) < limit[2] or self:GetUInt32(PLAYER_INT_FIELD_WINGS_RANK) == limit[2] and self:GetUInt32(PLAYER_INT_FIELD_WINGS_STAR) < limit[3] then
+						return
+					end
+				elseif limit[1] == ADVENTURE_UNLOCK_LIMIT_MOUNT then
+					if self:GetByte(PLAYER_INT_FIELD_MOUNT_LEVEL, 0) < limit[2] or self:GetByte(PLAYER_INT_FIELD_MOUNT_LEVEL, 0) == limit[2] and self:GetByte(PLAYER_INT_FIELD_MOUNT_LEVEL, 1) < limit[3] then
+						return
+					end
+					
+				end
+				--[[
+				if spellMgr:getSpellLevel(limit[1]) < limit[2] then
+					outFmtDebug("Handle_Raise_AdventureSpell prev limit not pass  skill %d need lv %d", limit[1],limit[2])
+					return 
+				end--]]
+			end
+		end
+		
+		if not self:useAllItems(MONEY_CHANGE_UP_ASSISTSPELL, adventure_config.cost) then
+			outFmtDebug("Handle_Raise_AdventureSpell res not enough")
+			return
+		end
+	end
+	
+	local spellLv = spellMgr:getSpellLevel(spellId) + 1
+	
+	self:updatePassive(spellId, spellLv)
+	
+	
+	self:AfterRaiseSkillSuccess()
+	
+	self:AddActiveItem(VITALITY_TYPE_ADVENTURE_SKILLUP)
+	
+	outFmtDebug("raise adventure spell %d success, to %d", spellId, spellLv)
+end

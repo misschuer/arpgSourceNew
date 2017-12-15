@@ -74,16 +74,20 @@ end
 --[[
 rewardDict :  {{itemId, count},{itemId1, count1}}
 --]]
-function PlayerInfo:AppdAddItems(rewardDict, money_oper_type, item_oper_type, times, deadline, showType, bagFullCategory)
+function PlayerInfo:AppdAddItems(rewardDict, money_oper_type, item_oper_type, times, deadline, showType, bagFullCategory, isNotice)
 	times = times or 1
 	deadline = deadline or 0
 	showType = showType or 0
+	if isNotice == nil then
+		isNotice = true
+	end
 	
-		-- 获得信息
-	local dict = changeTableStruct(rewardDict)
-	local list = Change_To_Item_Reward_Info(dict)
-	self:call_item_notice (showType, list)
-	
+	-- 获得信息
+	if isNotice then
+		local dict = changeTableStruct(rewardDict)
+		local list = Change_To_Item_Reward_Info(dict)
+		self:call_item_notice (showType, list)
+	end
 	self:PlayerAddItems(rewardDict, money_oper_type, item_oper_type, times, deadline, bagFullCategory)
 
 end
@@ -115,6 +119,8 @@ function PlayerInfo:PlayerAddItems(rewardDict, money_oper_type, item_oper_type, 
 			self:AddAppdExp(count)
 			-- 加经验 发送到场景服
 			-- self:CallScenedDoSomething(APPD_SCENED_ADD_EXP, count)
+		elseif itemId == Item_Loot_Realmbreak_Exp then
+			self:AddRealmbreakExp(count)
 		else
 			if tb_item_template[itemId] then
 				table.insert(itemDict, {itemId, count})
@@ -451,6 +457,20 @@ end
 function PlayerInfo:checkMoneyEnough(moneyType, cost)
 	local value = self:GetMoney(moneyType)
 	return value >= cost and cost >= 0
+end
+--获取玩家身上的money
+function PlayerInfo:GetMoney(type)
+	if(type < MAX_MONEY_TYPE)then
+		return self:GetDouble(PLAYER_EXPAND_INT_MONEY + type*2)
+	end
+	return 0
+end
+
+--重置玩家身上的money
+function PlayerInfo:ResetMoney(type)
+	if(type < MAX_MONEY_TYPE)then
+		self:SetDouble(PLAYER_EXPAND_INT_MONEY + type*2, 0)
+	end
 end
 
 -- 判断钱是否足够
@@ -1312,7 +1332,24 @@ function PlayerInfo:AddLevelActiveQuest(level)
 	local questMgr = self:getQuestMgr()
 	
 	for _, questId in pairs(quests) do
-		questMgr:OnAddQuest(questId)
+		if questId > 0 then
+			if tb_quest[questId].type == QUEST_TYPE_DAILY2 then
+				questMgr:OnAddFirstDaily2Quest(tb_quest_daily2_base[ 1 ].npcQuest)
+			elseif tb_quest[questId].type == QUEST_TYPE_DAILY then
+				questMgr:OnAddFirstCircleQuest(tb_quest_daily_base[ 1 ].npcQuest)
+			else
+				local binstart = nil
+				local binend = nil
+				if tb_quest[questId].type == QUEST_TYPE_ADVENTURE then
+					binstart = QUEST_FIELD_ADVENTURE_QUEST_START
+					binend = QUEST_FIELD_ADVENTURE_QUEST_END
+				elseif tb_quest[questId].type == QUEST_TYPE_REALMBREAK then
+					binstart = QUEST_FIELD_REALMBREAK_QUEST_START
+					binend = QUEST_FIELD_REALMBREAK_QUEST_END
+				end 
+				questMgr:OnAddQuest(questId, binstart, binend)
+			end
+		end
 	end
 end
 
@@ -1415,6 +1452,10 @@ end
 
 -- 设置斗剑台排名
 function PlayerInfo:SetDoujiantaiRank(rank)
+	if rank > 0 and rank <= 100 and rank < self:GetDoujiantaiRank() then
+		app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_DOUJIANTAI_RANKUP,{self:GetNoticeName(),rank})
+	end
+	
 	self:SetUInt32(PLAYER_INT_FIELD_DOUJIANTAI_RANK, rank)
 end
 
@@ -2790,6 +2831,353 @@ function PlayerInfo:SetWorldRiskLastId(val)
 	self:SetUInt32(PLAYER_INT_FIELD_WORLD_RISK_LAST_ID,val)
 end
 
+--运镖状态 p对象同步u对象
+function PlayerInfo:SetEscortState(value)
+	self:SetUInt32(PLAYER_FIELD_ANGER,value)
+end
+
+function PlayerInfo:GetEscortState()
+	return self:GetUInt32(PLAYER_FIELD_ANGER)
+end
+
+--劫镖次数
+function PlayerInfo:GetEscortRobCount()
+	return self:GetUInt32(PLAYER_INT_FIELD_ESCORT_ROB_COUNT)
+end
+
+function PlayerInfo:SetEscortRobCount(value)
+	self:SetUInt32(PLAYER_INT_FIELD_ESCORT_ROB_COUNT,value)
+end
+
+function PlayerInfo:DailyResetEscortRobCount()
+	self:SetEscortRobCount(0)
+	self:SetUInt32(PLAYER_INT_FIELD_ADVENTURE_ROBOT_KILL_COUNT,0)
+end
+
+function PlayerInfo:CheckEscortTimeOut()
+	local questMgr = self:getQuestMgr()
+	local itemMgr = self:getItemMgr()
+	local finish_time =  questMgr:GetQuestEscortFinishTime() 
+	
+	if finish_time > 0 and os.time() >= finish_time then
+		questMgr:SetQuestEscortFinishTime(0)
+		questMgr:OnRemoveQuest(QUEST_FIELD_ESCORT_QUEST_START)
+		
+		local config = tb_escort_base[1]
+		local count = self:CountItem(config.quest_item_id)
+		itemMgr:delItem(config.quest_item_id,count)
+		
+		self:SetEscortState(QUEST_ESCORT_STATE_NONE)
+		
+	end
+end
+
+
+------------------------------------------------------------------------------------------
+--境界突破
+
+function PlayerInfo:GetRealmbreakLevel()
+	return self:GetUInt32(PLAYER_INT_FIELD_REALMBREAK_LEVEL)
+end
+
+function PlayerInfo:SetRealmbreakLevel(val)
+	self:SetUInt32(PLAYER_INT_FIELD_REALMBREAK_LEVEL,val)
+end
+
+function PlayerInfo:GetRealmbreakExp()
+	return self:GetUInt32(PLAYER_INT_FIELD_REALMBREAK_EXP)
+end
+
+function PlayerInfo:SetRealmbreakExp(val)
+	self:SetUInt32(PLAYER_INT_FIELD_REALMBREAK_EXP,val)
+end
+
+function PlayerInfo:AddRealmbreakExp(val)
+	local level = self:GetRealmbreakLevel()
+	local now_exp = self:GetRealmbreakExp()
+	local uplevel = 0
+	
+	local config = tb_realmbreak_base[level]
+	while (config and now_exp + val >= config.exp) do
+		uplevel = uplevel + 1
+		config = tb_realmbreak_base[level + uplevel]
+	end
+	if not config then
+		uplevel = uplevel - 1
+	end
+	if uplevel > 0 then
+		self:SetRealmbreakLevel(level + uplevel)
+		--重算属性
+		self:RecalcAttrAndBattlePoint()
+		
+		--其他处理
+		
+		
+	end
+	
+	self:AddUInt32(PLAYER_INT_FIELD_REALMBREAK_EXP,val)
+end
+
+function PlayerInfo:calculRealmbreakAttr(attrs)
+	outFmtDebug("calculRealmbreakAttr")
+	local player_level = self:GetLevel()
+	local realmbreak_level = self:GetRealmbreakLevel()
+	local config = tb_realmbreak_base[realmbreak_level]
+	while config do
+		if player_level >= config.level then
+			outFmtDebug("calculRealmbreakAttr level %d", realmbreak_level)
+			mergeAttrs(attrs,config.props)
+			--self:SetRealmbreakForce()
+			break
+		else
+			realmbreak_level = realmbreak_level - 1
+			config = tb_realmbreak_base[realmbreak_level]
+		end
+	end
+	
+	attrs[EQUIP_ATTR_DAO] = realmbreak_level
+end
+
+function PlayerInfo:GetRealmbreakDailyQuestCount()
+	return self:GetUInt16(PLAYER_INT_FIELD_REALMBREAK_DAILYQUEST_STATE,0)
+end
+
+function PlayerInfo:SetRealmbreakDailyQuestCount(val)
+	self:SetUInt16(PLAYER_INT_FIELD_REALMBREAK_DAILYQUEST_STATE,0,val)
+end
+
+function PlayerInfo:AddRealmbreakDailyQuestCount(val)
+	self:AddUInt16(PLAYER_INT_FIELD_REALMBREAK_DAILYQUEST_STATE,0,val)
+end
+
+function PlayerInfo:GetRealmbreakDailyQuestFlag()
+	return self:GetUInt16(PLAYER_INT_FIELD_REALMBREAK_DAILYQUEST_STATE,1)
+end
+
+function PlayerInfo:SetRealmbreakDailyQuestFlag(val)
+	self:SetUInt16(PLAYER_INT_FIELD_REALMBREAK_DAILYQUEST_STATE,1,val)
+end
+
+function PlayerInfo:DailyResetRealmbreakDailyQuestState()
+	self:SetRealmbreakDailyQuestCount(0)
+	self:SetRealmbreakDailyQuestFlag(0)
+end
+
+--领取每日任务完成奖励
+function PlayerInfo:PickRealmbreakDailyReward()
+	local config = tb_realmbreak_dailyquest_base[1]
+	
+	if self:GetLevel() < config.daily_quest_level_limit then
+		outFmtDebug("PickRealmbreakDailyReward player level not enough" )
+		return
+	end
+	
+	if self:GetRealmbreakDailyQuestFlag() == 1 then
+		outFmtDebug("PickRealmbreakDailyReward reward already picked" )
+		return
+	end
+	
+	if self:GetRealmbreakDailyQuestCount() < config.daily_quest_count then
+		outFmtDebug("PickRealmbreakDailyReward daily quest not finish" )
+		return
+	end
+	
+	self:AppdAddItems(config.daily_quest_reward, MONEY_CHANGE_REALMBREAK,LOG_ITEM_OPER_TYPE_REALMBREAK)
+	self:SetRealmbreakDailyQuestFlag(1)
+end
+
+function PlayerInfo:OnPickRealmbreakQuest(indx)
+	local questMgr = self:getQuestMgr()
+	questMgr:OnPickRealmbreakQuest(indx)
+end
+
+
+-----------------------------------------------------------------------------------------
+--客户端操作CD
+
+function PlayerInfo:SetOperateCD (val)
+	self:SetUInt32(PLAYER_INT_FIELD_OPERATE_CD,val)
+end
+
+function PlayerInfo:GetOperateCD()
+	return self:GetUInt32(PLAYER_INT_FIELD_OPERATE_CD)
+end
+
+--应用服协议具有CD
+app_operate_need_cd = {
+	[CMSG_BAG_EXCHANGE_POS] = 0,
+	[CMSG_BAG_ITEM_USER] = 0,
+	[CMSG_BAG_ITEM_SELL] = 0,
+	[CMSG_BAG_ITEM_SORT] = 0,
+	--[CMSG_FINISH_NOW_GUIDE] = 0,
+	--[CMSG_GET_CULTIVATION_INFO] = 0,
+	--[CMSG_GET_CULTIVATION_RIVALS_INFO] = 0,
+	--[CMSG_GET_CULTIVATION_REWARD] = 0,
+	--[CMSG_REFRESH_CULTIVATION_RIVALS] = 0,
+	--[CMSG_PLUNDER_CULTIVATION_RIVAL] = 0,
+	--[CMSG_REVENGE_CULTIVATION_RIVAL] = 0,
+--		[CMSG_BUY_CULTIVATION_LEFT_PLUNDER_COUNT] = 0,
+	[CMSG_GET_LOGIN_ACTIVITY_REWARD] = 0,
+	[CMSG_SMELTING_EQUIP] = 0,
+	[CMSG_SOCIAL_BUY_REVENGE_TIMES] = 0,
+	[CMSG_SOCIAL_REMOVE_ENEMY] = 0,
+	[CMSG_GET_PLAYER_OVERVIEW] = 0,
+	[CMSG_SEND_FACTION_INVITE] = 0,
+	[CMSG_BUY_VIPGIFT] = 0,
+	[CMSG_ACTIVITY_OPT_BUY_DAILYGIFT] = 0,
+	[CMSG_ACTIVITY_OPT_GET_RANK_PROCESS_REWARD] = 0,
+	[CMSG_ACTIVITY_OPT_GET_RANK_LIST] = 0,
+	[CMSG_ACTIVITY_OPT_BUY_LIMITGIFT] = 0,
+	[CMSG_WELFARE_GET_RECHARGE_REWARD] = 0,
+	[CMSG_WELFARE_GET_CONSUME_REWARD] = 0,
+	[CMSG_WELFARE_GET_SEVENDAY_REWARD] = 0,
+	[CMSG_TALISMAN_ACTIVE] = 0,
+	[CMSG_TALISMAN_LVUP] = 0,
+	[CMSG_WINGS_ACTIVE] = 0,
+	[CMSG_WINGS_BLESS] = 0,
+	[CMSG_WINGS_RANKUP] = 0,
+	[CMSG_WINGS_STRENGTH] = 0,
+	[CMSG_EQUIPDEVELOP_OPERATE] = 0,
+	[CMSG_UNLOCK_TITLE] = 0,
+	[CMSG_USE_MONEYTREE] = 0,
+	[CMSG_GET_MONEYTREE_GIFT] = 0,
+	[CMSG_SET_WORLD_RISK_LAST_ID] = 0,
+	[CMSG_RAISE_BASE_SPELL_ALL] = 0,
+	[CMSG_PICK_QUEST_ADVENTURE] = 0,
+	[CMSG_RAISE_ADVENTURESPELL] = 0,
+	[CMSG_PICK_QUEST_REALMBREAK] = 0,
+	[CMSG_PICK_REALMBREAK_DAILY_REWARD] = 0,
+	[CMSG_PICK_STAGE_INSTANCE_BONUS] = 0,
+	[CMSG_RANK_LIST_QUERY] = 0,
+	[CMSG_QUERY_PLAYER_INFO] = 0,--查询玩家信息
+	[CMSG_CHAT_WHISPER] = 0,--私聊
+	[MSG_SYNC_MSTIME_APP] = 0,
+	[CMSG_MALL_BUY] = 0,
+	[CMSG_CREATE_FACTION] = 0,
+	[CMSG_FACTION_JOIN] = 0,
+	[CMSG_RAISE_BASE_SPELL] = 0,
+	[CMSG_UPGRADE_ANGER_SPELL] = 0,
+	[CMSG_RAISE_MOUNT] = 0,
+	[CMSG_UPGRADE_MOUNT] = 0,
+	[CMSG_UPGRADE_MOUNT_ONE_STEP] = 0,
+	[CMSG_ILLUSION_MOUNT_ACTIVE] = 0,
+	[CMSG_ILLUSION_MOUNT] = 0,
+	[CMSG_SWEEP_VIP_INSTANCE] = 0,
+	[CMSG_HANG_UP] = 0,				-- /*进行挂机*/	
+	[CMSG_HANG_UP_SETTING] = 0,		-- /*进行挂机设置*/
+	[CMSG_SWEEP_TRIAL_INSTANCE] = 0,
+	[CMSG_RESET_TRIAL_INSTANCE] = 0,
+	[CMSG_SOCIAL_ADD_FRIEND] = 0,
+	[CMSG_SOCIAL_SUREADD_FRIEND] = 0,
+	[CMSG_SOCIAL_GIFT_FRIEND] = 0,
+	[CMSG_SOCIAL_RECOMMEND_FRIEND] = 0,
+	[CMSG_SOCIAL_REVENGE_ENEMY] = 0,
+	[CMSG_SOCIAL_DEL_FRIEND] = 0,
+	[CMSG_SOCIAL_CLEAR_APPLY] = 0,
+	[CMSG_SOCIAL_ADD_FRIEND_BYNAME] = 0,
+	-- [CMSG_CHAT_BY_CHANNEL] = 0,
+	[CMSG_MSG_DECLINE] = 0,
+	[CMSG_BLOCK_CHAT] = 0, 	--屏蔽某人
+	[CMSG_FACTION_GETLIST] = 0,
+	[CMSG_FACTION_MANAGER] = 0,
+	[CMSG_FACTION_MEMBER_OPERATE] = 0,
+	[CMSG_FACTION_FAST_JOIN] = 0,
+	-----------------------------
+	[CMSG_READ_MAIL] = 0,
+	[CMSG_PICK_MAIL] = 0,
+	[CMSG_PICK_MAIL_ONE_STEP] = 0,
+	[CMSG_REMOVE_MAIL_ONE_STEP] = 0,
+	[CMSG_CANCEL_BLOCK_CHAT] = 0,	
+	-----------------------------
+	[CMSG_RANK_ADD_LIKE] = 0,
+	-------------------------------
+	[CMSG_RES_INSTANCE_SWEEP] = 0,
+	--------------------------
+	[CMSG_GET_ACTIVITY_REWARD] = 0,
+	--------------------------
+	[CMSG_GET_ACHIEVE_REWARD] = 0,
+	[CMSG_GET_ACHIEVE_ALL_REWARD] = 0,
+	[CMSG_SET_TITLE] = 0,
+	[CMSG_INIT_TITLE] = 0,
+	[CMSG_WELFARE_SHOUCHONG_REWARD] = 0,
+	[CMSG_WELFARE_CHECKIN] = 0,
+	[CMSG_WELFARE_CHECKIN_ALL] = 0,
+	[CMSG_WELFARE_CHECKIN_GETBACK] = 0,
+	[CMSG_WELFARE_LEVEL] = 0,
+	[CMSG_WELFARE_ACTIVE_GETBACK] = 0,
+	[CMSG_WELFARE_GETALLLIST_GETBACK] = 0,
+	[CMSG_WELFARE_GETALL_GETBACK] = 0,
+	[CMSG_PICK_QUEST_REWARD] = 0,
+	[CMSG_USE_VIRTUAL_ITEM] = 0,
+	[CMSG_PICK_QUEST_CHAPTER_REWARD] = 0,
+	[MSG_KUAFU_3V3_CANCEL_MATCH] = 0,
+	[CMSG_KUAFU_XIANFU_MATCH] = 0,
+	[CMSG_BUY_XIANFU_ITEM] = 0,
+	[CMSG_DOUJIANTAI_BUYTIME] = 0,
+	[CMSG_DOUJIANTAI_CLEARCD] = 0,
+	[CMSG_DOUJIANTAI_FIRST_REWARD] = 0,
+	
+	[MSG_DOUJIANTAI_GET_ENEMYS_INFO] = 0,
+	[CMSG_DOUJIANTAI_GET_RANK] = 0,
+	[CMSG_DOUJIANTAI_REFRESH_ENEMYS] = 0,
+	
+	[MSG_DOUJIANTAI_TOP3] = 0,
+	
+	[CMSG_SUBMIT_QUEST_DAILY2] = 0,
+	[CMSG_PICK_DAILY2_QUEST_REWARD] = 0,
+	
+	[CMSG_FINISH_OPTIONAL_GUIDE_STEP] = 0,
+	[CMSG_EXECUTE_QUEST_CMD_AFTER_ACCEPTED] = 0,
+	
+	[CMSG_STOREHOUSE_HAND_IN] = 0,	--/*上交装备*/
+	[CMSG_STOREHOUSE_EXCHANGE] = 0,	--/*兑换装备*/
+	[CMSG_STOREHOUSE_DESTROY] = 0,	--/*销毁装备*/
+	
+	[CMSG_BUY_MASS_BOSS_TIMES] = 0,
+	[CMSG_GROUP_INSTANCE_MATCH] = 0,
+	[CMSG_BUY_GROUP_INSTANCE_TIMES] = 0,
+	
+	[CMSG_MERIDIAN_PRACTISE] = 0,		-- /*经脉修炼*/	
+	[CMSG_ADD_MERIDIAN_EXP] = 0,		-- /*加经脉修炼经验值*/
+	[CMSG_RAISE_MOUNT_LEVEL_BASE] = 0,	-- 升级坐骑等级
+	[CMSG_ACTIVE_MOUNT] = 0,				-- 激活坐骑
+	[CMSG_MATCH_SINGLE_PVP] = 0,
+	[CMSG_BUY_MATCH_SINGLE_PVP_TIMES] = 0, -- /*购买单人pvp次数*/	
+	[CMSG_PICK_MATCH_SINGLE_PVP_EXTRA_REWARD] = 0, -- /*领取单人pvp额外奖励*/
+	
+	[CMSG_ACTIVE_APPEARANCE] = 0,		-- /*激活外观*/	
+	[CMSG_EQUIP_APPEARANCE] = 0,		-- /*装备外观*/	
+	[CMSG_CANCEL_EQUIP_APPEARANCE] = 0,
+	[CMSG_DRAW_LOTTERY] = 0,			-- 抽奖
+	[CMSG_RENAME] = 0,				--改名
+	[CMSG_RISK_GET_RANK] = 0,
+}	-- dict
+
+function PlayerInfo:CheckOperateCD(operate_id)
+	if app_operate_need_cd[operate_id] then
+		local now = os.time()
+		if now >= self:GetOperateCD() then
+			self:SetOperateCD(now + 1)
+			outFmtDebug("PlayerInfo:CheckOperateCD opt: %d true start cding",operate_id)
+			return true
+		end
+		
+		outFmtDebug("PlayerInfo:CheckOperateCD opt: %d false now cd",operate_id)
+		return false
+	end
+	
+	return true
+end
+
+
+
+------------------------------------------------------------------------------------------
+--广播显示的名字
+function PlayerInfo:GetNoticeName()
+	local tokens = string.split(self:GetName(),',')
+	return tokens[3]
+	
+end
 -- 跨服回来进行清空标志
 function PlayerInfo:KuafuUnMarked()
 	self:KuafuMarked(0)
@@ -2807,6 +3195,14 @@ end
 
 function PlayerInfo:GetWingsUpgradeLevel()
 	return self:GetUInt32(PLAYER_INT_FIELD_WINGS_RANK)
+end
+
+function PlayerInfo:SetGroupId(groupId)
+	self:SetStr(PLAYER_STRING_FIELD_GROUP_PEACE_ID, groupId)
+end
+
+function PlayerInfo:GetGroupId()
+	return self:GetStr(PLAYER_STRING_FIELD_GROUP_PEACE_ID)
 end
 
 function PlayerInfo:GetGemTotalLevel()
@@ -2862,6 +3258,7 @@ require("appd/appd_context/appd_context_giftpacks")
 require("appd/appd_context/appd_context_achieve_title")
 require("appd/appd_context/appd_context_welfare")
 require("appd/appd_context/appd_context_rank_gift")
+require("appd/appd_context/appd_context_group")
 
 require("appd/appd_context/appd_context_xianfu_test")
 require("appd/appd_context/appd_context_kuafu")

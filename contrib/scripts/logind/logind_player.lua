@@ -298,6 +298,11 @@ function LogindPlayer:SetStrengthArmor(val)
 	self:SetDouble(PLAYER_FIELD_STRENGTH_ARMOR, val)
 end
 
+-- 设置境界
+function LogindPlayer:SetDao(val)
+	self:SetDouble(PLAYER_FIELD_DAO, val)
+end
+
 local InitAttrFunc = {
 	[EQUIP_ATTR_MAX_HEALTH] = LogindPlayer.SetMaxHealth,	--设置最大生命
 	[EQUIP_ATTR_DAMAGE] = LogindPlayer.SetDamage,	--设置攻击力
@@ -330,6 +335,7 @@ local InitAttrFunc = {
 	[EQUIP_ATTR_CONTROL_ENHANCE_RATE] = LogindPlayer.SetControlEnhanceRate,	--设置控制增强
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = LogindPlayer.SetControlResistRate,	--设置控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = LogindPlayer.SetStrengthArmor,	--设置强化护甲
+	[EQUIP_ATTR_DAO] = LogindPlayer.SetDao,	--设置境界
 }
 
 

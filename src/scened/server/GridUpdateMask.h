@@ -28,6 +28,7 @@ struct GridUpdateMask
 		create_int_mask_->SetBit(UINT_INT_FIELD_ILLUSION);
 		create_int_mask_->SetBit(UINT_INT_FIELD_WINGS_RANK);
 		create_int_mask_->SetBit(UNIT_INT_FIELD_APPEARANCE);
+		create_int_mask_->SetBit(UNIT_FIELD_DAO);
 
 		for (int i = 0; i < MAX_UNIT_STRING_FIELD; i++)
 		{
@@ -44,7 +45,6 @@ struct GridUpdateMask
 		for (int i = UNIT_FIELD_BUFF_RESERVE;i < UNIT_FIELD_FORCE; i++) {
 			update_int_mask_->SetBit(i);
 		}
-
 		//×Ö·û´®
 		*update_string_mask_ |= *create_string_mask_;		
 		

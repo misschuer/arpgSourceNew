@@ -25,7 +25,7 @@ function ActionScened:Update(diff)
 		return true
 	end
 		
---[[	if self.player.vist then
+	if self.player.vist then
 		return true
 	end
 	
@@ -41,7 +41,7 @@ function ActionScened:Update(diff)
 	local x = pos[1] + randInt(-2,2)
 	local y = pos[2] + randInt(-2,2)
 	self:PushAction('robotd.action.scened.action_scened_guaji', 0, mapid, x, y, 0)
-	self.player.vist = true--]]
+	self.player.vist = true
 	
 	--tb_test_robot_info
 	outFmtDebug("	ActionScened:Update")

@@ -263,7 +263,15 @@ hanlders[CMSG_GET_MONEYTREE_GIFT] = PlayerInfo.Handle_Get_Moneytree_Gift
 
 hanlders[CMSG_SET_WORLD_RISK_LAST_ID] = PlayerInfo.Handle_Set_World_Risk_Last_Id
 
+hanlders[CMSG_PICK_QUEST_ADVENTURE] = PlayerInfo.Handle_Pick_Quest_Adventure
+hanlders[CMSG_RAISE_ADVENTURESPELL] = PlayerInfo.Handle_Raise_AdventureSpell
+
+hanlders[CMSG_PICK_QUEST_REALMBREAK] = PlayerInfo.Handle_Pick_Quest_Realmbreak
+hanlders[CMSG_PICK_REALMBREAK_DAILY_REWARD] = PlayerInfo.Handle_Pick_Realmbreak_Daily_Reward
+
+
 --hanlders[CMSG_ENTER_PRIVATE_BOSS] = PlayerInfo.Handle_Enter_Private_Boss
+hanlders[CMSG_PICK_STAGE_INSTANCE_BONUS] = PlayerInfo.Handle_Pick_Stage_Instance_Bonus
 
 
 return hanlders

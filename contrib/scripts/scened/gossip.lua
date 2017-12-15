@@ -33,11 +33,16 @@ function Script_WorldMap_Teleport(player,map_id,p_x,p_y)
 	outFmtDebug("Script_WorldMap_Teleport")
 	
 	-- 是否在传送感应区内
-	
-	
+	if not tb_map[map_id] then
+		return
+	end
+
+	local level = getPlayerLevel(player)
+	if level < tb_map[map_id].levellimit then
+		return
+	end
 	-- 判断是否能够传送
 	playerLib.Teleport(player, map_id, p_x, p_y, 0, "")
-	
 	--[[
 	local map_info = tb_map_info[map_id]
 	if not map_info then
@@ -294,10 +299,13 @@ enum Money_Type
 
 -- 玩家获得奖励
 -- rewardDict:  {itemId1 = count1}
-function PlayerAddRewards(player, rewardDict, moneyOperType, itemOperType, bagFullCategory)
+function PlayerAddRewards(player, rewardDict, moneyOperType, itemOperType, bagFullCategory, isNotice)
 	bagFullCategory = bagFullCategory or 0
 	moneyOperType = moneyOperType or MONEY_CHANGE_SELECT_LOOT
 	itemOperType  = itemOperType  or LOG_ITEM_OPER_TYPE_LOOT
+	if isNotice == nil then
+		isNotice = true
+	end
 	
 	local nonItemDict = {}
 	local itemDict = {}
@@ -322,10 +330,31 @@ function PlayerAddRewards(player, rewardDict, moneyOperType, itemOperType, bagFu
 	
 	if #itemDict > 0 then
 		outFmtDebug("call_appd_add_items")
-		call_appd_add_items(playerInfo:GetPlayerGuid(), itemDict, itemOperType, bagFullCategory)
+		local noticeValue = 0
+		if isNotice then
+			noticeValue = 1
+		end
+		call_appd_add_items(playerInfo:GetPlayerGuid(), itemDict, itemOperType, bagFullCategory, noticeValue)
 	end
 	
 	-- 获得提示
+	if isNotice then
 	local list = Change_To_Item_Reward_Info(nonItemDict)
-	playerInfo:call_item_notice (0, list)
+		playerInfo:call_item_notice (0, list)
+	end
+end
+
+-- 通知客户端显示拾取动画
+function noticeClientShowPickLootAnimate(player, rewardDict, dx, dy)
+	local arr = {}
+	for itemId, count in pairs(rewardDict) do 
+		table.insert(arr, itemId)
+		table.insert(arr,  count)
+	end
+	if #arr > 0 then
+		local rewardInfo = string.join(',', arr)
+		local info = string.format("%d,%d,%s", dx, dy, rewardInfo)
+		local playerInfo = UnitInfo:new {ptr = player}
+		playerInfo:call_show_loot_animate(info)
+	end
 end

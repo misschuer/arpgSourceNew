@@ -84,6 +84,9 @@ function PlayerInfo:passTrialInstance(id)
 	end
 	-- 更新排名
 	rankInsertTask(self:GetGuid(), RANK_TYPE_TRIAL)
+	
+	self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_TRIAL_WIN,{self:GetNoticeName(),id})
+	self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_TRIAL_TOWER_FLOOR, {})
 end
 
 
@@ -117,6 +120,10 @@ function PlayerInfo:passWorldRiskInstance(id)
 	questMgr:OnUpdate(QUEST_TARGET_TYPE_PASS_WORLD_RISK, {id})
 	
 	globalCounter:onRiskRank(self, id)
+	
+	if math.floor(tb_risk_data[id].nextId /1000) - math.floor(id/1000) > 0 then
+		self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_RISK_CHAPTER,{self:GetNoticeName(),math.floor(id/1000) - 1000})
+	end
 end
 
 
@@ -278,4 +285,71 @@ function PlayerInfo:onPrivateBossWin(id)
 	instMgr:updatePrivateBossRecoverTime(id)
 	
 	self:AddActiveItem(VITALITY_TYPE_PRIVATE_BOSS)
+end
+
+
+-------------------------------
+--闯关副本
+function PlayerInfo:SetPassedStageInstanceId(val)
+	self:SetUInt32(PLAYER_INT_FIELD_PASSED_STAGE_INSTANCE_ID,val)
+end
+
+function PlayerInfo:GetPassedStageInstanceId()
+	return self:GetUInt32(PLAYER_INT_FIELD_PASSED_STAGE_INSTANCE_ID)
+end
+
+--检测进入闯关副本
+
+function PlayerInfo:checkStageInstanceTeleport(id)
+	if self:GetPassedStageInstanceId() + 1 ~= id then
+		return
+	end
+	
+	local config = tb_instance_stage[ id ]
+	
+	if not config then
+		return
+	end
+	
+	-- 判断等级是否足够
+	if self:GetLevel() < config.limLev then
+		outFmtError("checkStageInstanceTeleport no level to enter id = %s", id)
+		return
+	end
+	
+	local x 	= config.x
+	local y 	= config.y
+	local mapid = config.mapid
+	local buffEffectId = 0
+	if self:GetForce() >= config.force then
+		buffEffectId = tb_instance_stage_base[1].buffEffectId
+	else
+		buffEffectId = tb_instance_stage_base[1].debuffEffectId
+	end
+	
+	
+	-- 发起传送
+	call_appd_teleport(self:GetScenedFD(), self:GetGuid(), x, y, mapid, string.format("%d:%d:%s",id,buffEffectId,self:GetGuid()))
+	
+	--self:AddActiveItem(VITALITY_TYPE_MASS_BOSS)
+	--self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES, {})
+	
+end
+
+--通关闯关副本
+function PlayerInfo:onPassStageInstance(id)
+	local config = tb_instance_stage[ id ]
+	
+	if config then
+		if id > self:GetPassedStageInstanceId() then
+			self:SetPassedStageInstanceId(id)
+			self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_STAGE_INSTANCE_ID, {})
+		end
+	end
+end
+
+--领取闯关关卡宝箱奖励
+function PlayerInfo:PickStageInstanceBonus(id)
+	local instMgr = self:getInstanceMgr()
+	instMgr:checkPickStageInstanceBonus(id)
 end

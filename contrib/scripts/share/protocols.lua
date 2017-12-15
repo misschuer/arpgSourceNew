@@ -374,6 +374,19 @@ CMSG_SET_WORLD_RISK_LAST_ID		= 409	-- /*修改幻境最后进入id*/
 CMSG_ENTER_PRIVATE_BOSS		= 410	-- /*进入个人Boss*/	
 CMSG_RAISE_BASE_SPELL_ALL		= 411	-- /*申请升级全部技能*/	
 CMSG_USE_RESTORE_POTION		= 413	-- /*使用回复药*/	
+CMSG_PICK_QUEST_ADVENTURE		= 414	-- /*提交冒险任务*/	
+CMSG_RAISE_ADVENTURESPELL		= 415	-- /*升级冒险技能*/	
+CMSG_PICK_QUEST_REALMBREAK		= 416	-- /*领取境界任务奖励*/	
+CMSG_PICK_REALMBREAK_DAILY_REWARD		= 417	-- /*领取境界每日奖励*/	
+CMSG_GROUP_CREATE		= 418	-- /*创建队伍*/	
+CMSG_GROUP_JOIN_REQUEST		= 419	-- /*申请加入队伍*/	
+CMSG_GROUP_JOIN_ACCEPT		= 420	-- /*同意加入队伍*/	
+CMSG_GROUP_QUIT		= 421	-- /*退出队伍*/	
+CMSG_GROUP_GIVE_CAPTAIN		= 422	-- /*移交队伍队长*/	
+CMSG_GROUP_KICK		= 423	-- /*踢队员*/	
+SMSG_SHOW_LOOT_ANIMATE		= 424	-- /*显示掉落东西*/	
+CMSG_ENTER_STAGE_INSTANCE		= 425	-- /*进入闯关副本*/	
+CMSG_PICK_STAGE_INSTANCE_BONUS		= 426	-- /*领取闯关副本奖励*/	
 
 
 ---------------------------------------------------------------------
@@ -9226,16 +9239,16 @@ end
 
 
 -- /*和npc对话*/	
-function Protocols.pack_talk_with_npc ( entry ,questId)
+function Protocols.pack_talk_with_npc ( u_guid ,questId)
 	local output = Packet.new(CMSG_TALK_WITH_NPC)
-	output:writeI16(entry)
+	output:writeU32(u_guid)
 	output:writeI16(questId)
 	return output
 end
 
 -- /*和npc对话*/	
-function Protocols.call_talk_with_npc ( playerInfo, entry ,questId)
-	local output = Protocols.	pack_talk_with_npc ( entry ,questId)
+function Protocols.call_talk_with_npc ( playerInfo, u_guid ,questId)
+	local output = Protocols.	pack_talk_with_npc ( u_guid ,questId)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -9245,10 +9258,10 @@ function Protocols.unpack_talk_with_npc (pkt)
 	local input = Packet.new(nil, pkt)
 	local param_table = {}
 	local ret
-	ret,param_table.entry = input:readU16()
+	ret,param_table.u_guid = input:readU32()
 	if not ret then
 		return false
-	end
+	end	
 	ret,param_table.questId = input:readU16()
 	if not ret then
 		return false
@@ -10323,16 +10336,17 @@ end
 
 
 -- /*背包有更强装备*/	
-function Protocols.pack_bag_find_equip_better ( item_id ,pos)
+function Protocols.pack_bag_find_equip_better ( item_id ,pos ,force)
 	local output = Packet.new(SMSG_BAG_FIND_EQUIP_BETTER)
 	output:writeU32(item_id)
 	output:writeU32(pos)
+	output:writeU32(force)
 	return output
 end
 
 -- /*背包有更强装备*/	
-function Protocols.call_bag_find_equip_better ( playerInfo, item_id ,pos)
-	local output = Protocols.	pack_bag_find_equip_better ( item_id ,pos)
+function Protocols.call_bag_find_equip_better ( playerInfo, item_id ,pos ,force)
+	local output = Protocols.	pack_bag_find_equip_better ( item_id ,pos ,force)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -10347,6 +10361,10 @@ function Protocols.unpack_bag_find_equip_better (pkt)
 		return false
 	end	
 	ret,param_table.pos = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.force = input:readU32()
 	if not ret then
 		return false
 	end	
@@ -13472,6 +13490,367 @@ function Protocols.unpack_use_restore_potion (pkt)
 end
 
 
+-- /*提交冒险任务*/	
+function Protocols.pack_pick_quest_adventure ( indx)
+	local output = Packet.new(CMSG_PICK_QUEST_ADVENTURE)
+	output:writeU32(indx)
+	return output
+end
+
+-- /*提交冒险任务*/	
+function Protocols.call_pick_quest_adventure ( playerInfo, indx)
+	local output = Protocols.	pack_pick_quest_adventure ( indx)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*提交冒险任务*/	
+function Protocols.unpack_pick_quest_adventure (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.indx = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*升级冒险技能*/	
+function Protocols.pack_raise_adventurespell ( spellId)
+	local output = Packet.new(CMSG_RAISE_ADVENTURESPELL)
+	output:writeU32(spellId)
+	return output
+end
+
+-- /*升级冒险技能*/	
+function Protocols.call_raise_adventurespell ( playerInfo, spellId)
+	local output = Protocols.	pack_raise_adventurespell ( spellId)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*升级冒险技能*/	
+function Protocols.unpack_raise_adventurespell (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.spellId = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*领取境界任务奖励*/	
+function Protocols.pack_pick_quest_realmbreak ( indx)
+	local output = Packet.new(CMSG_PICK_QUEST_REALMBREAK)
+	output:writeU32(indx)
+	return output
+end
+
+-- /*领取境界任务奖励*/	
+function Protocols.call_pick_quest_realmbreak ( playerInfo, indx)
+	local output = Protocols.	pack_pick_quest_realmbreak ( indx)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*领取境界任务奖励*/	
+function Protocols.unpack_pick_quest_realmbreak (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.indx = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*领取境界每日奖励*/	
+function Protocols.pack_pick_realmbreak_daily_reward (  )
+	local output = Packet.new(CMSG_PICK_REALMBREAK_DAILY_REWARD)
+	return output
+end
+
+-- /*领取境界每日奖励*/	
+function Protocols.call_pick_realmbreak_daily_reward ( playerInfo )
+	local output = Protocols.	pack_pick_realmbreak_daily_reward (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*领取境界每日奖励*/	
+function Protocols.unpack_pick_realmbreak_daily_reward (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*创建队伍*/	
+function Protocols.pack_group_create (  )
+	local output = Packet.new(CMSG_GROUP_CREATE)
+	return output
+end
+
+-- /*创建队伍*/	
+function Protocols.call_group_create ( playerInfo )
+	local output = Protocols.	pack_group_create (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*创建队伍*/	
+function Protocols.unpack_group_create (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*申请加入队伍*/	
+function Protocols.pack_group_join_request ( guid)
+	local output = Packet.new(CMSG_GROUP_JOIN_REQUEST)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*申请加入队伍*/	
+function Protocols.call_group_join_request ( playerInfo, guid)
+	local output = Protocols.	pack_group_join_request ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*申请加入队伍*/	
+function Protocols.unpack_group_join_request (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*同意加入队伍*/	
+function Protocols.pack_group_join_accept ( guid)
+	local output = Packet.new(CMSG_GROUP_JOIN_ACCEPT)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*同意加入队伍*/	
+function Protocols.call_group_join_accept ( playerInfo, guid)
+	local output = Protocols.	pack_group_join_accept ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*同意加入队伍*/	
+function Protocols.unpack_group_join_accept (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*退出队伍*/	
+function Protocols.pack_group_quit (  )
+	local output = Packet.new(CMSG_GROUP_QUIT)
+	return output
+end
+
+-- /*退出队伍*/	
+function Protocols.call_group_quit ( playerInfo )
+	local output = Protocols.	pack_group_quit (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*退出队伍*/	
+function Protocols.unpack_group_quit (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*移交队伍队长*/	
+function Protocols.pack_group_give_captain ( guid)
+	local output = Packet.new(CMSG_GROUP_GIVE_CAPTAIN)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*移交队伍队长*/	
+function Protocols.call_group_give_captain ( playerInfo, guid)
+	local output = Protocols.	pack_group_give_captain ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*移交队伍队长*/	
+function Protocols.unpack_group_give_captain (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*踢队员*/	
+function Protocols.pack_group_kick ( guid)
+	local output = Packet.new(CMSG_GROUP_KICK)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*踢队员*/	
+function Protocols.call_group_kick ( playerInfo, guid)
+	local output = Protocols.	pack_group_kick ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*踢队员*/	
+function Protocols.unpack_group_kick (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*显示掉落东西*/	
+function Protocols.pack_show_loot_animate ( info)
+	local output = Packet.new(SMSG_SHOW_LOOT_ANIMATE)
+	output:writeUTF(info)
+	return output
+end
+
+-- /*显示掉落东西*/	
+function Protocols.call_show_loot_animate ( playerInfo, info)
+	local output = Protocols.	pack_show_loot_animate ( info)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*显示掉落东西*/	
+function Protocols.unpack_show_loot_animate (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.info = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*进入闯关副本*/	
+function Protocols.pack_enter_stage_instance (  )
+	local output = Packet.new(CMSG_ENTER_STAGE_INSTANCE)
+	return output
+end
+
+-- /*进入闯关副本*/	
+function Protocols.call_enter_stage_instance ( playerInfo )
+	local output = Protocols.	pack_enter_stage_instance (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*进入闯关副本*/	
+function Protocols.unpack_enter_stage_instance (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*领取闯关副本奖励*/	
+function Protocols.pack_pick_stage_instance_bonus ( id)
+	local output = Packet.new(CMSG_PICK_STAGE_INSTANCE_BONUS)
+	output:writeU32(id)
+	return output
+end
+
+-- /*领取闯关副本奖励*/	
+function Protocols.call_pick_stage_instance_bonus ( playerInfo, id)
+	local output = Protocols.	pack_pick_stage_instance_bonus ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*领取闯关副本奖励*/	
+function Protocols.unpack_pick_stage_instance_bonus (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
 
 function Protocols:SendPacket(pkt)
 	external_send(self.ptr_player_data or self.ptr, pkt.ptr)
@@ -13838,6 +14217,19 @@ function Protocols:extend(playerInfo)
 	playerInfo.call_enter_private_boss = self.call_enter_private_boss
 	playerInfo.call_raise_base_spell_all = self.call_raise_base_spell_all
 	playerInfo.call_use_restore_potion = self.call_use_restore_potion
+	playerInfo.call_pick_quest_adventure = self.call_pick_quest_adventure
+	playerInfo.call_raise_adventurespell = self.call_raise_adventurespell
+	playerInfo.call_pick_quest_realmbreak = self.call_pick_quest_realmbreak
+	playerInfo.call_pick_realmbreak_daily_reward = self.call_pick_realmbreak_daily_reward
+	playerInfo.call_group_create = self.call_group_create
+	playerInfo.call_group_join_request = self.call_group_join_request
+	playerInfo.call_group_join_accept = self.call_group_join_accept
+	playerInfo.call_group_quit = self.call_group_quit
+	playerInfo.call_group_give_captain = self.call_group_give_captain
+	playerInfo.call_group_kick = self.call_group_kick
+	playerInfo.call_show_loot_animate = self.call_show_loot_animate
+	playerInfo.call_enter_stage_instance = self.call_enter_stage_instance
+	playerInfo.call_pick_stage_instance_bonus = self.call_pick_stage_instance_bonus
 end
 
 local unpack_handler = {
@@ -14201,6 +14593,19 @@ local unpack_handler = {
 [CMSG_ENTER_PRIVATE_BOSS] =  Protocols.unpack_enter_private_boss,
 [CMSG_RAISE_BASE_SPELL_ALL] =  Protocols.unpack_raise_base_spell_all,
 [CMSG_USE_RESTORE_POTION] =  Protocols.unpack_use_restore_potion,
+[CMSG_PICK_QUEST_ADVENTURE] =  Protocols.unpack_pick_quest_adventure,
+[CMSG_RAISE_ADVENTURESPELL] =  Protocols.unpack_raise_adventurespell,
+[CMSG_PICK_QUEST_REALMBREAK] =  Protocols.unpack_pick_quest_realmbreak,
+[CMSG_PICK_REALMBREAK_DAILY_REWARD] =  Protocols.unpack_pick_realmbreak_daily_reward,
+[CMSG_GROUP_CREATE] =  Protocols.unpack_group_create,
+[CMSG_GROUP_JOIN_REQUEST] =  Protocols.unpack_group_join_request,
+[CMSG_GROUP_JOIN_ACCEPT] =  Protocols.unpack_group_join_accept,
+[CMSG_GROUP_QUIT] =  Protocols.unpack_group_quit,
+[CMSG_GROUP_GIVE_CAPTAIN] =  Protocols.unpack_group_give_captain,
+[CMSG_GROUP_KICK] =  Protocols.unpack_group_kick,
+[SMSG_SHOW_LOOT_ANIMATE] =  Protocols.unpack_show_loot_animate,
+[CMSG_ENTER_STAGE_INSTANCE] =  Protocols.unpack_enter_stage_instance,
+[CMSG_PICK_STAGE_INSTANCE_BONUS] =  Protocols.unpack_pick_stage_instance_bonus,
 
 }
 

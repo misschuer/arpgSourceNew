@@ -7,7 +7,9 @@ function QuestJoinDoujiantai:ctor()
 end
 
 function QuestJoinDoujiantai:OnInit(playerInfo, start, offset)
+	local times = playerInfo:getInstanceMgr():getDoujianEnterTimes()
 	
+	self:OnUpdate(playerInfo, start, offset, {times})
 end
 
 -- 获得目标值

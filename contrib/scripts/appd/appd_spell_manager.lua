@@ -45,6 +45,8 @@ function AppSpellMgr:raiseBaseSpell(spellId)
 	-- 加技能等级
 	self:SetBaseSpellLevel(spellId,  prev+1)
 	
+	self:getOwner():AddActiveItem(VITALITY_TYPE_PLAYER_SKILLUP)
+	
 	-- 如果是3连击
 	local arry = tb_skill_base[spellId].follow
 	for _, id in pairs(arry) do
@@ -58,6 +60,8 @@ function AppSpellMgr:raiseBaseSpellToLv(spellId,level)
 	
 	-- 加技能等级
 	self:SetBaseSpellLevel(spellId,  level)
+	
+	self:getOwner():AddActiveItem(VITALITY_TYPE_PLAYER_SKILLUP)
 	
 	-- 如果是3连击
 	local arry = tb_skill_base[spellId].follow
@@ -285,6 +289,7 @@ function AppSpellMgr:raiseMountSpell(spellId)
 			local player = self:getOwner()
 			local questMgr = player:getQuestMgr()
 			questMgr:OnUpdate(QUEST_TARGET_TYPE_RAISE_MOUNT_SKILL, {spellId})
+			player:AddActiveItem(VITALITY_TYPE_MOUNT_SKILLUP)
 			return
 		end
 	end
@@ -304,6 +309,8 @@ function AppSpellMgr:raiseMountSpellToLv(spellId,lv)
 			local player = self:getOwner()
 			local questMgr = player:getQuestMgr()
 			questMgr:OnUpdate(QUEST_TARGET_TYPE_RAISE_MOUNT_SKILL, {spellId})
+			
+			player:AddActiveItem(VITALITY_TYPE_MOUNT_SKILLUP)
 			return
 		end
 	end

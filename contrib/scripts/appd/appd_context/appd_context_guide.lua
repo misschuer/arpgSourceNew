@@ -35,6 +35,17 @@ function PlayerInfo:UpdateGuideIdByTaskId (task_id)
 	end
 end
 
+function PlayerInfo:UpdateFinishGuideIdByTaskId (task_id)
+	local taskInfo = tb_quest[task_id]
+	if not taskInfo then
+		return
+	end
+	local guide_id =  taskInfo.finish_guide_id
+	if guide_id > 0 then
+		self:SetGuideIdNow(guide_id)
+	end
+end
+
 function PlayerInfo:UpdateGuideIdByModuleId (module_id)
 	local moduleInfo = tb_system_base[module_id]
 	if not moduleInfo then

@@ -539,12 +539,14 @@ struct creature_template
 	int lockfaceto;
 	int attack_range;
 	int exp;
+	int rebornTime;
 	union
 	{
 		float reward_id [40];
 		creature_template_reward_id s_reward_id[ CREATURE_TEMPLATE_REWARD_ID_LEN ];
 	};
 	char dialogue [50];
+	int move_type;
 	int money_min;
 	int money_max;
 	int money_percent;

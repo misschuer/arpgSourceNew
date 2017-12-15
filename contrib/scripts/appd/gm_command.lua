@@ -1439,8 +1439,92 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif (tokens[ 1 ] == "@远征选择") then
 		local faction = app.objMgr:getObj(player:GetFactionId())
 		faction:OnTowerTodayFloorUpdate(player,98)
+	elseif (tokens[ 1 ] == "@冒险提交") then
+		local indx = tonumber(tokens[ 2 ]) or 0
+		local pkt = {indx = indx}
+		player:Handle_Pick_Quest_Adventure(pkt)
+	elseif (tokens[ 1 ] == "@冒险任务") then
+		for index = 0,MAX_ADVENTURE_QUEST_COUNT - 1 do
+			local start = QUEST_FIELD_ADVENTURE_QUEST_START + index * MAX_QUEST_INFO_COUNT
 		
-	
+			local questId = player:getQuestMgr():GetUInt16(start + QUEST_INFO_ID, 0)
+			local state   = player:getQuestMgr():GetUInt16(start + QUEST_INFO_ID, 1)
+			outFmtDebug("QUEST_FIELD_ADVENTURE_QUEST index %d questId %d state %d",index,questId,state)
+		end
+	elseif (tokens[ 1 ] == "@冒险技能") then
+		local spellId = tonumber(tokens[ 2 ]) or 0
+		local pkt = {spellId = spellId}
+		player:Handle_Raise_AdventureSpell(pkt)
+		
+	elseif (tokens[ 1 ] == "@资源显示") then
+		local id = {9,10,11,12}
+		for _,indx in ipairs(id) do
+			outFmtDebug("############### indx = %d  value = %d",indx,player:GetDouble(PLAYER_EXPAND_INT_MONEY + indx*2))
+
+		end
+		
+		local quest_id = player:getQuestMgr():GetUInt16(QUEST_FIELD_ESCORT_QUEST_START + QUEST_INFO_ID, 0)
+		outFmtDebug("############### quest_id = %d",quest_id)
+		
+	elseif (tokens[ 1 ] == "@屏蔽测试") then
+		local file = io.open("e:\\testName.txt", "w")
+		testName = {}
+		for _,name in ipairs(testName) do
+			if fuckPingBi(name) ~= name then
+				outFmtDebug(name)
+				file:write(string.format("%s \n", name));
+			end
+		end
+		file:close();
+		
+	elseif (tokens[ 1 ] == "@境界经验") then
+		local count = tonumber(tokens[2]) or 0
+		
+		local prev_lv = player:GetRealmbreakLevel()
+		player:AddRealmbreakExp(count)
+		local now_lv = player:GetRealmbreakLevel()
+		local now_exp = player:GetRealmbreakExp()
+		outFmtDebug("################AddRealmbreakExp %d ,now exp %d, prev lv %d , now lv %d",count,now_exp,prev_lv,now_lv)
+		
+	elseif (tokens[ 1 ] == "@境界任务") then
+		for index = 0,MAX_REALMBREAK_QUEST_COUNT - 1 do
+			local start = QUEST_FIELD_REALMBREAK_QUEST_START + index * MAX_QUEST_INFO_COUNT
+		
+			local questId = player:getQuestMgr():GetUInt16(start + QUEST_INFO_ID, 0)
+			local state   = player:getQuestMgr():GetUInt16(start + QUEST_INFO_ID, 1)
+			outFmtDebug("QUEST_FIELD_REALMBREAK_QUEST index %d questId %d state %d",index,questId,state)
+		end
+		
+	elseif (tokens[ 1 ] == "@境界提交") then
+		local indx =  tonumber(tokens[2]) or 0
+		player:OnPickRealmbreakQuest(indx)
+		
+	elseif (tokens[ 1 ] == "@境界每日") then
+		player:PickRealmbreakDailyReward()
+	elseif (tokens[ 1 ] == "@组队") then
+		player:createGroup()
+	elseif (tokens[ 1 ] == "@解散队伍") then
+		player:testDissolutionGroup()
+	elseif (tokens[ 1 ] == "@闯关") then
+		local stage = tonumber(tokens[2]) or 1
+		
+		local config = tb_instance_stage[stage]
+		if not config then
+			return
+		end
+		local map_id = config.mapid
+		local x = config.x
+		local y = config.y
+		
+		--call_appd_teleport(player:GetScenedFD(),player:GetGuid(),x,y,map_id,string.format("%d:%d:%s", stage, 0 ,player:GetGuid()))
+	elseif (tokens[ 1 ] == "@闯关宝箱") then
+		local id = tonumber(tokens[2]) or 0
+		
+		player:PickStageInstanceBonus(id)
+	elseif (tokens[ 1 ] == "@闯关增加") then
+		local id = tonumber(tokens[2]) or 1
+		
+		player:SetPassedStageInstanceId(player:GetPassedStageInstanceId() + id)
 	end
 	
 	return result

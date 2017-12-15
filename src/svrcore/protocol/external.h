@@ -370,6 +370,19 @@ enum Opcodes
 	CMSG_ENTER_PRIVATE_BOSS		= 410,	/*进入个人Boss*/	//enter_private_boss
 	CMSG_RAISE_BASE_SPELL_ALL		= 411,	/*申请升级全部技能*/	//raise_base_spell_all
 	CMSG_USE_RESTORE_POTION		= 413,	/*使用回复药*/	//use_restore_potion
+	CMSG_PICK_QUEST_ADVENTURE		= 414,	/*提交冒险任务*/	//pick_quest_adventure
+	CMSG_RAISE_ADVENTURESPELL		= 415,	/*升级冒险技能*/	//raise_adventurespell
+	CMSG_PICK_QUEST_REALMBREAK		= 416,	/*领取境界任务奖励*/	//pick_quest_realmbreak
+	CMSG_PICK_REALMBREAK_DAILY_REWARD		= 417,	/*领取境界每日奖励*/	//pick_realmbreak_daily_reward
+	CMSG_GROUP_CREATE		= 418,	/*创建队伍*/	//group_create
+	CMSG_GROUP_JOIN_REQUEST		= 419,	/*申请加入队伍*/	//group_join_request
+	CMSG_GROUP_JOIN_ACCEPT		= 420,	/*同意加入队伍*/	//group_join_accept
+	CMSG_GROUP_QUIT		= 421,	/*退出队伍*/	//group_quit
+	CMSG_GROUP_GIVE_CAPTAIN		= 422,	/*移交队伍队长*/	//group_give_captain
+	CMSG_GROUP_KICK		= 423,	/*踢队员*/	//group_kick
+	SMSG_SHOW_LOOT_ANIMATE		= 424,	/*显示掉落东西*/	//show_loot_animate
+	CMSG_ENTER_STAGE_INSTANCE		= 425,	/*进入闯关副本*/	//enter_stage_instance
+	CMSG_PICK_STAGE_INSTANCE_BONUS		= 426,	/*领取闯关副本奖励*/	//pick_stage_instance_bonus
 	NUM_MSG_TYPES
 };
 
@@ -1368,8 +1381,8 @@ TEA_SVRCORE_API  int   unpack_welfare_active_getback (packet *src ,uint8 *id,uin
 TEA_SVRCORE_API	int   pack_pick_quest_reward (packet**dst ,uint8 indx);
 TEA_SVRCORE_API  int   unpack_pick_quest_reward (packet *src ,uint8 *indx);
 /*和npc对话*/
-TEA_SVRCORE_API	int   pack_talk_with_npc (packet**dst ,uint16 entry,uint16 questId);
-TEA_SVRCORE_API  int   unpack_talk_with_npc (packet *src ,uint16 *entry,uint16 *questId);
+TEA_SVRCORE_API	int   pack_talk_with_npc (packet**dst ,uint32 u_guid,uint16 questId);
+TEA_SVRCORE_API  int   unpack_talk_with_npc (packet *src ,uint32 *u_guid,uint16 *questId);
 /*使用虚拟物品*/
 TEA_SVRCORE_API	int   pack_use_virtual_item (packet**dst ,uint16 entry);
 TEA_SVRCORE_API  int   unpack_use_virtual_item (packet *src ,uint16 *entry);
@@ -1479,8 +1492,8 @@ TEA_SVRCORE_API  int   unpack_submit_quest_daily2 (packet *src );
 TEA_SVRCORE_API	int   pack_attribute_changed (packet**dst );
 TEA_SVRCORE_API  int   unpack_attribute_changed (packet *src );
 /*背包有更强装备*/
-TEA_SVRCORE_API	int   pack_bag_find_equip_better (packet**dst ,uint32 item_id,uint32 pos);
-TEA_SVRCORE_API  int   unpack_bag_find_equip_better (packet *src ,uint32 *item_id,uint32 *pos);
+TEA_SVRCORE_API	int   pack_bag_find_equip_better (packet**dst ,uint32 item_id,uint32 pos,uint32 force);
+TEA_SVRCORE_API  int   unpack_bag_find_equip_better (packet *src ,uint32 *item_id,uint32 *pos,uint32 *force);
 /*模块解锁*/
 TEA_SVRCORE_API	int   pack_module_active (packet**dst ,uint32 moduleId);
 TEA_SVRCORE_API  int   unpack_module_active (packet *src ,uint32 *moduleId);
@@ -1775,6 +1788,45 @@ TEA_SVRCORE_API  int   unpack_raise_base_spell_all (packet *src ,uint8 *raiseTyp
 /*使用回复药*/
 TEA_SVRCORE_API	int   pack_use_restore_potion (packet**dst );
 TEA_SVRCORE_API  int   unpack_use_restore_potion (packet *src );
+/*提交冒险任务*/
+TEA_SVRCORE_API	int   pack_pick_quest_adventure (packet**dst ,uint32 indx);
+TEA_SVRCORE_API  int   unpack_pick_quest_adventure (packet *src ,uint32 *indx);
+/*升级冒险技能*/
+TEA_SVRCORE_API	int   pack_raise_adventurespell (packet**dst ,uint32 spellId);
+TEA_SVRCORE_API  int   unpack_raise_adventurespell (packet *src ,uint32 *spellId);
+/*领取境界任务奖励*/
+TEA_SVRCORE_API	int   pack_pick_quest_realmbreak (packet**dst ,uint32 indx);
+TEA_SVRCORE_API  int   unpack_pick_quest_realmbreak (packet *src ,uint32 *indx);
+/*领取境界每日奖励*/
+TEA_SVRCORE_API	int   pack_pick_realmbreak_daily_reward (packet**dst );
+TEA_SVRCORE_API  int   unpack_pick_realmbreak_daily_reward (packet *src );
+/*创建队伍*/
+TEA_SVRCORE_API	int   pack_group_create (packet**dst );
+TEA_SVRCORE_API  int   unpack_group_create (packet *src );
+/*申请加入队伍*/
+TEA_SVRCORE_API	int   pack_group_join_request (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_group_join_request (packet *src ,char **guid);
+/*同意加入队伍*/
+TEA_SVRCORE_API	int   pack_group_join_accept (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_group_join_accept (packet *src ,char **guid);
+/*退出队伍*/
+TEA_SVRCORE_API	int   pack_group_quit (packet**dst );
+TEA_SVRCORE_API  int   unpack_group_quit (packet *src );
+/*移交队伍队长*/
+TEA_SVRCORE_API	int   pack_group_give_captain (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_group_give_captain (packet *src ,char **guid);
+/*踢队员*/
+TEA_SVRCORE_API	int   pack_group_kick (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_group_kick (packet *src ,char **guid);
+/*显示掉落东西*/
+TEA_SVRCORE_API	int   pack_show_loot_animate (packet**dst ,char const*info);
+TEA_SVRCORE_API  int   unpack_show_loot_animate (packet *src ,char **info);
+/*进入闯关副本*/
+TEA_SVRCORE_API	int   pack_enter_stage_instance (packet**dst );
+TEA_SVRCORE_API  int   unpack_enter_stage_instance (packet *src );
+/*领取闯关副本奖励*/
+TEA_SVRCORE_API	int   pack_pick_stage_instance_bonus (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_pick_stage_instance_bonus (packet *src ,uint32 *id);
 /*rand send msg*/
 TEA_SVRCORE_API	int   pack_rand_send_msg (packet**dst ,const char* msg);
 #ifdef __cplusplus
@@ -4820,11 +4872,11 @@ __INLINE__ int Call_pick_quest_reward (Delegate_Sendpackt SendPacket ,uint8 indx
 }
 
 /*和npc对话*/
-__INLINE__ int Call_talk_with_npc (Delegate_Sendpackt SendPacket ,uint16 entry,uint16 questId)
+__INLINE__ int Call_talk_with_npc (Delegate_Sendpackt SendPacket ,uint32 u_guid,uint16 questId)
 {
 	packet *dst = external_protocol_new_packet(CMSG_TALK_WITH_NPC);
 		
-	packet_write(dst,(char *)&entry,sizeof(uint16));
+	packet_write(dst,(char *)&u_guid,sizeof(uint32));
 	packet_write(dst,(char *)&questId,sizeof(uint16));
 	update_packet_len(dst);
 	
@@ -5301,12 +5353,13 @@ __INLINE__ int Call_attribute_changed (Delegate_Sendpackt SendPacket )
 }
 
 /*背包有更强装备*/
-__INLINE__ int Call_bag_find_equip_better (Delegate_Sendpackt SendPacket ,uint32 item_id,uint32 pos)
+__INLINE__ int Call_bag_find_equip_better (Delegate_Sendpackt SendPacket ,uint32 item_id,uint32 pos,uint32 force)
 {
 	packet *dst = external_protocol_new_packet(SMSG_BAG_FIND_EQUIP_BETTER);
 		
 	packet_write(dst,(char *)&item_id,sizeof(uint32));
 	packet_write(dst,(char *)&pos,sizeof(uint32));
+	packet_write(dst,(char *)&force,sizeof(uint32));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -6602,6 +6655,171 @@ __INLINE__ int Call_use_restore_potion (Delegate_Sendpackt SendPacket )
 {
 	packet *dst = external_protocol_new_packet(CMSG_USE_RESTORE_POTION);
 		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*提交冒险任务*/
+__INLINE__ int Call_pick_quest_adventure (Delegate_Sendpackt SendPacket ,uint32 indx)
+{
+	packet *dst = external_protocol_new_packet(CMSG_PICK_QUEST_ADVENTURE);
+		
+	packet_write(dst,(char *)&indx,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*升级冒险技能*/
+__INLINE__ int Call_raise_adventurespell (Delegate_Sendpackt SendPacket ,uint32 spellId)
+{
+	packet *dst = external_protocol_new_packet(CMSG_RAISE_ADVENTURESPELL);
+		
+	packet_write(dst,(char *)&spellId,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*领取境界任务奖励*/
+__INLINE__ int Call_pick_quest_realmbreak (Delegate_Sendpackt SendPacket ,uint32 indx)
+{
+	packet *dst = external_protocol_new_packet(CMSG_PICK_QUEST_REALMBREAK);
+		
+	packet_write(dst,(char *)&indx,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*领取境界每日奖励*/
+__INLINE__ int Call_pick_realmbreak_daily_reward (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_PICK_REALMBREAK_DAILY_REWARD);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*创建队伍*/
+__INLINE__ int Call_group_create (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_CREATE);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*申请加入队伍*/
+__INLINE__ int Call_group_join_request (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_JOIN_REQUEST);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*同意加入队伍*/
+__INLINE__ int Call_group_join_accept (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_JOIN_ACCEPT);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*退出队伍*/
+__INLINE__ int Call_group_quit (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_QUIT);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*移交队伍队长*/
+__INLINE__ int Call_group_give_captain (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_GIVE_CAPTAIN);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*踢队员*/
+__INLINE__ int Call_group_kick (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_KICK);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*显示掉落东西*/
+__INLINE__ int Call_show_loot_animate (Delegate_Sendpackt SendPacket ,char const*info)
+{
+	packet *dst = external_protocol_new_packet(SMSG_SHOW_LOOT_ANIMATE);
+		
+	packet_write_str(dst,info);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*进入闯关副本*/
+__INLINE__ int Call_enter_stage_instance (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_ENTER_STAGE_INSTANCE);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*领取闯关副本奖励*/
+__INLINE__ int Call_pick_stage_instance_bonus (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_PICK_STAGE_INSTANCE_BONUS);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);

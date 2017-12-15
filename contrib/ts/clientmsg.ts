@@ -8420,9 +8420,9 @@ class c2s_talk_with_npc
 	private static input:ByteArray;		
 	
 	/**
-	 * npcid
+	 * npc uint guid
 	 */
-	public entry :number ;	//uint16		
+	public u_guid :number ;	//uint32		
 	/**
 	 * 任务id
 	 */
@@ -8439,8 +8439,8 @@ class c2s_talk_with_npc
 		
 		//var parmLen:uint;
 		//var i:int;
-		//npcid
-		self.entry = this.input. readUint16 ();		
+		//npc uint guid
+		self.u_guid = this.input. readUint32 ();		
 		
 		//任务id
 		self.questId = this.input. readUint16 ();		
@@ -9643,7 +9643,7 @@ class s2c_attribute_changed
 class s2c_bag_find_equip_better
 {				
 	public optcode:number = 0;
-	public static param_count:number = 2;
+	public static param_count:number = 3;
 	public static optname:string = "onBag_find_equip_better"; 
 	private static input:ByteArray;		
 	
@@ -9655,6 +9655,10 @@ class s2c_bag_find_equip_better
 	 * 背包位置
 	 */
 	public pos :number ;	//uint32		
+	/**
+	 * 物品战力
+	 */
+	public force :number ;	//uint32		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -9672,6 +9676,9 @@ class s2c_bag_find_equip_better
 		
 		//背包位置
 		self.pos = this.input. readUint32 ();		
+		
+		//物品战力
+		self.force = this.input. readUint32 ();		
 		
 	}
 }
@@ -13134,6 +13141,407 @@ class c2s_use_restore_potion
 		
 		//var parmLen:uint;
 		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_pick_quest_adventure
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onPick_quest_adventure"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 下标
+	 */
+	public indx :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_pick_quest_adventure, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//下标
+		self.indx = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_raise_adventurespell
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onRaise_adventurespell"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 技能ID
+	 */
+	public spellId :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_raise_adventurespell, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//技能ID
+		self.spellId = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_pick_quest_realmbreak
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onPick_quest_realmbreak"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 下标
+	 */
+	public indx :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_pick_quest_realmbreak, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//下标
+		self.indx = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_pick_realmbreak_daily_reward
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onPick_realmbreak_daily_reward"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_pick_realmbreak_daily_reward, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_group_create
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onGroup_create"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_create, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_group_join_request
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGroup_join_request"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 队伍guid
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_join_request, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//队伍guid
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_group_join_accept
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGroup_join_accept"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 玩家guid
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_join_accept, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//玩家guid
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_group_quit
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onGroup_quit"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_quit, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_group_give_captain
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGroup_give_captain"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 玩家guid
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_give_captain, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//玩家guid
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_group_kick
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGroup_kick"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 玩家guid
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_kick, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//玩家guid
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_show_loot_animate
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onShow_loot_animate"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 玩家guid
+	 */
+	public info :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_show_loot_animate, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//玩家guid
+		self.info = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_enter_stage_instance
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onEnter_stage_instance"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_enter_stage_instance, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_pick_stage_instance_bonus
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onPick_stage_instance_bonus"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 宝箱下标
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_pick_stage_instance_bonus, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//宝箱下标
+		self.id = this.input. readUint32 ();		
+		
 	}
 }
 

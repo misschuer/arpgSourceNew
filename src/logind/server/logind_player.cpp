@@ -78,7 +78,7 @@ bool logind_player::InitDatabase()
 	if (GetDouble(PLAYER_EXPAND_INT_MONEY + MONEY_TYPE_SILVER*2) > MAX_MONEY)
 		SetDouble(PLAYER_EXPAND_INT_MONEY + MONEY_TYPE_SILVER*2, MAX_MONEY);
 
-	SetUInt32(PLAYER_FIELD_ANGER, 0);
+	//SetUInt32(PLAYER_FIELD_ANGER, 0);
 
 	//校验下等级
 	uint32 lv = GetLevel();

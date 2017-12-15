@@ -896,7 +896,7 @@ function SpellTargetType(caster,target,spell_id,spell_lv,dst_x,dst_y, allTargets
 	
 	-- 如果是怒气技能 先扣除
 	if tb_skill_base[spell_id].skill_slot == SLOT_ANGER and casterInfo:HasSpell(spell_id) then
-		casterInfo:SetSP(0)
+		--casterInfo:SetSP(0)
 	end
 	
 	if shifang == SPELL_SHIFANG_DAN then--目标单体
@@ -993,7 +993,7 @@ function checkWhileOnSamePosition(shifang, caster, target)
 	if shifang == SPELL_SHIFANG_QUN	or shifang == SPELL_SHIFANG_ZHI or shifang == SPELL_SHIFANG_SHAN then
 		local cast_x, cast_y = unitLib.GetPos(caster)
 		local targ_x, targ_y = unitLib.GetPos(target)
-		return cast_x == targ_x and cast_y == targ_y
+		return math.abs(cast_x - targ_x) < 1 and math.abs(cast_y - targ_y) < 1
 	end
 	return false
 end
@@ -1348,11 +1348,12 @@ function handle_cast_monomer_spell(caster, target, spell_id, spell_lv, allTarget
 	end
 	
 	local dam = getCastDamage(casterInfo, targetInfo, skillDamFactor/100, skillDamVal, mult)
-	-- 最小值
-	if dam <= 0 then
-		dam = 1
-	end
 	
+	local additiveDam = tb_realmbreak_dailyquest_base[ 1 ].additionDam
+	local xs = casterInfo:GetDao() - targetInfo:GetDao()
+	dam = dam + xs * additiveDam
+	
+	dam = math.max(1, dam)
 	dam = dam * 100
 	
 	AddSpellCastinfo(caster, target, dam, hitInfo, spell_id, tar_x, tar_y)
@@ -1378,7 +1379,7 @@ function handle_cast_monomer_spell(caster, target, spell_id, spell_lv, allTarget
 	
 	-- 连招技能攒怒气 且 不是幻化产生的技能
 	if tb_skill_base[spell_id].skill_slot == SLOT_COMBO and casterInfo:GetTypeID() == TYPEID_PLAYER and casterInfo:HasSpell(spell_id) then
-		casterInfo:AddSP(1)
+		--casterInfo:AddSP(1)
 	end
 	
 	-- 地方拥有某个BUFF

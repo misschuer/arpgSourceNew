@@ -1029,7 +1029,7 @@ pick_quest_reward,c2s,230,/*领取任务奖励*/,STATUS_NEVER,False
 
 #
 talk_with_npc,c2s,231,/*和npc对话*/,STATUS_NEVER,False
-	entry,uint16,False,/*npcid*/
+	u_guid,uint32,False,/*npc uint guid*/
 	questId,uint16,False,/*任务id*/
 
 #
@@ -1180,6 +1180,7 @@ attribute_changed,s2c,281,/*属性改变*/,STATUS_NEVER,False
 bag_find_equip_better,s2c,282,/*背包有更强装备*/,STATUS_NEVER,False
 	item_id,uint32,False,/*物品id*/
 	pos,uint32,False,/*背包位置*/
+	force,uint32,False,/*物品战力*/
 
 #
 module_active,s2c,283,/*模块解锁*/,STATUS_NEVER,False
@@ -1598,4 +1599,54 @@ raise_base_spell_all,c2s,411,/*申请升级全部技能*/,STATUS_NEVER,False
 	
 #
 use_restore_potion,c2s,413,/*使用回复药*/,STATUS_NEVER,False
+
+#
+pick_quest_adventure,c2s,414,/*提交冒险任务*/,STATUS_NEVER,False
+	indx,uint32,False,/*下标*/
+	
+#
+raise_adventurespell,c2s,415,/*升级冒险技能*/,STATUS_NEVER,False
+	spellId,uint32,False,/*技能ID*/
+
+#
+pick_quest_realmbreak,c2s,416,/*领取境界任务奖励*/,STATUS_NEVER,False
+	indx,uint32,False,/*下标*/
+
+#
+pick_realmbreak_daily_reward,c2s,417,/*领取境界每日奖励*/,STATUS_NEVER,False
+
+#
+group_create,c2s,418,/*创建队伍*/,STATUS_NEVER,False
+
+#
+group_join_request,c2s,419,/*申请加入队伍*/,STATUS_NEVER,False
+	guid,String,False,/*队伍guid*/
+
+#
+group_join_accept,c2s,420,/*同意加入队伍*/,STATUS_NEVER,False
+	guid,String,False,/*玩家guid*/
+	
+#
+group_quit,c2s,421,/*退出队伍*/,STATUS_NEVER,False
+
+#
+group_give_captain,c2s,422,/*移交队伍队长*/,STATUS_NEVER,False
+	guid,String,False,/*玩家guid*/
+	
+#
+group_kick,c2s,423,/*踢队员*/,STATUS_NEVER,False
+	guid,String,False,/*玩家guid*/
+
+#
+show_loot_animate,s2c,424,/*显示掉落东西*/,STATUS_NEVER,False
+	info,String,False,/*玩家guid*/
+
+#
+enter_stage_instance,c2s,425,/*进入闯关副本*/,STATUS_NEVER,False
+
+
+#
+pick_stage_instance_bonus,c2s,426,/*领取闯关副本奖励*/,STATUS_NEVER,False
+	id,uint32,False,/*宝箱下标*/
+
 

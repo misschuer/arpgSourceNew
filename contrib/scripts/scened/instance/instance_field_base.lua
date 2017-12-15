@@ -172,6 +172,34 @@ end
 --当玩家被玩家杀掉时触发
 function InstanceFieldBase:OnPlayerKilled(player, killer)
 	local playerInfo = UnitInfo:new {ptr = player}
+	local killerInfo = UnitInfo:new {ptr = killer}
+	
+	-- 玩家被杀掉落
+
+	local drop_dict,count = self:GetDropInfo(playerInfo)
+
+	local escort_config = tb_escort_base[1]
+	
+	if playerInfo:GetEscortState() == QUEST_ESCORT_STATE_NORMAL and killerInfo:GetPlayerUInt32(PLAYER_INT_FIELD_ESCORT_ROB_COUNT) < escort_config.rob_limit then
+		killerInfo:AddPlayerUInt32(PLAYER_INT_FIELD_ESCORT_ROB_COUNT,1)
+		local items = escort_config.rob_reward
+		local mailInfo = {items, escort_config.mail_name, escort_config.mail_desc, GIFT_PACKS_TYPE_ESCORT_ROB}
+		local str = string.join("|", mailInfo)
+		playerLib.SendToAppdDoSomething(killer, SCENED_APPD_ADD_MAIL, 0, str)
+		
+		
+	end
+	
+	if count > 0 then
+		PlayerAddRewards(killer, drop_dict, nil, nil)
+		
+	end
+	if playerInfo:GetEscortState() == QUEST_ESCORT_STATE_NORMAL or count > 0 then
+		playerLib.SendToAppdDoSomething(player, SCENED_APPD_PLAYER_DEAD_PROCESS, 1,killerInfo:GetTextName())
+	end
+	
+	
+	-- 处理死亡逻辑
 	local killername = binLogLib.GetStr(killer, BINLOG_STRING_FIELD_NAME)
 	self:OnSendDeathInfo(playerInfo, killername, '')
 	
@@ -184,7 +212,37 @@ function InstanceFieldBase:OnPlayerKilledByMonster(player, killer)
 	local killername = binLogLib.GetStr(killer, BINLOG_STRING_FIELD_NAME)
 	self:OnSendDeathInfo(playerInfo, killername, '')
 	
+	local entry = binLogLib.GetUInt16(killer, UNIT_FIELD_UINT16_0, 0)
+	if tb_creature_template[entry] and tb_creature_template[entry].robot == 1 then
+		
+		local drop_dict,count = self:GetDropInfo(playerInfo)
+
+		if playerInfo:GetEscortState() == QUEST_ESCORT_STATE_NORMAL or count > 0 then
+			playerLib.SendToAppdDoSomething(player, SCENED_APPD_PLAYER_DEAD_PROCESS, 1,getShowName(killername))
+		end
+	end
+	
+	
+	
+	
 	return 0
+end
+
+function InstanceFieldBase:GetDropInfo(playerInfo)
+	-- 玩家被杀掉落
+	local drop_dict = {}
+	local count = 0 
+	for item_id,info in pairs(tb_adventure_death_drop) do
+		local item_num = playerInfo:GetMoney(item_id)
+		if item_num > info.limit then
+			local drop_num = math.min(item_num - info.limit,math.ceil(item_num * info.percent /100))
+			drop_dict[item_id]=drop_num
+			count = count + 1
+		end
+		
+	end
+	
+	return drop_dict,count
 end
 
 --当玩家死亡后触发()

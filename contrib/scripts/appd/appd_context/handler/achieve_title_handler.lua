@@ -72,6 +72,17 @@ function PlayerInfo:Handle_Pick_Quest_Daily2(pkt)
 	self:OnPickDaily2Quest(indx)
 end
 
+-- 领取冒险任务奖励
+function PlayerInfo:Handle_Pick_Quest_Adventure(pkt)
+	local indx = pkt.indx
+	
+	-- 任务下标不存在
+	if indx < 0 or indx >= MAX_ADVENTURE_QUEST_COUNT then
+		return
+	end
+	self:OnPickAdventureQuest(indx)
+end
+
 
 -- 道具解锁称号
 function PlayerInfo:Handle_Unlock_title(pkt)

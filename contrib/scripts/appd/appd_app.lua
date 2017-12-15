@@ -151,6 +151,8 @@ function AppdApp:InitCorn()
 		self.objMgr:foreachAllPlayer(
 			function(player)	
 				player:CheckAddMassBossTimes()
+				
+				player:CheckEscortTimeOut()
 			end
 		)
 				
@@ -168,6 +170,8 @@ function AppdApp:InitCorn()
 		
 		-- 检查活动是否开启
 		globalCounter:activityUpdate()
+		
+		
 	end)
 	
 	

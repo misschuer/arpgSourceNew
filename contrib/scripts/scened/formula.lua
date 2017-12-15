@@ -110,8 +110,8 @@ end
 
 
 ----------------------------------计算战斗公式----------------------------------
--- 命中率=85%+命中*0.01%
--- 闪避率=闪避*0.005%
+-- 命中率=85%+命中*0.0033%
+-- 闪避率=闪避*0.0017%
 -- 是否命中=命中率*（1-闪避率）		
 -- 所有属性都是*100的值 所以这里得还原
 -- @param attackInfo: 攻击方
@@ -119,10 +119,17 @@ end
 -- return
 --		是否命中
 function isHit(attackInfo, hurtInfo)
-	local hitRate  = 0.85 + attackInfo:GetHit() / 100 * 0.01 / 100
-	local missRate = hurtInfo:GetMiss() / 100 * 0.005 / 100
-	local p = math.floor(hitRate * (1 - missRate) * 10000)
-	local val = randInt(1, 10000)
+	local hit = math.max(0, math.min(attackInfo:GetHit(), 3450000))
+	local hitRate  = 0.85 + hit / 100 * 0.0033 / 100
+	hitRate = math.min(hitRate, 2)
+	
+	local miss = math.max(0, math.min(hurtInfo:GetMiss(), 3000000))
+	local missRate = miss / 100 * 0.0017 / 100
+	missRate = math.min(missRate, 0.5)
+	
+	local limit = 100
+	local p = math.floor(hitRate * (1 - missRate) * limit)
+	local val = randInt(1, limit)
 	
 	return val <= p
 end
@@ -172,8 +179,8 @@ function getSkillDam(damage, skillDamFactor, skillDamVal)
 end
 
 --[[
-暴击率=10%+暴击*0.005%	
-抗暴击率=抗暴*0.008%	
+暴击率=10%+暴击*0.0017%	
+抗暴击率=抗暴*0.0027%	
 是否暴击=暴击率*（1-抗暴率）
 
 -- 所有属性都是*100的值 所以这里得还原
@@ -184,8 +191,13 @@ end
 --]]
 
 function isCrit(attackInfo, hurtInfo)
-	local critRate = 0.1 + attackInfo:GetCrit() / 100 * 0.005 / 100
-	local resistCritRate = hurtInfo:GetTough() / 100 * 0.008 / 100
+	local crit = math.max(0, math.min(attackInfo:GetCrit(), 3600000))
+	local critRate = 0.1 + crit / 100 * 0.0017 / 100
+	critRate = math.min(critRate, 0.7)
+	
+	local tough = math.max(0, math.min(hurtInfo:GetTough(), 3000000))
+	local resistCritRate = tough / 100 * 0.0027 / 100
+	resistCritRate = math.min(resistCritRate, 0.8)
 	
 	local p = math.floor(critRate * (1 - resistCritRate) * 10000)
 	local val = randInt(1, 10000)
@@ -194,14 +206,18 @@ function isCrit(attackInfo, hurtInfo)
 end
 
 -- 未暴击，K暴击修正=0								
--- 暴击时，K暴击修正=1.5+(暴击伤害-暴伤减免)*0.01%							150%<=K暴击修正<=300%	
+-- 暴击时，K暴击修正=1.5+(暴击伤害-暴伤减免)*0.0033%							150%<=K暴击修正<=300%	
 -- 所有属性都是*100的值 所以这里得还原
 -- @param attackInfo: 攻击方
 -- @param hurtInfo: 防守方
 -- return
 --		暴击倍数
 function critMult(attackInfo, hurtInfo)
-	return 1.5 + (attackInfo:GetCritDamRate() - hurtInfo:GetCritResistDamRate()) / 100 * 0.01 / 100
+	local critDamRate = math.max(0, math.min(attackInfo:GetCritDamRate(), 4500000))
+	local critResistDamRate = math.max(0, math.min(hurtInfo:GetCritResistDamRate(), 4500000))
+	local ret = 1.5 + (critDamRate - critResistDamRate) / 100 * 0.0033 / 100
+	ret = math.max(1.5, math.min(ret, 3.0))
+	return ret
 end
 
 -- 暴击伤害=暴击伤害倍数*普通伤害

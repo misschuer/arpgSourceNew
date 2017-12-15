@@ -789,13 +789,28 @@ end
 
 -- 和NPC对话
 function ScenedContext:Handle_Talk_With_Npc(pkt)
-	local entry = pkt.entry
+	local u_guid = pkt.u_guid
 	local questId = pkt.questId
 	
-	if not tb_creature_template[entry] then
+	
+	local map_ptr = unitLib.GetMap(self.ptr)
+	local creature = mapLib.GetCreatureByGuid(map_ptr, u_guid)
+	
+	if not creature then
 		return
 	end
 	
+	local bx, by = unitLib.GetPos(creature)
+	local mx, my = unitLib.GetPos(self.ptr)
+	local lined = (bx - mx) * (bx - mx) + (by - my) * (by - my)
+	
+	if lined > 36 then
+		return
+	end
+	
+	local unitInfo = UnitInfo:new {ptr = creature}
+	local entry = unitInfo:GetEntry()
+
 	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_TALK, entry, ""..questId)
 end
 
@@ -1026,6 +1041,100 @@ function ScenedContext:Handle_Use_Restore_Potion(pkt)
 
 end
 
+
+function ScenedContext:Handle_Enter_Stage_Instance(pkt)
+	local id = self:GetPlayerUInt32(PLAYER_INT_FIELD_PASSED_STAGE_INSTANCE_ID) + 1
+	--outFmtDebug("instance id %d",id)
+	if tb_instance_stage[id] == nil then
+		return
+	end
+	
+	local map_ptr = unitLib.GetMap(self.ptr)
+	if not map_ptr then 
+		return
+	end
+	
+	local toMapId = tb_instance_stage[id].mapid
+	
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		outFmtError("Hanlde_Enter_VIP_Instance player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+
+	-- 该地图是否存在
+	if tb_map[toMapId] == nil then
+		return
+	end
+	local mapid = unitLib.GetMapID(self.ptr)
+	-- 是否允许传送
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
+--		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
+		return
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return
+	end
+	
+	--发到应用服进行进入判断
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_STAGE_INSTANCE, id)
+end
+
+
+
+--场景服协议有冷却CD
+local scene_operate_need_cd = {
+	[CMSG_TELEPORT] = 0,
+	[CMSG_USE_GAMEOBJECT] = 0,
+	[CMSG_INSTANCE_EXIT] = 0,
+	[CMSG_RIDE_MOUNT] = 0,
+	[CMSG_CHANGE_BATTLE_MODE] = 0,
+	[CMSG_ENTER_VIP_INSTANCE] = 0,	-- 请求进入vip副本
+	[CMSG_ENTER_TRIAL_INSTANCE] = 0,
+	[CMSG_TELEPORT_MAIN_CITY] = 0,
+	[CMSG_USE_BROADCAST_GAMEOBJECT] = 0,
+	[CMSG_WORLD_BOSS_FIGHT] = 0,	-- /*世界BOSS挑战*/
+	[CMSG_RES_INSTANCE_ENTER] = 0,
+	[CMSG_TELEPORT_MAP] = 0,
+	[CMSG_TELEPORT_FIELD_BOSS] = 0,
+	[CMSG_LOOT_SELECT] = 0,
+	[CMSG_GOLD_RESPAWN] = 0,			--元宝复活
+	[CMSG_XIANFU_RANDOM_RESPAWN] = 0,	--随机复活
+	[MSG_USE_JUMP_POINT] = 0,		-- 使用跳点
+	[CMSG_BACK_TO_FAMITY] = 0,		-- 返回家族
+	[CMSG_CHALLANGE_BOSS] = 0,		-- 挑战boss
+	[CMSG_PICK_OFFLINE_REWARD] = 0,
+	
+	[CMSG_TRY_MASS_BOSS] = 0,			-- 挑战全民boss
+	[CMSG_QUERY_MASS_BOSS_INFO] = 0,	-- 查询挑战人员个数
+	[CMSG_QUERY_MASS_BOSS_RANK] = 0,	-- 查询排行榜
+	[CMSG_ENTER_RISK_INSTANCE] = 0,
+	[CMSG_DOUJIANTAI_FIGHT] = 0,
+	-------------------------------
+	[CMSG_WORLD_BOSS_ENROLL] = 0,	-- /*世界BOSS报名*/
+	[CMSG_ENTER_PRIVATE_BOSS] = 0,	--个人BOSS挑战
+}	-- dict
+
+
+function ScenedContext:CheckOperateCD(operate_id)
+	--[[if scene_operate_need_cd[operate_id] then
+		local now = os.time()
+		if now >= self:GetUnitOperateCD() then
+			self:SetUnitOperateCD(now + 10)
+			outFmtDebug("ScenedContext:CheckOperateCD opt: %d true start cding",operate_id)
+			return true
+		end
+		
+		outFmtDebug("ScenedContext:CheckOperateCD opt: %d false now in cd",operate_id)
+		return false
+	end--]]
+	
+	return true
+end
+
 local OpcodeHandlerFuncTable = require 'scened.context.scened_context_handler_map'
 
 --网络包处理方法
@@ -1040,7 +1149,9 @@ packet.register_on_external_packet(function ( player_ptr, pkt )
 	else
 		args.__optcode = optcode		
 		if OpcodeHandlerFuncTable[optcode] then
-			doxpcall(OpcodeHandlerFuncTable[optcode], _player, args)
+			--[[if ScenedContext.CheckOperateCD(_player, optcode) then--]]
+				doxpcall(OpcodeHandlerFuncTable[optcode], _player, args)
+--			end
 		end
 	end
 end)

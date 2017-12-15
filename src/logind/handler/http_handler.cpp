@@ -517,6 +517,8 @@ void HttpHandler::Handle_Merge_Ok(const Request& req, Reply& rep)
 	parseMergeData(token[ 2 ], FACTION_BINLOG_OWNER_STRING);
 	// token[ 3 ] 帮派数据信息
 	parseMergeData(token[ 3 ], FACTION_DATA_OWNER_STRING);
+	// token[ 4 ] 组队信息
+	parseMergeData(token[ 4 ], GROUP_BINLOG_OWNER_STRING);
 
 	//设置下合服服务器列表
 	for(auto it:server_tokens)
@@ -623,6 +625,7 @@ bool HttpHandler::PostMergeOK(const string &to_server_name)
 	string global_str = g_Cache.GetPlayerDataStr(GLOBAL_VALUE_OWNER_STRING);
 	string faction_str = g_Cache.GetPlayerDataStr(FACTION_BINLOG_OWNER_STRING);
 	string faction_data_str = g_Cache.GetPlayerDataStr(FACTION_DATA_OWNER_STRING);
+	string group_str = g_Cache.GetPlayerDataStr(GROUP_BINLOG_OWNER_STRING);
 
 	//取得所有合服表
 	vector<string> server_names;
@@ -630,7 +633,7 @@ bool HttpHandler::PostMergeOK(const string &to_server_name)
 	string all_server_names;
 	StrJoin(server_names,all_server_names, ';');
 
-	string data = all_server_names + MERGE_DATA_SEPARATOR + global_str + MERGE_DATA_SEPARATOR + faction_str + MERGE_DATA_SEPARATOR + faction_data_str;
+	string data = all_server_names + MERGE_DATA_SEPARATOR + global_str + MERGE_DATA_SEPARATOR + faction_str + MERGE_DATA_SEPARATOR + faction_data_str + MERGE_DATA_SEPARATOR + group_str;
 	string reponse;
 	int result_code = m_client->post(url, data, reponse);
 	if(result_code != 200)

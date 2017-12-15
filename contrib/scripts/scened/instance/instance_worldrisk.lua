@@ -32,6 +32,8 @@ function InstanceWorldRisk:parseGeneralId()
 	local generalId = self:GetMapGeneralId()
 	local params = string.split(generalId, '#')
 	self:SetUInt32(TRIAL_INSTANCE_FIELD_SECTION_ID, tonumber(params[ 2 ]))
+	
+	outFmtDebug("InstanceWorldRisk:parseGeneralId generalId %d",tonumber(params[ 2 ]))
 end
 
 -- 退出倒计时到了准备退出
@@ -177,6 +179,7 @@ function InstanceWorldRisk:refreshBoss()
 end
 
 function InstanceWorldRisk:refresh()
+	--修改为返回riskCreatureId 计数
 	local curr, currEntry = mapLib.GetCreatureEntryCount(self.ptr)
 	local offs = tb_risk_base[ 1 ].pos_offset
 	
@@ -200,7 +203,7 @@ function InstanceWorldRisk:refresh()
 			local lx = cx - offs
 			local ly = cy - offs
 			
-			if currEntry ~= entry then
+			if currEntry ~= riskCreatureId then
 				local idTable = GetRandomIndexTable(grids, num)
 				for _, indx in pairs(idTable) do
 					local id = indx - 1
@@ -223,10 +226,11 @@ function InstanceWorldRisk:refresh()
 	end
 end
 
-function InstanceWorldRisk:oneTrialMonsterKilled(player_ptr)
+function InstanceWorldRisk:oneTrialMonsterKilled(player_ptr,dict)
 	local playerInfo = UnitInfo:new {ptr = player_ptr}
 	if playerInfo:GetTypeID() == TYPEID_PLAYER then
 		playerInfo:AddRiskMonsterKilledCount()
+		PlayerAddRewards(player_ptr, dict, MONEY_CHANGE_TRIAL_INSTANCE_REWARD, LOG_ITEM_OPER_TYPE_TRIAL_INSTANCE_REWARD, 0)
 	else
 		outFmtInfo("##### entry %d kill one monster", playerInfo:GetEntry())
 	end
@@ -343,7 +347,14 @@ function AI_worldRisk:JustDied( map_ptr,owner,killer_ptr )
 	
 	local mapid = mapLib.GetMapID(map_ptr)
 	local instanceInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
-	instanceInfo:oneTrialMonsterKilled(killer_ptr)
+	local idx = binLogLib.GetUInt32(owner, UNIT_INT_FIELD_RISK_CREATURE_ID)
+	local info = tb_creature_worldrisk[idx]
+	
+	local dict = {}
+	for _,item_info in ipairs(info.reward) do
+		dict[item_info[1]] = item_info[2]
+	end
+	instanceInfo:oneTrialMonsterKilled(killer_ptr,dict)
 	
 	return 0
 end

@@ -76,6 +76,7 @@ int scripts_init(const char *_sdir)
 
 	/*加载脚本*/    
 	sprintf(sfile, "%s/cow_policed.lua", sdir);
+	tea_pinfo("load script %s", sfile);
 	if((status = luaL_dofile(L, sfile)))
 	{
 		tea_perror("载入脚本 %s 出错!", sfile);

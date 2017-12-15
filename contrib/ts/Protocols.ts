@@ -730,6 +730,32 @@ class Protocols {
 	public static  CMSG_RAISE_BASE_SPELL_ALL :number = 411;	//raise_base_spell_all
 	/*使用回复药*/
 	public static  CMSG_USE_RESTORE_POTION :number = 413;	//use_restore_potion
+	/*提交冒险任务*/
+	public static  CMSG_PICK_QUEST_ADVENTURE :number = 414;	//pick_quest_adventure
+	/*升级冒险技能*/
+	public static  CMSG_RAISE_ADVENTURESPELL :number = 415;	//raise_adventurespell
+	/*领取境界任务奖励*/
+	public static  CMSG_PICK_QUEST_REALMBREAK :number = 416;	//pick_quest_realmbreak
+	/*领取境界每日奖励*/
+	public static  CMSG_PICK_REALMBREAK_DAILY_REWARD :number = 417;	//pick_realmbreak_daily_reward
+	/*创建队伍*/
+	public static  CMSG_GROUP_CREATE :number = 418;	//group_create
+	/*申请加入队伍*/
+	public static  CMSG_GROUP_JOIN_REQUEST :number = 419;	//group_join_request
+	/*同意加入队伍*/
+	public static  CMSG_GROUP_JOIN_ACCEPT :number = 420;	//group_join_accept
+	/*退出队伍*/
+	public static  CMSG_GROUP_QUIT :number = 421;	//group_quit
+	/*移交队伍队长*/
+	public static  CMSG_GROUP_GIVE_CAPTAIN :number = 422;	//group_give_captain
+	/*踢队员*/
+	public static  CMSG_GROUP_KICK :number = 423;	//group_kick
+	/*显示掉落东西*/
+	public static  SMSG_SHOW_LOOT_ANIMATE :number = 424;	//show_loot_animate
+	/*进入闯关副本*/
+	public static  CMSG_ENTER_STAGE_INSTANCE :number = 425;	//enter_stage_instance
+	/*领取闯关副本奖励*/
+	public static  CMSG_PICK_STAGE_INSTANCE_BONUS :number = 426;	//pick_stage_instance_bonus
 	private _FUNCS:Object = new Object();
 		
 		/**
@@ -1018,6 +1044,18 @@ class Protocols {
 		this._FUNCS[410] = "enter_private_boss";
 		this._FUNCS[411] = "raise_base_spell_all";
 		this._FUNCS[413] = "use_restore_potion";
+		this._FUNCS[414] = "pick_quest_adventure";
+		this._FUNCS[415] = "raise_adventurespell";
+		this._FUNCS[416] = "pick_quest_realmbreak";
+		this._FUNCS[417] = "pick_realmbreak_daily_reward";
+		this._FUNCS[418] = "group_create";
+		this._FUNCS[419] = "group_join_request";
+		this._FUNCS[420] = "group_join_accept";
+		this._FUNCS[421] = "group_quit";
+		this._FUNCS[422] = "group_give_captain";
+		this._FUNCS[423] = "group_kick";
+		this._FUNCS[425] = "enter_stage_instance";
+		this._FUNCS[426] = "pick_stage_instance_bonus";
 	}
 		
 	public null_action ():void{
@@ -2508,12 +2546,12 @@ class Protocols {
 		this._stream.writeUint8 (indx);		
 		this._send_func(this._stream);			
 	}
-	public talk_with_npc ( entry :number  ,questId :number ):void{
+	public talk_with_npc ( u_guid :number  ,questId :number ):void{
 		this._stream.reset();
 		this._stream.optcode = 231;
 		this._stream.writeUint16( 231 );
-			//npcid
-		this._stream.writeUint16 (entry);		
+			//npc uint guid
+		this._stream.writeUint32 (u_guid);		
 			//任务id
 		this._stream.writeUint16 (questId);		
 		this._send_func(this._stream);			
@@ -3289,6 +3327,94 @@ class Protocols {
 		this._stream.reset();
 		this._stream.optcode = 413;
 		this._stream.writeUint16( 413 );
+		this._send_func(this._stream);			
+	}
+	public pick_quest_adventure ( indx :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 414;
+		this._stream.writeUint16( 414 );
+			//下标
+		this._stream.writeUint32 (indx);		
+		this._send_func(this._stream);			
+	}
+	public raise_adventurespell ( spellId :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 415;
+		this._stream.writeUint16( 415 );
+			//技能ID
+		this._stream.writeUint32 (spellId);		
+		this._send_func(this._stream);			
+	}
+	public pick_quest_realmbreak ( indx :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 416;
+		this._stream.writeUint16( 416 );
+			//下标
+		this._stream.writeUint32 (indx);		
+		this._send_func(this._stream);			
+	}
+	public pick_realmbreak_daily_reward ():void{
+		this._stream.reset();
+		this._stream.optcode = 417;
+		this._stream.writeUint16( 417 );
+		this._send_func(this._stream);			
+	}
+	public group_create ():void{
+		this._stream.reset();
+		this._stream.optcode = 418;
+		this._stream.writeUint16( 418 );
+		this._send_func(this._stream);			
+	}
+	public group_join_request ( guid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 419;
+		this._stream.writeUint16( 419 );
+			//队伍guid
+		this._stream.writeString (guid);		
+		this._send_func(this._stream);			
+	}
+	public group_join_accept ( guid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 420;
+		this._stream.writeUint16( 420 );
+			//玩家guid
+		this._stream.writeString (guid);		
+		this._send_func(this._stream);			
+	}
+	public group_quit ():void{
+		this._stream.reset();
+		this._stream.optcode = 421;
+		this._stream.writeUint16( 421 );
+		this._send_func(this._stream);			
+	}
+	public group_give_captain ( guid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 422;
+		this._stream.writeUint16( 422 );
+			//玩家guid
+		this._stream.writeString (guid);		
+		this._send_func(this._stream);			
+	}
+	public group_kick ( guid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 423;
+		this._stream.writeUint16( 423 );
+			//玩家guid
+		this._stream.writeString (guid);		
+		this._send_func(this._stream);			
+	}
+	public enter_stage_instance ():void{
+		this._stream.reset();
+		this._stream.optcode = 425;
+		this._stream.writeUint16( 425 );
+		this._send_func(this._stream);			
+	}
+	public pick_stage_instance_bonus ( id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 426;
+		this._stream.writeUint16( 426 );
+			//宝箱下标
+		this._stream.writeUint32 (id);		
 		this._send_func(this._stream);			
 	}
 }

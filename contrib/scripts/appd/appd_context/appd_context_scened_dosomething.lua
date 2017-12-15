@@ -58,9 +58,36 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 		questMgr:OnUpdate(QUEST_TARGET_TYPE_PICK_GAME_OBJECT, {data})
 	elseif SCENED_APPD_TALK == ntype then
 		-- 对话
+		local questId = tonumber(str)
 		-- 加任务
 		local questMgr = self:getQuestMgr()
-		questMgr:OnUpdate(QUEST_TARGET_TYPE_TALK, {data, tonumber(str)})
+		questMgr:OnUpdate(QUEST_TARGET_TYPE_TALK, {data, questId})
+		
+		-- 如果是接镖NPC, 判断是否可接
+		local escort_config = tb_escort_base[1]
+		if escort_config.npc == data then
+			if questMgr:GetQuestEscortFinishTime() < os.time() then
+				local quest_index_list = {}
+				for index = 1,#escort_config.quest_id do
+					if self:GetLevel() >= escort_config.level[index] then
+						table.insert(quest_index_list,index)
+					end
+				end
+				local indx = quest_index_list[randInt(1,#quest_index_list)]
+				local quest_id = escort_config.quest_id[indx]
+				local item_id = escort_config.quest_item_id
+				local item_count = escort_config.quest_item_num[indx]
+				local time_limit = escort_config.time_limit
+				
+				self:AppdAddItems({{item_id,item_count}},MONEY_CHANGE_ESCORT,LOG_ITEM_OPER_TYPE_ESCORT)
+				questMgr:OnAddQuest(quest_id,QUEST_FIELD_ESCORT_QUEST_START,QUEST_FIELD_ESCORT_QUEST_END)
+				questMgr:SetQuestEscortFinishTime(os.time() + time_limit*60)
+				self:SetEscortState(QUEST_ESCORT_STATE_NORMAL)
+			end
+		end
+		
+		
+		
 	elseif SCENED_APPD_RIDE == ntype then
 		self:SetRideState(data)
 		
@@ -161,5 +188,46 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 		self:checkPrivateBossMapTeleport(data)
 	elseif SCENED_APPD_PRIVATE_BOSS_WIN == ntype then
 		self:onPrivateBossWin(data)
+	elseif SCENED_APPD_PLAYER_DEAD_PROCESS == ntype then
+		if data == 1 then
+			local drop_dict = {}
+			for item_id,info in pairs(tb_adventure_death_drop) do
+				local item_num = self:GetMoney(item_id)
+				if item_num > info.limit then
+					local drop_num = math.min(item_num - info.limit,math.ceil(item_num * info.percent /100))
+					table.insert(drop_dict,{item_id,drop_num})
+				end
+				
+			end
+			
+			outFmtDebug("SCENED_APPD_PLAYER_DEAD_PROCESS  GetEscortState is %d ",self:GetEscortState())
+			if self:GetEscortState() == QUEST_ESCORT_STATE_NORMAL then
+				outFmtDebug("QUEST_ESCORT_STATE_NORMAL to QUEST_ESCORT_STATE_ROB")
+				self:SetEscortState(QUEST_ESCORT_STATE_ROB)
+				local config = tb_escort_base[1]
+				local item_id = config.quest_item_id
+				local rob_lost = config.rob_lost
+				local count = math.floor(self:CountItem(item_id) * rob_lost / 100)
+				table.insert(drop_dict,{item_id,count})
+				outFmtDebug("SCENED_APPD_PLAYER_DEAD_PROCESS drop id %d num %d",item_id,count)
+			end
+			self:useAllItems(MONEY_CHANGE_ADVANTURE_KILL_BY_PLAYER,drop_dict)
+			
+			local drop_info = ''
+			for _,info in ipairs(drop_dict) do
+				drop_info = drop_info..tb_item_template[info[1]].name..'X'..info[2]..' '
+			end
+			if #drop_info > 0 then
+				app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_ADVENTURE_ROB,{str,self:GetNoticeName(),drop_info})
+				self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_ADVENTURE_ROBED,{str,drop_info})
+				
+			end
+		end
+		
+	elseif SCENED_APPD_ENTER_STAGE_INSTANCE == ntype then
+		self:checkStageInstanceTeleport(data)
+		
+	elseif SCENED_APPD_PASS_STAGE_INSTANCE == ntype then
+		self:onPassStageInstance(data)
 	end
 end

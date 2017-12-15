@@ -7,9 +7,9 @@ tb_meridian_item = {
 	--  id:int 序号
 	--  itemId:int 道具id
 	--  exp:int 增加经验
-	[1] = {id = 1, itemId = 235, exp = 3000},
-	[2] = {id = 2, itemId = 236, exp = 6000},
-	[3] = {id = 3, itemId = 237, exp = 15000},
-	[4] = {id = 4, itemId = 238, exp = 30000},
-	[5] = {id = 5, itemId = 239, exp = 60000},
+	[1] = {id = 1, itemId = 235, exp = 15},
+	[2] = {id = 2, itemId = 236, exp = 30},
+	[3] = {id = 3, itemId = 237, exp = 100},
+	[4] = {id = 4, itemId = 238, exp = 200},
+	[5] = {id = 5, itemId = 239, exp = 400},
 }

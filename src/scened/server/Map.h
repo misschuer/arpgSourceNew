@@ -499,6 +499,8 @@ public:
 	static int LuaBroadcast(lua_State *scriptL);	//grid广播包
 	static int LuaBroadcastMap(lua_State *scriptL);	//MAP广播包
 
+	static int LuaGetCreatureByGuid(lua_State *scriptL);		//通过uintguid获取生物对象
+
 	static int LuaGetGameObjectByGuid(lua_State *scriptL);		//通过uintguid获取游戏对象
 	static int LuaGetGameObjectByEntry(lua_State *scriptL);	//通过entry获得游戏对象
 	static int LuaRemoveGameObjectByEntry(lua_State *scriptL);	//通过entry删除游戏对象

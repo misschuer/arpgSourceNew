@@ -160,6 +160,11 @@ function PlayerInfo:GetStrengthArmor()
 	return self:GetDouble(PLAYER_FIELD_STRENGTH_ARMOR)
 end
 
+-- 获得强化护甲
+function PlayerInfo:GetDao()
+	return self:GetDouble(PLAYER_FIELD_DAO)
+end
+
 -- 设置当前生命
 function PlayerInfo:SetHealth(val)
 	self:SetDouble(PLAYER_FIELD_HEALTH, val)
@@ -320,6 +325,11 @@ function PlayerInfo:SetStrengthArmor(val)
 	self:SetDouble(PLAYER_FIELD_STRENGTH_ARMOR, val)
 end
 
+-- 设置境界
+function PlayerInfo:SetDao(val)
+	self:SetDouble(PLAYER_FIELD_DAO, val)
+end
+
 local PlayerInfo_Get_Attr_Func = {
 	[EQUIP_ATTR_MAX_HEALTH] = PlayerInfo.GetMaxHealth,	--设置最大生命
 	[EQUIP_ATTR_DAMAGE] = PlayerInfo.GetDamage,	--设置攻击力
@@ -352,6 +362,7 @@ local PlayerInfo_Get_Attr_Func = {
 	[EQUIP_ATTR_CONTROL_ENHANCE_RATE] = PlayerInfo.GetControlEnhanceRate,	--设置控制增强
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = PlayerInfo.GetControlResistRate,	--设置控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = PlayerInfo.GetStrengthArmor,	--设置强化护甲
+	[EQUIP_ATTR_DAO] = PlayerInfo.GetDao,	--设置境界
 }
 
 local PlayerInfo_Set_Attr_Func = {
@@ -386,6 +397,7 @@ local PlayerInfo_Set_Attr_Func = {
 	[EQUIP_ATTR_CONTROL_ENHANCE_RATE] = PlayerInfo.SetControlEnhanceRate,	--设置控制增强
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = PlayerInfo.SetControlResistRate,	--设置控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = PlayerInfo.SetStrengthArmor,	--设置强化护甲
+	[EQUIP_ATTR_DAO] = PlayerInfo.SetDao,	--设置境界
 }
 
 
@@ -406,6 +418,7 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	for attrId,_ in pairs(PlayerInfo_Set_Attr_Func) do
 		attrs[attrId] = 0
 	end
+	
 	-- 技能管理类
 	local spellMgr = self:getSpellMgr()
 	local skillForce = 0
@@ -466,6 +479,11 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	
 	printAttr("title ", attrs)
 	
+	--境界突破
+	self:calculRealmbreakAttr(attrs)
+	
+	printAttr("realmbreak ", attrs)
+	
 	-- 被动技能属性
 	self:PassiveSpellAttr(suitBaseAttribute)
 	
@@ -522,7 +540,7 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 		local getFunc = PlayerInfo_Get_Attr_Func[attrId]
 		if getFunc then
 			local prev = getFunc(self)
-			if val ~= prev then
+			if val ~= prev and attrId ~= EQUIP_ATTR_DAO then
 				prevlist[attrId] = val - prev
 			end
 		end

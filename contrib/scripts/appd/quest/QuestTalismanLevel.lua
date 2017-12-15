@@ -13,7 +13,7 @@ function QuestTalismanLevel:OnInit(playerInfo, start, offset)
 	local id = tb_quest[questId].targets[offset+1][ 2 ]
 	local level = playerInfo:getTalismanLevelIfNotReturnMaxLevelOfAllTalisman(id)
 	
-	self:OnUpdate(quest_ptr, start, offset, {id, level})
+	self:OnUpdate(playerInfo, start, offset, {id, level})
 end
 
 -- 获得目标值
@@ -23,7 +23,7 @@ end
 
 -- 更新进度, 如果目标完成返回true
 function QuestTalismanLevel:OnUpdate(playerInfo, start, offset, params)
-	return self:OnUpdateModeObjectValue(quest_ptr, start, offset, params)
+	return self:OnUpdateModeObjectValue(playerInfo, start, offset, params)
 end
 
 return QuestTalismanLevel

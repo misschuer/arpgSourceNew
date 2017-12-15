@@ -584,6 +584,7 @@ local tBaseKey = {
 	[EQUIP_ATTR_CONTROL_ENHANCE_RATE] = UNIT_FIELD_CONTROL_ENHANCE_RATE,	--控制增强
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = UNIT_FIELD_CONTROL_RESIST_RATE,	--控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = UNIT_FIELD_STRENGTH_ARMOR,	--强化护甲
+	[EQUIP_ATTR_DAO] = UNIT_FIELD_DAO,	--境界
 }
 
 function GetAttrSize()
@@ -1204,6 +1205,16 @@ function UnitInfo:SetSP(value)
 	self:SetUInt32(UNIT_FIELD_ANGER, value)
 end
 
+-- 获得押镖状态
+function UnitInfo:GetEscortState()
+	return self:GetUInt32(UNIT_FIELD_ANGER)
+end
+
+-- 设置押镖状态
+function UnitInfo:SetEscortState(value)
+	self:SetUInt32(UNIT_FIELD_ANGER, value)
+end
+
 -- 增加怒气
 function UnitInfo:AddSP(value)
 	-- 人形怪不加愤怒
@@ -1221,7 +1232,7 @@ function UnitInfo:AddSP(value)
 		if nextAnger > angerLimit then
 			nextAnger = angerLimit
 		end
-		self:SetSP(nextAnger)
+		--self:SetSP(nextAnger)
 	end
 end
 
@@ -1275,11 +1286,7 @@ end
 -- 获取玩家名字（公告的时候用）
 function UnitInfo:GetTextName()
 	local sName = self:GetName()
-	if sName ~= "" then
-		local tName = lua_string_split(sName,",")
-		sName = tName[#tName]
-	end
-	return sName
+	return getShowName(sName)
 end
 
 -- 是否已经接受任务
@@ -1417,6 +1424,10 @@ function GetUnitTypeID(spirit)
 		print( debug.traceback() )
 	end
 	return binLogLib.GetByte(spirit, UNIT_FIELD_BYTE_0, 0)
+end
+
+function getPlayerLevel(unit_ptr)
+	return binLogLib.GetUInt16(unit_ptr, UNIT_FIELD_UINT16_0, 1)
 end
 
 -- 获得帮派的guid
@@ -1841,6 +1852,11 @@ function UnitInfo:GetStrengthArmor()
 	return self:GetUInt32(UNIT_FIELD_STRENGTH_ARMOR)
 end
 
+-- 获得境界
+function UnitInfo:GetDao()
+	return self:GetUInt32(UNIT_FIELD_DAO)
+end
+
 -- 设置最大生命
 function UnitInfo:SetMaxHealth(val)
 	self:SetUInt32(UNIT_FIELD_MAX_HEALTH, val)
@@ -1996,6 +2012,11 @@ function UnitInfo:SetStrengthArmor(val)
 	self:SetUInt32(UNIT_FIELD_STRENGTH_ARMOR, val)
 end
 
+-- 设置境界
+function UnitInfo:SetDao(val)
+	self:SetUInt32(UNIT_FIELD_DAO, val)
+end
+
 --属性重算（场景服）
 function DoRecalculationAttrs(attrBinlog, player, runtime, bRecal)
 	
@@ -2097,6 +2118,19 @@ end
 -- 采集任务物品
 function DoHandlePickGameObject(player_ptr, gameObjectEntry)
 	playerLib.SendToAppdDoSomething(player_ptr, SCENED_APPD_GAMEOBJECT, gameObjectEntry)
+	local rewards = tb_gameobject_template[gameObjectEntry].rewards
+	if #rewards > 0 then
+		local dict = {}
+		for _, itemInfo in pairs(rewards) do
+			local itemId = itemInfo[ 1 ]
+			local count  = itemInfo[ 2 ]
+			if dict[itemId] == nil then
+				dict[itemId] = 0
+			end
+			dict[itemId] = dict[itemId] + count
+		end
+		PlayerAddRewards(player_ptr, dict, MONEY_CHANGE_SELECT_LOOT, LOG_ITEM_OPER_TYPE_LOOT, 0)
+	end
 end
 
 --应用服通知场景服消耗元宝或铜钱做些什么
@@ -2414,6 +2448,17 @@ end
 
 function UnitInfo:GetRestorePotionCD()
 	return self:GetPlayerUInt32(PLAYER_INT_FIELD_RESTORE_POTION_CD)
+end
+
+
+
+
+function UnitInfo:SetUnitOperateCD (val)
+	self:SetUInt32(UNIT_INT_FIELD_OPERATE_CD,val)
+end
+
+function UnitInfo:GetUnitOperateCD()
+	return self:GetUInt32(UNIT_INT_FIELD_OPERATE_CD)
 end
 
 require 'scened.unit.unit_spell'

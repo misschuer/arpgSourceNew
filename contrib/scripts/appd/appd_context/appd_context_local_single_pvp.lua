@@ -138,6 +138,13 @@ function PlayerInfo:OnProcessSingleMatchResult(result, fightName)
 	
 	-- ÅÅÃû
 	rankInsertTask(self:GetGuid(), RANK_TYPE_SINGLE_PVP)
+	
+	local new_indx = self:calcQueueIndx()
+	if new_indx > indx then
+		
+		app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_PAIWEI_RANKUP,{self:GetNoticeName(),tb_single_pvp_grade[new_indx].name})
+	end
+	
 	local record = string.format(QUALIFY_RECORD_FORMAT, fightName, result, score, os.time())
 	instMgr:AddQaulifyRecord(record)
 end

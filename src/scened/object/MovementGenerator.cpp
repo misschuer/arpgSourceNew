@@ -160,7 +160,8 @@ class RandomMovementGenerator : public MovementGeneratorMedium<Creature, RandomM
 public:
     RandomMovementGenerator(): m_next_move(0){}
     void Initialize(Unit &unit, uint64 param = 0, int64 t = 0) { 
-		m_next_move.Reset(urand(10000, 60000));
+		//m_next_move.Reset(urand(10000, 60000));
+		m_next_move.Reset(5000);
 		unit.SetOrientation(float(rand_norm() * (M_PI * 2)));
 	};
     bool Update(Creature &creature, const uint32 &diff)
@@ -195,8 +196,8 @@ public:
 			{
 				creature.MoveTo(nx, ny);
 			}
-
-            m_next_move.Reset(urand(30000, 60000));
+			m_next_move.Reset(5000);
+            //m_next_move.Reset(urand(30000, 60000));
         }
 
         return true;

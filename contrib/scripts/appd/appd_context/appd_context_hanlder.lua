@@ -350,6 +350,26 @@ function PlayerInfo:Handle_Set_World_Risk_Last_Id(pkt)
 	end
 end
 
+function PlayerInfo:Handle_Pick_Quest_Realmbreak(pkt)
+	local indx = pkt.indx
+	
+	-- 任务下标不存在
+	if indx < 0 or indx >= MAX_REALMBREAK_QUEST_COUNT then
+		return
+	end
+	self:OnPickRealmbreakQuest(indx)
+end
+
+function PlayerInfo:Handle_Pick_Realmbreak_Daily_Reward(pkt)
+	self:PickRealmbreakDailyReward()
+end
+
+function PlayerInfo:Handle_Pick_Stage_Instance_Bonus(pkt)
+	local id = pkt.id
+	self:PickStageInstanceBonus(id)
+end
+
+
 
 --函数包路由表
 local OpcodeHandlerFuncTable = require 'appd.appd_context.appd_context_hanlder_map'
@@ -367,7 +387,9 @@ packet.register_on_external_packet(function ( player_ptr, pkt )
 	else
 		args.__optcode = optcode		
 		if OpcodeHandlerFuncTable[optcode] then
-			doxpcall(OpcodeHandlerFuncTable[optcode], _player, args)
+			if _player:CheckOperateCD(optcode) then
+				doxpcall(OpcodeHandlerFuncTable[optcode], _player, args)
+			end
 		end
 	end
 end)

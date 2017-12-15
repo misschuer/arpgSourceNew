@@ -6,29 +6,29 @@
 tb_activity_daily_gift = {
 	--  id:int gift序号
 	--  item:array 道具
-	--  cost:array 消耗
+	--  cost:array 折扣价
 	--  vip:int 需求vip
 	--  buy_count:int 可购买数量
 	--  title:string 名称
-	[1] = {id = 1, item = {{233,500}}, cost = {{2,400}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[2] = {id = 2, item = {{233,1000}}, cost = {{2,800}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[3] = {id = 3, item = {{233,2000}}, cost = {{2,1000}}, vip = 4, buy_count = 1, title = "黄金礼包"},
-	[4] = {id = 4, item = {{224,1000}}, cost = {{2,500}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[5] = {id = 5, item = {{224,2000}}, cost = {{2,600}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[6] = {id = 6, item = {{224,3000}}, cost = {{2,600}}, vip = 4, buy_count = 1, title = "黄金礼包"},
-	[7] = {id = 7, item = {{221,30}}, cost = {{2,900}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[8] = {id = 8, item = {{222,30}}, cost = {{2,600}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[9] = {id = 9, item = {{223,30}}, cost = {{2,360}}, vip = 4, buy_count = 1, title = "黄金礼包"},
-	[10] = {id = 10, item = {{227,25}}, cost = {{2,200}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[11] = {id = 11, item = {{227,50}}, cost = {{2,250}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[12] = {id = 12, item = {{227,75}}, cost = {{2,150}}, vip = 4, buy_count = 1, title = "黄金礼包"},
-	[13] = {id = 13, item = {{237,10}}, cost = {{2,400}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[14] = {id = 14, item = {{237,25}}, cost = {{2,600}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[15] = {id = 15, item = {{237,40}}, cost = {{2,350}}, vip = 4, buy_count = 1, title = "黄金礼包"},
-	[16] = {id = 16, item = {{226,10}}, cost = {{2,600}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[17] = {id = 17, item = {{226,20}}, cost = {{2,900}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[18] = {id = 18, item = {{226,30}}, cost = {{2,800}}, vip = 4, buy_count = 1, title = "黄金礼包"},
-	[19] = {id = 19, item = {{223,50}}, cost = {{2,400}}, vip = 0, buy_count = 1, title = "青铜礼包"},
-	[20] = {id = 20, item = {{223,180}}, cost = {{2,800}}, vip = 2, buy_count = 1, title = "白银礼包"},
-	[21] = {id = 21, item = {{223,300}}, cost = {{2,600}}, vip = 4, buy_count = 1, title = "黄金礼包"},
+	[1] = {id = 1, item = {{233,500}}, cost = {{1,400}}, vip = 0, buy_count = 1, title = "翅膀羽毛青铜礼包"},
+	[2] = {id = 2, item = {{233,1000}}, cost = {{1,800}}, vip = 2, buy_count = 1, title = "翅膀羽毛白银礼包"},
+	[3] = {id = 3, item = {{233,2000}}, cost = {{1,1000}}, vip = 4, buy_count = 1, title = "翅膀羽毛黄金礼包"},
+	[4] = {id = 4, item = {{224,4000}}, cost = {{1,500}}, vip = 0, buy_count = 1, title = "强化石青铜礼包"},
+	[5] = {id = 5, item = {{224,3000}}, cost = {{1,600}}, vip = 2, buy_count = 1, title = "强化石白银礼包"},
+	[6] = {id = 6, item = {{224,2000}}, cost = {{1,600}}, vip = 4, buy_count = 1, title = "强化石黄金礼包"},
+	[7] = {id = 7, item = {{211,50},{212,50},{213,50}}, cost = {{1,900}}, vip = 0, buy_count = 1, title = "宝石青铜礼包"},
+	[8] = {id = 8, item = {{211,200},{212,200},{213,200}}, cost = {{1,600}}, vip = 2, buy_count = 1, title = "宝石白银礼包"},
+	[9] = {id = 9, item = {{211,100},{212,100},{213,100}}, cost = {{1,3000}}, vip = 4, buy_count = 1, title = "宝石黄金礼包"},
+	[10] = {id = 10, item = {{226,3000}}, cost = {{1,100}}, vip = 0, buy_count = 1, title = "精炼石青铜礼包"},
+	[11] = {id = 11, item = {{226,2000}}, cost = {{1,150}}, vip = 2, buy_count = 1, title = "精炼石白银礼包"},
+	[12] = {id = 12, item = {{226,4000}}, cost = {{1,150}}, vip = 4, buy_count = 1, title = "精炼石黄金礼包"},
+	[13] = {id = 13, item = {{227,200}}, cost = {{1,400}}, vip = 0, buy_count = 1, title = "兽魂青铜礼包"},
+	[14] = {id = 14, item = {{227,400}}, cost = {{1,600}}, vip = 2, buy_count = 1, title = "兽魂白银礼包"},
+	[15] = {id = 15, item = {{227,300}}, cost = {{1,350}}, vip = 4, buy_count = 1, title = "兽魂黄金礼包"},
+	[16] = {id = 16, item = {{200,100}}, cost = {{1,600}}, vip = 0, buy_count = 1, title = "法宝碎片青铜礼包"},
+	[17] = {id = 17, item = {{200,200}}, cost = {{1,900}}, vip = 2, buy_count = 1, title = "法宝碎片白银礼包"},
+	[18] = {id = 18, item = {{200,150}}, cost = {{1,800}}, vip = 4, buy_count = 1, title = "法宝碎片黄金礼包"},
+	[19] = {id = 19, item = {{237,10},{236,10}}, cost = {{1,400}}, vip = 0, buy_count = 1, title = "经脉丹青铜礼包"},
+	[20] = {id = 20, item = {{239,50},{238,50}}, cost = {{1,800}}, vip = 2, buy_count = 1, title = "经脉丹白银礼包"},
+	[21] = {id = 21, item = {{238,30},{237,30}}, cost = {{1,600}}, vip = 4, buy_count = 1, title = "经脉丹黄金礼包"},
 }

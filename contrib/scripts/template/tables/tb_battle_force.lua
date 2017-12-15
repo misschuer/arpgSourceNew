@@ -8,13 +8,13 @@ tb_battle_force = {
 	--  rate0:int 战力数值比例
 	--  rate1:int 战力数值比例
 	--  rate2:int 战力数值比例
-	[1] = {id = 1, rate0 = 1000, rate1 = 1538, rate2 = 1250},
-	[2] = {id = 2, rate0 = 10000, rate1 = 5714, rate2 = 7813},
+	[1] = {id = 1, rate0 = 10000, rate1 = 15380, rate2 = 12500},
+	[2] = {id = 2, rate0 = 100000, rate1 = 57140, rate2 = 78130},
 	[3] = {id = 3, rate0 = 0, rate1 = 0, rate2 = 0},
-	[4] = {id = 4, rate0 = 1500, rate1 = 1500, rate2 = 1500},
-	[5] = {id = 5, rate0 = 4250, rate1 = 4250, rate2 = 4250},
-	[6] = {id = 6, rate0 = 3500, rate1 = 3500, rate2 = 3500},
-	[7] = {id = 7, rate0 = 4900, rate1 = 4900, rate2 = 4900},
+	[4] = {id = 4, rate0 = 25000, rate1 = 25000, rate2 = 25000},
+	[5] = {id = 5, rate0 = 22500, rate1 = 22500, rate2 = 22500},
+	[6] = {id = 6, rate0 = 25000, rate1 = 25000, rate2 = 25000},
+	[7] = {id = 7, rate0 = 29000, rate1 = 29000, rate2 = 29000},
 	[8] = {id = 8, rate0 = 0, rate1 = 0, rate2 = 0},
 	[9] = {id = 9, rate0 = 0, rate1 = 0, rate2 = 0},
 	[10] = {id = 10, rate0 = 0, rate1 = 0, rate2 = 0},
@@ -27,8 +27,8 @@ tb_battle_force = {
 	[17] = {id = 17, rate0 = 0, rate1 = 0, rate2 = 0},
 	[18] = {id = 18, rate0 = 0, rate1 = 0, rate2 = 0},
 	[19] = {id = 19, rate0 = 0, rate1 = 0, rate2 = 0},
-	[20] = {id = 20, rate0 = 5250, rate1 = 5250, rate2 = 5250},
-	[21] = {id = 21, rate0 = 5250, rate1 = 5250, rate2 = 5250},
+	[20] = {id = 20, rate0 = 22500, rate1 = 22500, rate2 = 22500},
+	[21] = {id = 21, rate0 = 22500, rate1 = 22500, rate2 = 22500},
 	[22] = {id = 22, rate0 = 0, rate1 = 0, rate2 = 0},
 	[23] = {id = 23, rate0 = 0, rate1 = 0, rate2 = 0},
 	[24] = {id = 24, rate0 = 0, rate1 = 0, rate2 = 0},
@@ -38,5 +38,6 @@ tb_battle_force = {
 	[28] = {id = 28, rate0 = 0, rate1 = 0, rate2 = 0},
 	[29] = {id = 29, rate0 = 0, rate1 = 0, rate2 = 0},
 	[30] = {id = 30, rate0 = 0, rate1 = 0, rate2 = 0},
-	[31] = {id = 31, rate0 = 11400, rate1 = 10900, rate2 = 11100},
+	[31] = {id = 31, rate0 = 114000, rate1 = 109000, rate2 = 111000},
+	[32] = {id = 32, rate0 = 0, rate1 = 0, rate2 = 0},
 }

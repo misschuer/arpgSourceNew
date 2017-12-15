@@ -64,6 +64,19 @@ require("appd.quest.QuestMoneytreeTimes")
 require("appd.quest.QuestJoinMassBossTimes")
 require("appd.quest.QuestMainSkillUpgradeLevel")
 require("appd.quest.QuestSubSkillUpgradeLevel")
+require("appd.quest.QuestFinishQuestCountTypeTimes")
+
+require("appd.quest.QuestAdventureSkillUpgradeLevel")
+require("appd.quest.QuestAdventureQuestFinishTimes")
+require("appd.quest.QuestEquipsFitRequire")
+require("appd.quest.QuestAdventureQuestFinishToday")
+require("appd.quest.QuestAdventureSkillOneLevel")
+
+require("appd.quest.QuestStageInstanceId")
+require("appd.quest.QuestFactionSkillMultiLevel")
+require("appd.quest.QuestFactionTowerFloor")
+require("appd.quest.QuestTrialTowerFloor")
+require("appd.quest.QuestEquipdevelopStrengthMultiLevel")
 
 -- 这个一定要放到最后
 require("appd.quest.QuestManager")
