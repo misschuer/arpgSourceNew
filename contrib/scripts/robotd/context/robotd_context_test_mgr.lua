@@ -308,27 +308,41 @@ local FuncName = {
 
 function PlayerInfo:SendProtocol()
 	
-	-- ÏÈ·¢ËÍÉı¼¶ÃüÁî Éıµ½31¼¶
-	--[[local cmd = "@Rank 50"
-	
-	self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)--]]
-	local indice = GetRandomIndexTable(#ProtocolsFunc, math.min(#ProtocolsFunc, 6))
+	-- å…ˆå‘é€å‡çº§å‘½ä»¤ å‡åˆ°31çº§
+	--local cmd = "@Rank 50"
+	--self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+	--[[local indice = GetRandomIndexTable(#ProtocolsFunc, math.min(#ProtocolsFunc, 6))
 	for _, index in ipairs(indice) do
 		local callback = ProtocolsFunc[index]
 		--outFmtDebug("%s invoke %s", self:GetGuid(), FuncName[index])
 		doxpcall(callback, self)
-	end
+	end--]]
+	
 	
 	return true
 	
 end
 
 function PlayerInfo:SendRobotRank()
-		-- ÏÈ·¢ËÍÉı¼¶ÃüÁî Éıµ½31¼¶
-	local cmd = "@Rank 100"
-	self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+		-- å…ˆå‘é€å‡çº§å‘½ä»¤ å‡åˆ°31çº§
+	--local cmd = "@Rank 200"
+	--local cmd = "@é€‰æ‹©ä¸»çº¿ 10250"
+	--self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+	--local cmd = "@åˆ¶é€  30000 1"
+	--self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+
+	--local cmd = "@åˆ¶é€  30001 1"
+	--self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+
+	--local cmd = "@åˆ¶é€  30002 1"
+	--self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+
+	self:call_one_step_robot_up(randInt(1,3))
+	return true
 	
-	return false
+	--[[local cmd = "@éšæœºè£…å¤‡ 30 1"
+	self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+	return true--]]
 end
 
 function PlayerInfo:SendRobotAppearance()

@@ -233,13 +233,14 @@ bool PathFinding::pathFinding(uint32 mapid, uint16 startX, uint16 startY, uint16
 	SetMapTemplate(mapid);
 
 	////缓存里有就用缓存的
-	//sprintf(s_key, "%4u%4u%4u%4u%4u", m_map->GetMapBaseInfo().mapid, startX, startY, endX, endY);
-	//map<string, vector<float>>::iterator path_it = m_path_data.find(s_key);
-	//if(path_it != m_path_data.end())
-	//{
-	//	m_path = path_it->second;
-	//	return !m_path.empty();
-	//}
+	char s_key[99];
+	sprintf(s_key, "%4u%4u%4u%4u%4u", m_map->GetMapBaseInfo().mapid, startX, startY, endX, endY);
+	map<string, vector<float>>::iterator path_it = m_path_data.find(s_key);
+	if(path_it != m_path_data.end())
+	{
+		m_path = path_it->second;
+		return !m_path.empty();
+	}
 
 	//终点是否可到达(掩码)
 	if(!m_map->IsCanRun(endX, endY))
@@ -284,7 +285,7 @@ bool PathFinding::pathFinding(uint32 mapid, uint16 startX, uint16 startY, uint16
 			m_path.insert(m_path.begin(), m_startY);
 			m_path.insert(m_path.begin(), m_startX);
 		}
-		//m_path_data[s_key] = m_path;
+		m_path_data[s_key] = m_path;
 	}
 	else
 	{
@@ -406,7 +407,6 @@ int PathFinding::LuaPathfindingGoto(lua_State* scriptL)
 	static PathFinding pf;
 	tea_pdebug("%s LuaPathfindingGoto from (%d, %d) to (%d, %d)", unit->GetGuid().c_str(), (uint16)unit->GetPosX(), (uint16)unit->GetPosY(), to_x, to_y);
 	bool result = pf.pathFinding(unit->GetMapId(), (uint16)unit->GetPosX(), (uint16)unit->GetPosY(), to_x, to_y);
-	
 	if(!result)
 	{
 		lua_pushboolean(scriptL, FALSE);

@@ -113,7 +113,7 @@ function PlayerInfo:shopBuyItem(id, count, timeid)
 		costTable = baseCostTable
 	end
 	
-	if not self:costMoneys(MONEY_CHANGE_TYPE_MALL_BUY, costTable, count) then
+	if not self:costMoneys(MONEY_CHANGE_TYPE_MALL_BUY, costTable, count, ''..entry, ''..added) then
 		self:CallOptResult(OPERTE_TYPE_NPCBUY, NPC_BUY_MONEY_NO_ENOUGH)
 		return
 	end
@@ -187,40 +187,3 @@ function PlayerInfo:resetWeekShop() --FIXME 尚未调用
 		end
 	end
 end
-
---[[
--- 元宝复活
-function PlayerInfo:goldRespawn(useGold)
-	local resItemId = tb_hook_hp_item[ 2 ].items[ 1 ]
-	local id = GetShopId(MONEY_TYPE_GOLD_INGOT, resItemId)
-	
-	if not tb_shop[id] then
-		return
-	end
-	
-	-- 本身就活着
-	if self:IsAlive() then
-		return
-	end
-		
-	local cost = tb_shop[id].costResource[ 1 ][ 2 ]
-	if useGold then
-		if not self:SubGoldMoney (MONEY_CHANGE_BUY_ATUO_RESPAWN, cost) then
-			return
-		end
-	else
-		if not self:SubMoney(MONEY_TYPE_BIND_GOLD, MONEY_CHANGE_BUY_ATUO_RESPAWN, cost) then
-			return
-		end
-	end
-	
-	
-	local itemMgr = self:getItemMgr()
-	--处理cd
-	itemMgr:handleCoolDown(resItemId)
-	
-	-- 发送到场景服
-	self:CallScenedDoSomething(APPD_SCENED_RESPAWN, resItemId)
-end
-
---]]

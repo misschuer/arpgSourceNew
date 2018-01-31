@@ -58,6 +58,7 @@ public:
 	void Handle_Map_Info_Update(uint16 optcode, PacketType &pkt);						//地图对象更新
 	void Handle_join_or_leave_server(uint16 optcode, PacketType &bytes);				//加入获取离开否逻辑服务器
 	void Handle_Fighting_Info_Update_Object(uint16 optcode, PacketType &bytes);			//战斗技能包
+	void Handle_Cast_Remain_Skill(uint16 optcode, PacketType &bytes);
 	void Handle_Fighting_Info_Update_Object_2(uint16 optcode, PacketType &bytes);		//战斗技能包
 	void Handle_World_War_SC_Player_info(uint16 optcode, PacketType &bytes);			//跨服玩家数据
 	void Handle_Strength_Success(uint16 optcode, PacketType &bytes);

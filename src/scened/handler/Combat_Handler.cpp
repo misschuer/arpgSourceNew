@@ -112,7 +112,7 @@ void ScenedContext::Handle_Spell_Start(packet& pkt)
 	}
 	/* 判断是否能使用技能 */
 	if (!m_player->canUseSkill()) {
-		tea_perror("two skills in interval %d", SKILL_INTERVAL);
+		//tea_perror("two skills in interval %d", SKILL_INTERVAL);
 		return;
 	}
 	Unit* targetUnit = curmap->FindUnit(target);

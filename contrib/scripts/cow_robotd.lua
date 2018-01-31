@@ -45,6 +45,7 @@ config = {
 		--CMSG_FLZ_HDQS_OPT,			--荒岛求生玩家操作
 		CMSG_GOLD_RESPAWN,			--元宝复活
 		CMSG_XIANFU_RANDOM_RESPAWN,	--随机复活
+		SMSG_SHOW_CAST_REMAIN_SKILL,
 	},
 }
 

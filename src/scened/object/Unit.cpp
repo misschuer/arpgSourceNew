@@ -1792,7 +1792,7 @@ int Unit::LuaSetCurSpell(lua_State* scriptL)
 	
 	if(unit)
 	{
-		scriptL, unit->SetCurSpell(spell_id);
+		unit->SetCurSpell(spell_id);
 	}
 
 	return 0;

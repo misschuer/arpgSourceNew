@@ -313,6 +313,8 @@ end
 --Q = 1000 / (1000 / 人物基础数值 + Add) ms/码
 --
 function ScenedContext:Handle_Ride(packet)
+	local oper = packet.oper
+	
 	local player_ptr = self.ptr
 	
 	-- 坐骑未激活
@@ -328,8 +330,13 @@ function ScenedContext:Handle_Ride(packet)
 		return
 	end
 	
-	local prev = self:rideFlag()
-	if prev == 0 then	--上坐骑
+	-- 相同状态的不操作
+	if self:rideFlag() == oper then
+		return
+	end
+	
+	local isRidable = 0
+	if oper == 1 then	--上坐骑
 		--当前是战斗状态
 		local status = playerLib.GetPlayeCurFightStatus(player_ptr)
 		if status == COMBAT_STATE_ENTER then
@@ -344,11 +351,13 @@ function ScenedContext:Handle_Ride(packet)
 		end
 		
 		self:MountRide()
-	elseif prev > 0 then	--下坐骑
+		isRidable = 1
+	elseif oper == 0 then	--下坐骑
 		self:MountUnride()
 	end
+	
+	self:CalSpeed(isRidable)
 end
-
 
 
 --客户端发起传送
@@ -595,6 +604,10 @@ function ScenedContext:Hanlde_Teleport_Map(pkt)
 		return
 	end
 	
+	if self:GetLevel() < tb_map[mapid].levellimit then
+		return
+	end
+	
 	-- 该地图还未处理
 	if not INSTANCE_SCRIPT_TABLE[mapid] then
 		return
@@ -648,6 +661,10 @@ end
 function ScenedContext:Hanlde_Teleport_Main_City(pkt)
 	local mapid = unitLib.GetMapID(self.ptr)
 	if mapid == ZHUCHENG_DITU_ID then
+		return
+	end
+	
+	if self:GetLevel() < tb_map[mapid].levellimit then
 		return
 	end
 	
@@ -894,23 +911,19 @@ function ScenedContext:Handle_Pick_Offline_Reward(pkt)
 end
 
 function ScenedContext:Handle_Try_Mass_Boss (pkt)
-	local id = pkt.id
 	
-	if not tb_mass_boss_info[ id ] then
+	local bossId = pkt.id
+	if not tb_mass_boss_info[bossId] then
 		return
 	end
 	
+	local room = tb_mass_boss_info[bossId].roomIndx
 	local map_ptr = unitLib.GetMap(self.ptr)
 	if not map_ptr then 
 		return
 	end
 	
-	-- boss未刷新
-	if not globalValue:isMassBossAlive(id) then
-		return
-	end
-	
-	local toMapId = tb_mass_boss_info[ id ].mapId
+	local toMapId = tb_mass_boss_info[bossId].mapid
 	
 	-- 玩家必须还活着
 	if not self:IsAlive() then
@@ -924,8 +937,8 @@ function ScenedContext:Handle_Try_Mass_Boss (pkt)
 	end
 	
 	-- 人数是否超过上限
-	local currentCount = mapLib.GetMassBossEnterCount(id)
-	if currentCount > tb_mass_boss_info[ id ].permitCount then
+	local currentCount = mapLib.GetMassBossEnterCount(room)
+	if currentCount > tb_mass_boss_base[ 1 ].permitCount then
 		return
 	end
 	
@@ -942,7 +955,8 @@ function ScenedContext:Handle_Try_Mass_Boss (pkt)
 	end
 	
 	--发到应用服进行进入判断
-	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_MASS_BOSS_INSTANCE, id)
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_MASS_BOSS_INSTANCE, bossId)
+	
 end
 
 function ScenedContext:Handle_Query_Mass_Boss_Info(pkt)
@@ -1039,6 +1053,9 @@ function ScenedContext:Handle_Use_Restore_Potion(pkt)
 	
 	self:ModifyHealth(add_hp)
 
+	local map_ptr = unitLib.GetMap(self.ptr)
+	local mapInfo = Select_Instance_Script(mapid):new {ptr = map_ptr}
+	mapInfo:OnPlayerHurt(self.ptr, self.ptr, -add_hp)
 end
 
 
@@ -1067,8 +1084,11 @@ function ScenedContext:Handle_Enter_Stage_Instance(pkt)
 		return
 	end
 	local mapid = unitLib.GetMapID(self.ptr)
+	
+	
+	
 	-- 是否允许传送
-	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
+	if tb_map[toMapId].inst_sub_type ~= tb_map[mapid].inst_sub_type and not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
 --		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
 		return
 	end
@@ -1083,7 +1103,160 @@ function ScenedContext:Handle_Enter_Stage_Instance(pkt)
 	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_STAGE_INSTANCE, id)
 end
 
+function ScenedContext:CheckCanEnterGroupExpInstance(mapid, toMapId)
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		return false
+	end
+	
+	-- 是否允许传送
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
+		return false
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return false
+	end
+	
+	return true
+end
 
+function ScenedContext:Handle_Enter_Group_Exp_Instance(pkt)
+	local isGroup = pkt.isGroup
+	
+	local map_ptr = unitLib.GetMap(self.ptr)
+	if not map_ptr then 
+		return
+	end
+	
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		return false
+	end
+	
+	-- 该地图是否存在
+	local toMapId = tb_instance_group_exp[ 1 ].mapid
+	if tb_map[toMapId] == nil then
+		return
+	end
+	local mapid = unitLib.GetMapID(self.ptr)
+	
+	-- 看看是组队的 还是单人的
+	local groupId = self:GetGroupId()
+	if isGroup == 1 and string.len(groupId) > 0 then
+		local groupObj = app.objMgr:getObj(groupId)
+		if groupObj then
+			-- 有队伍 看看是不是队长
+			if not groupObj:IsPlayerCaptain(self:GetPlayerGuid()) then
+				return
+			end
+			-- 发送所有人确认同意进入
+			playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_GROUP_EXP_INSTANCE, 1)
+			return
+		end
+	end
+	
+	-- 如果是单人进入就判断
+	if ScenedContext.CheckCanEnterGroupExpInstance(self, mapid, toMapId) then
+--		local general = string.format("#%d#%d", self:GetLevel(), os.time())
+		playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_GROUP_EXP_INSTANCE, 0)
+	end
+end
+
+function ScenedContext:Handle_Buy_Inspiration(pkt)
+	local category = pkt.category
+	local mapid = unitLib.GetMapID(self.ptr)
+	local map_ptr = unitLib.GetMap(self.ptr)
+	local mapInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
+	
+	if mapInfo:checkCanInspire(self, category) then
+		playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_BUY_INSPIRATION, category)
+	end
+end
+
+function ScenedContext:Handle_Enter_Faction_Match_Instance(pkt)
+	local map_ptr = unitLib.GetMap(self.ptr)
+	if not map_ptr then 
+		return
+	end
+	local toMapId = tb_faction_match_base[1].map_id
+	
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		outFmtError("Hanlde_Enter_VIP_Instance player %s is not alive!", self:GetPlayerGuid())
+		return 
+	end
+
+	-- 该地图是否存在
+	if tb_map[toMapId] == nil then
+		return
+	end
+	local mapid = unitLib.GetMapID(self.ptr)
+	-- 是否允许传送
+	if not self:makeEnterTest(toMapId) and isRiskMap(mapid) == 0 then
+--		outFmtError("Hanlde_Enter_VIP_Instance player %s cannot tele to vip map curmapid %d!", self:GetPlayerGuid(), mapid)
+		return
+	end
+	
+	--pvp状态下一律不准进
+	if self:GetPVPState() then
+		self:CallOptResult(OPRATE_TYPE_TELEPORT, TELEPORT_OPRATE_PVP_STATE)
+		return
+	end
+	
+	--发到应用服进行进入判断
+	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_FACTION_MATCH_INSTANCE, 0)
+end
+
+function ScenedContext:Handle_Enter_Group_Instance(pkt)
+	local indx = pkt.indx
+	local isGroup = pkt.isGroup
+	
+	local map_ptr = unitLib.GetMap(self.ptr)
+	if not map_ptr then 
+		return
+	end
+	
+	-- 玩家必须还活着
+	if not self:IsAlive() then
+		return false
+	end
+	
+	-- index是否正确
+	if not tb_group_instance_base[indx] then
+		--outFmtInfo("============== 2")
+		return
+	end
+	
+	-- 该地图是否存在
+	local toMapId = tb_group_instance_base[indx].mapid
+	if tb_map[toMapId] == nil then
+		return
+	end
+	local mapid = unitLib.GetMapID(self.ptr)
+	
+	-- 看看是组队的 还是单人的
+	local groupId = self:GetGroupId()
+	if isGroup == 1 and string.len(groupId) > 0 then
+		local groupObj = app.objMgr:getObj(groupId)
+		if groupObj then
+			-- 有队伍 看看是不是队长
+			if not groupObj:IsPlayerCaptain(self:GetPlayerGuid()) then
+				return
+			end
+			-- 发送所有人确认同意进入
+			playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_GROUP_INSTANCE, 1, ''..indx)
+			return
+		end
+	end
+	
+	-- 如果是单人进入就判断
+	if ScenedContext.CheckCanEnterGroupExpInstance(self, mapid, toMapId) then
+		playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_GROUP_INSTANCE, 0, ''..indx)
+	end
+end
 
 --场景服协议有冷却CD
 local scene_operate_need_cd = {

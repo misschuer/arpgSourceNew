@@ -61,6 +61,12 @@ OpcodeHandlerFuncTable[CMSG_USE_RESTORE_POTION] = ScenedContext.Handle_Use_Resto
 
 OpcodeHandlerFuncTable[CMSG_ENTER_STAGE_INSTANCE] = ScenedContext.Handle_Enter_Stage_Instance
 
+OpcodeHandlerFuncTable[CMSG_ENTER_GROUP_EXP] = ScenedContext.Handle_Enter_Group_Exp_Instance
 
+OpcodeHandlerFuncTable[CMSG_BUY_INSPIRATION] = ScenedContext.Handle_Buy_Inspiration
+
+OpcodeHandlerFuncTable[CMSG_ENTER_FACTION_MATCH_MAP] = ScenedContext.Handle_Enter_Faction_Match_Instance
+
+OpcodeHandlerFuncTable[CMSG_GROUP_INSTANCE_MATCH] = ScenedContext.Handle_Enter_Group_Instance
 
 return OpcodeHandlerFuncTable

@@ -32,6 +32,13 @@ function UnitInfo:DoGetAppdDoSomething( ntype, data, str)
 		self:CheckEnterFactionBossDefense(data)
 	elseif ntype == APPD_SCENED_CHECK_ENTER_FACTION_TOWER then
 		self:CheckEnterFactionBossTower()
+	elseif ntype == APPD_SCENED_INSPIRATION then
+		self:playerInspire(data)
+	elseif APPD_SCENED_RESETDAILY == ntype then
+		-- 删除由于次数不足产生的BUFF等等
+		local buffEffectId = tb_mass_boss_base[ 1 ].monsterForbid
+		local buffEffectConfig = tb_buff_effect[buffEffectId]
+		unitLib.RemoveBuff(self.ptr, buffEffectConfig.buff_id)
 	end
 end
 
@@ -159,6 +166,13 @@ function UnitInfo:CheckEnterFactionBossTower()
 	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_ENTER_FACTION_TOWER_INSTANCE, 0, "")
 end
 
+function UnitInfo:playerInspire(category)
+	local mapid = unitLib.GetMapID(self.ptr)
+	local map_ptr = unitLib.GetMap(self.ptr)
+	local mapInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
+	
+	mapInfo:inspire(self, category)
+end
 
 
 ----------------------------------------场景服需要做的-----------------------------------------------
@@ -180,7 +194,7 @@ end
 
 -- 全局变量清理野外BOSS
 function OnClearFieldBoss()
-	outFmtInfo("====================== OnClearFieldBoss")
+	outFmtDebug("====================== OnClearFieldBoss")
 	for mapid, _ in pairs(tb_field_boss) do
 		for lineNo = 1, MAX_DEFAULT_LINE_COUNT do
 			globalValue:ResetFieldBoss(mapid, lineNo)
@@ -190,7 +204,7 @@ end
 
 -- 全局变量刷新野外BOSS
 function OnRebornFieldBoss()
-	outFmtInfo("******************** OnRebornFieldBoss")
+	outFmtDebug("******************** OnRebornFieldBoss")
 	for mapid, _ in pairs(tb_field_boss) do
 		for lineNo = 1, MAX_DEFAULT_LINE_COUNT do
 			globalValue:BornFieldBoss(mapid, lineNo)

@@ -315,6 +315,60 @@ function table.insertTo(dest, src, begin)
 end
 
 --[[
+print_dump是一个用于调试输出数据的函数，能够打印出nil,boolean,number,string,table类型的数据，以及table类型值的元表
+参数data表示要输出的数据
+参数showMetatable表示是否要输出元表
+参数lastCount用于格式控制，用户请勿使用该变量
+]]
+function table.dump(data, showMetatable, lastCount)
+	local str = ''
+    if type(data) ~= "table" then
+        --Value
+        if type(data) == "string" then
+            str = str .. "\"" .. data .. "\""
+        else
+            str = str .. tostring(data)
+        end
+    else
+        --Format
+        local count = lastCount or 0
+        count = count + 1
+		
+        str = str .. "{\n"
+        --Metatable
+        if showMetatable then
+            for i = 1,count do str = str .. "\t" end
+            local mt = getmetatable(data)
+            str = str .. "\"__metatable\" = "
+            str = str .. table.dump(mt, showMetatable, count)    -- 如果不想看到元表的元表，可将showMetatable处填nil
+            str = str .. ",\n"        --如果不想在元表后加逗号，可以删除这里的逗号
+        end
+        --Key
+        for key,value in pairs(data) do
+            for i = 1,count do str = str .. "\t" end
+            if type(key) == "string" then
+                str = str .. "\"".. key.. "\" = "
+            elseif type(key) == "number" then
+                str = str .. "[".. key.. "] = "
+            else
+                str = str .. tostring(key) .. " = "
+            end
+            str = str .. table.dump(value, showMetatable, count)    -- 如果不想看到子table的元表，可将showMetatable处填nil
+            str = str .. ",\n"        --如果不想在table的每一个item后加逗号，可以删除这里的逗号
+        end
+        --Format
+        for i = 1,lastCount or 0 do str = str .. "\t" end
+        str = str .. "}"
+    end
+    --Format
+    if not lastCount then
+        str = str .. "\n"
+    end
+	
+	return str
+end
+
+--[[
 search target index at list.
 
 @param table list
@@ -615,34 +669,70 @@ end
 
 
 --执行出错打印
-function __EXCEPTION_TRACEBACK__(e )
+function __EXCEPTION_TRACEBACK__(errors )
     outString("--------------------------------------------------------------------")
     outString("")
-    outFmtInfo("LUA ERROR: %s", e)
+    outFmtInfo("LUA ERROR: %s", errors)
     outString("")
     outString("********************************************************************")
     outString("")
-    local level = 1
-    while true do
-        local info = debug.getinfo(level)
-        if not info then break end
-        if info.what == "C" then -- is a C function?
-            outFmtInfo("[%u] %s function '%s'", level, info.what, info.name)
-        elseif(info.name)then
-            outFmtInfo("[%u] %s %s:%d in function '%s'", level, info.what, info.source, info.currentline, info.name)
-        else
-            outFmtInfo("[%u] %s %s:%d in function <%s:%u>", level, info.what, info.source, info.currentline, info.short_src, info.linedefined)
+
+	 -- not verbose?
+    if not true then
+        if errors then
+            -- remove the prefix info
+            local _, pos = errors:find(":%d+: ")
+            if pos then
+                return errors:sub(pos + 1)
+            end
         end
-        level = level + 1
+        return errors
     end
 
-    outString("********************************************************************")
+    -- init results
+    local results = ""
+    if errors then
+        results = errors .. "\n"
+    end
+    results = results .. "stack traceback:\n"
+
+    -- make results
+    local level = 2    
+    while true do    
+
+        -- get debug info
+        local info = debug.getinfo(level, "Sln")
+
+        -- end?
+        if not info or (info.name and info.name == "xpcall") then
+            break
+        end
+
+        -- function?
+        if info.what == "C" then
+            results = results .. string.format("    [C]: in function '%s'\n", info.name)
+        elseif info.name then 
+            results = results .. string.format("    [%s:%d]: in function '%s'\n", info.source, info.currentline, info.name)    
+        elseif info.what == "main" then
+            results = results .. string.format("    [%s:%d]: in main chunk\n", info.source, info.currentline)    
+            break
+        else
+            results = results .. string.format("    [%s:%d]:\n", info.source, info.currentline)    
+        end
+
+        -- next
+        level = level + 1    
+    end    
+	outString(results)
+	outString("********************************************************************")
     outString("")
     if(___OUT_DEBUG_INFO__)then
         ___OUT_DEBUG_INFO__()
     end
     outString("--------------------------------------------------------------------")    
-    return e
+	
+    -- ok?
+    return errors
 end
 
 --调试运行，当程序出错，打印堆栈并退出

@@ -35,5 +35,9 @@ function ScenedFaction:GetFactionLevel()
 	return self:GetUInt32(FACTION_INT_FIELD_LEVEL)
 end
 --
+function ScenedFaction:GetFactionFlagsId()
+	return self:GetByte(FACTION_INT_FIELD_FLAGS_ID,0)
+end
+
 
 return ScenedFaction

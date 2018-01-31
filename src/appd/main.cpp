@@ -30,7 +30,7 @@ int main(int argc, const char **argv)
 
 	//打开应用程序
 	AppdApp::g_app = new AppdApp(params,config);
-	AppdApp::loadXiulian();
+	//AppdApp::loadXiulian();
 	AppdApp::HookSignals();
 	if(!AppdApp::g_app->Open())
 	{

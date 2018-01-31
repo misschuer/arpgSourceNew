@@ -70,19 +70,6 @@ function PlayerInfo:OnDoujiantaiFight(indx)
 	questMgr:OnUpdate(QUEST_TARGET_TYPE_JOIN_DOUJIANTAI)
 	
 	instMgr:addDoujianEnterTimes()
-	curtime = curtime + 1
-
-	local bcd = config.battleCountdown
-	local cdSeconds
-	if curtime >= #bcd then
-		cdSeconds = bcd[#bcd]
-	else
-		cdSeconds = bcd[curtime]
-	end
-	
-	cdSeconds = cdSeconds + os.time()
-	
-	instMgr:setDoujianCD(cdSeconds)
 	
 	self:AddActiveItem(VITALITY_TYPE_DOUJIANTAI)
 end
@@ -173,7 +160,7 @@ function PlayerInfo:BuyDoujiantaiTime(num)
 		AddTempInfoIfExist(cost, config[idx][ 1 ], config[idx][ 2 ])
 	end
 
-	if not self:useAllItems(MONEY_CHANGE_DOUJIAN_BUY_TIMES, cost, 1) then
+	if not self:useAllItems(MONEY_CHANGE_DOUJIAN_BUY_TIMES, nil, cost, 1) then
 		self:CallOptResult(OPRATE_TYPE_DOUJIAN, DOUJIAN_OPERATE_NO_MONEY)
 		--元宝不足购买斗剑次数
 		return
@@ -193,7 +180,7 @@ function PlayerInfo:ClearDoujianCD()
 	local config = tb_doujiantai_base[ 1 ]
 	local minute = math.ceil((cdtime - os.time())/60)
 	local cost = config.changeRate
-	if not self:useAllItems(MONEY_CHANGE_DOUJIAN_CLEARCD, cost, minute) then
+	if not self:useAllItems(MONEY_CHANGE_DOUJIAN_CLEARCD, nil, cost, minute) then
 		self:CallOptResult(OPRATE_TYPE_DOUJIAN, DOUJIAN_OPERATE_NO_MONEY_CD)
 		--元宝不足不能清理CD
 		return

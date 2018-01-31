@@ -106,9 +106,9 @@ function PlayerInfo:TalkWithNPC(questId, indx)
 	questOperate.questId = questId
 
 	local entry = questOperate.objcet_id
-	questOperate.callback 	= function()
+	questOperate.callback 	= function(uguid)
 		outFmtDebug("call_talk_with_npc entry = %d, questId = %d", entry, questId)
-		self:call_talk_with_npc (questOperate.objcet_id ,questId)
+		self:call_talk_with_npc (uguid ,questId)
 	end
 
 	-- 寻路
@@ -190,9 +190,30 @@ function PlayerInfo:RobotKillMonster(questId, indx)
 				end
 				return vist
 			end
+			
+			
 		else
 			local questIndx = self.quest:GetQuestIndxById(questId)
 			self:call_execute_quest_cmd_after_accepted(questIndx)
+		end
+	elseif targetPosType == 2 then
+		if stepParams[ 2 ] == 504 then
+			questOperate = {}
+			questOperate.type 	= config.targets[indx][ 1 ]
+			questOperate.params = {stepParams[ 2 ], stepParams[ 3 ]}
+			questOperate.questId = questId
+			
+			-- 判断任务是否完成
+			questOperate.IsFinishMethod = function()
+				local questIndx = self.quest:GetQuestIndxById(questId)
+				local vist = not questIndx
+				if not vist then
+					local intstart = QUEST_FIELD_QUEST_START + questIndx * MAX_QUEST_INFO_COUNT
+					local stepstart = intstart + QUEST_INFO_STEP_START + (indx-1) * MAX_QUEST_TARGET_INFO_COUNT
+					vist =  self.quest:GetUInt16(stepstart + QUEST_TARGET_INFO_SHORT0, 0) == 1
+				end
+				return vist
+			end
 		end
 	end
 	
@@ -267,7 +288,7 @@ function PlayerInfo:RobotJoinResourceInstance(questId, indx)
 	questOperate.callback = function()
 		outFmtDebug("RobotJoinResourceInstance callback")
 
-		self:call_res_instance_enter(4) -- 银币副本
+		self:call_res_instance_enter(1) -- 银币副本
 		--self:call_instance_exit(0)
 		self:AutoSendFinishQuest(questId)
 	end
@@ -379,9 +400,21 @@ function PlayerInfo:RobotLvUp(questId, indx)
 	local lv = config.targets[indx][ 2 ]
 	
 	local cmd = "@Rank "..lv
-	self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
+	--self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
 	
-	return
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotLvUp callback")
+		self:AutoSendFinishQuest(questId)
+		
+		return self:GetLevel() >= lv 
+		
+	end
+	
+	return questOperate
 end
 
 function PlayerInfo:AutoSendFinishQuest(questId)
@@ -396,6 +429,26 @@ function PlayerInfo:AutoSendFinishQuest(questId)
 	end
 end
 
+function PlayerInfo:AutoSendFinishRealmbreakQuest()
+	
+	local intstart = QUEST_FIELD_REALMBREAK_QUEST_START
+	local count = 0
+	for i = 1, MAX_REALMBREAK_QUEST_COUNT do
+		local questId = self.quest:GetUInt16(intstart + QUEST_INFO_ID, 0)
+		local state   = self.quest:GetUInt16(intstart + QUEST_INFO_ID, 1)
+		if questId > 0 and state == QUEST_STATUS_COMPLETE then
+			local questIndx =  i-1
+			outFmtDebug("	call_pick_quest_realmbreak questIndx = %d", questIndx)
+			self:call_pick_quest_realmbreak(questIndx)
+			count = count + 1
+		end
+		intstart = intstart + MAX_QUEST_INFO_COUNT
+	end
+	
+	return count
+	
+end
+
 function PlayerInfo:RobotSmelt(questId, indx)
 	local config = tb_quest[questId]
 	local stepParams = config.targetsPosition[indx]
@@ -406,7 +459,7 @@ function PlayerInfo:RobotSmelt(questId, indx)
 	
 	questOperate.callback = function()
 		outFmtDebug("RobotSmelt callback")
-		local cmd = "@制造 233 100"
+		local cmd = "@制造 20001 1"
 		self:call_chat_by_channel(CHAT_TYPE_WORLD, cmd)
 		self:call_smelting_equip("1")
 		
@@ -688,6 +741,190 @@ function PlayerInfo:RobotJoinMassBossTimeTimes(questId, indx)
 end
 
 
+function PlayerInfo:RobotMainSkillUpgradeLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotMainSkillUpgradeLevel callback")
+		--self:call_raise_base_spell_all("",RAISE_BASE_SKILL)
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotSubSkillUpgradeLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotMainSkillUpgradeLevel callback")
+		self:call_raise_base_spell_all()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+function PlayerInfo:RobotEnterStage(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotEnterStage callback")
+		--self:call_enter_stage_instance()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotEnterTrial(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotEnterTrial callback")
+		self:call_enter_trial_instance()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotEnterExpInstance(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotEnterExpInstance callback")
+		self:call_enter_group_exp(0)
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+
+function PlayerInfo:RobotEnterGroupInstance(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotEnterGroupInstance callback")
+		self.player:call_group_instance_match(4,0)
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotRealbreakLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotRealbreakLevel callback")
+		local count = self:AutoSendFinishRealmbreakQuest()
+		
+		if count >0 then
+			self:AutoSendFinishQuest(questId)
+			return true
+		else
+			return false
+		end
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotWingsUpLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotWingsUpLevel callback")
+		self:call_wings_active()
+		self:call_wings_bless()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotMountUpLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotMountUpLevel callback")
+		self:call_active_mount()
+		self:call_raise_mount()
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+function PlayerInfo:RobotStrengthAllLevel(questId, indx)
+	local config = tb_quest[questId]
+	local stepParams = config.targetsPosition[indx]
+	
+	local questOperate = {}
+	questOperate.type = config.targets[indx][ 1 ]
+	questOperate.questId = questId
+	
+	questOperate.callback = function()
+		outFmtDebug("RobotStrengthAllLevel callback")
+		
+		self:call_equipdevelop_operate(EQUIPDEVELOP_TYPE_STRENGTH_ALL,0,0,"","")
+		self:AutoSendFinishQuest(questId)
+	end
+	
+	return questOperate
+end
+
+
+
 
 Quest_Function = {
 	[QUEST_TARGET_TYPE_PLAYER_LEVEL] 		= PlayerInfo.RobotLvUp,
@@ -748,11 +985,43 @@ Quest_Function = {
 	[QUEST_TARGET_TYPE_MONEYTREE_TIMES] = PlayerInfo.RobotMoneytreeTimes,
 	[QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES] =  PlayerInfo.RobotJoinMassBossTimeTimes,
 	
+	[QUEST_TARGET_TYPE_MAIN_SKILL_UPGRADE_LEVEL] = PlayerInfo.RobotMainSkillUpgradeLevel,
+	[QUEST_TARGET_TYPE_SUB_SKILL_UPGRADE_LEVEL] = PlayerInfo.RobotSubSkillUpgradeLevel,
+	
+	[QUEST_TARGET_TYPE_STAGE_INSTANCE_ID] = PlayerInfo.RobotEnterStage,
+	
+	[QUEST_TARGET_TYPE_TRIAL_TOWER_FLOOR] = PlayerInfo.RobotEnterTrial,
+	[QUEST_TARGET_TYPE_INSTANCE_EXP_TIMES] = PlayerInfo.RobotEnterExpInstance,
+	[QUEST_TARGET_TYPE_INSTANCE_GROUP_TIMES] = PlayerInfo.RobotEnterGroupInstance,
+	[QUEST_TARGET_TYPE_REALMBREAK_LEVEL] = PlayerInfo.RobotRealbreakLevel,
+	[QUEST_TARGET_TYPE_WINGS_UPGRADE_LEVEL] = PlayerInfo.RobotWingsUpLevel,
+	[QUEST_TARGET_TYPE_MOUNT_LEVEL] = PlayerInfo.RobotMountUpLevel,
+	[QUEST_TARGET_TYPE_EQUIPDEVELOP_STRENGTH_MULTI_LEVEL] = PlayerInfo.RobotStrengthAllLevel,
+	
+	
+	
+	
 --[[
 
 	--QUEST_TARGET_TYPE_JOIN_SINGLE_PVP = 68	-- 参加排位赛X次
 	--QUEST_TARGET_TYPE_SINGLE_PVP_WINS = 69	-- 排位赛胜利X次
 	--QUEST_TARGET_TYPE_ACTIVE_TASK = 70	-- 完成X个活跃任务
 	--QUEST_TARGET_TYPE_DAILY_TASK = 71	-- 完成X轮日常任务
+	
+	QUEST_TARGET_TYPE_FINISH_QUEST_COUNT_TYPE_TIMES = 78	-- 完成某计数类型任务总记达到X次
+	QUEST_TARGET_TYPE_ADVENTURE_SKILL_UPGRADE_LEVEL = 79	-- 将N个神器技能升级到X级
+	QUEST_TARGET_TYPE_ADVENTURE_QUEST_FINISH_TIMES = 80	-- 完成N个历练任务
+	QUEST_TARGET_TYPE_EQUIPS_FIT_REQUIRE = 81	-- 身上穿X级以上，Y品质以上的装备大于等于N件
+	QUEST_TARGET_TYPE_ADVENTURE_QUEST_FINISH_TODAY = 82	-- 完成1次历练任务X
+	QUEST_TARGET_TYPE_ADVENTURE_SKILL_ONE_LEVEL = 83	-- 将神器技能ID X升级到Y级
+	
+	QUEST_TARGET_TYPE_FACTION_SKILL_MULTI_LEVEL = 85	-- 将N个家族技能升级到X级
+	QUEST_TARGET_TYPE_FACTION_TOWER_FLOOR = 86	-- 家族爬塔通关到X层
+	
+	QUEST_TARGET_TYPE_EQUIPDEVELOP_STRENGTH_MULTI_LEVEL = 88	-- N件装备强化到X级
+	QUEST_TARGET_TYPE_REALMBREAK_LEVEL = 89	-- 境界达到id
+	
+	QUEST_TARGET_TYPE_EQUIPDEVELOP_REFINE_MULTI_LEVEL = 92	-- N件装备精炼到X级
+	QUEST_TARGET_TYPE_VIP_LEVEL = 93	-- VIP等级到X级
 --]]
 }

@@ -162,7 +162,7 @@ enum Opcodes
 	CMSG_UPGRADE_MOUNT_ONE_STEP		= 149,	/*申请一键升阶坐骑*/	//upgrade_mount_one_step
 	CMSG_ILLUSION_MOUNT_ACTIVE		= 150,	/*申请解锁幻化坐骑*/	//illusion_mount_active
 	CMSG_ILLUSION_MOUNT		= 151,	/*申请幻化坐骑*/	//illusion_mount
-	CMSG_RIDE_MOUNT		= 152,	/*申请骑乘*/	//ride_mount
+	CMSG_RIDE_MOUNT		= 152,	/*坐骑骑乘操作*/	//ride_mount
 	SMSG_GRID_UNIT_JUMP		= 153,	/*grid中的unit跳跃*/	//grid_unit_jump
 	CMSG_GEM		= 154,	/*宝石*/	//gem
 	CMSG_CHANGE_BATTLE_MODE		= 155,	/*请求切换模式*/	//change_battle_mode
@@ -383,6 +383,43 @@ enum Opcodes
 	SMSG_SHOW_LOOT_ANIMATE		= 424,	/*显示掉落东西*/	//show_loot_animate
 	CMSG_ENTER_STAGE_INSTANCE		= 425,	/*进入闯关副本*/	//enter_stage_instance
 	CMSG_PICK_STAGE_INSTANCE_BONUS		= 426,	/*领取闯关副本奖励*/	//pick_stage_instance_bonus
+	CMSG_ENTER_GROUP_EXP		= 427,	/*进入组队副本*/	//enter_group_exp
+	SMSG_CHECK_FOR_GROUP_ENTER		= 428,	/*队长通知进入某副本*/	//check_for_group_enter
+	CMSG_SELECT_GROUP_ENTER		= 429,	/*队伍成员选择AorD*/	//select_group_enter
+	CMSG_BUY_GROUP_EXP_TIMES		= 430,	/*经验副本次数购买*/	//buy_group_exp_times
+	CMSG_BUY_INSPIRATION		= 431,	/*购买鼓舞*/	//buy_inspiration
+	CMSG_ENTER_FACTION_MATCH_MAP		= 440,	/*家族战进入*/	//enter_faction_match_map
+	CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD		= 441,	/*领取家族战盟主每日奖励*/	//pick_faction_match_champion_daily_reward
+	CMSG_QUERY_FACTION_MATCH_INFO		= 442,	/*请求家族战榜单*/	//query_faction_match_info
+	SMSG_SHOW_FACTION_MATCH_INFO_LIST		= 443,	/*返回家族战榜单*/	//show_faction_match_info_list
+	CMSG_PICK_RES_INSTANCE_FIRST_REWARD		= 444,	/*领取资源副本首次通关奖励*/	//pick_res_instance_first_reward
+	CMSG_GROUP_SEND_INVITE		= 445,	/*发送组队邀请*/	//group_send_invite
+	SMSG_SHOW_GROUP_INVITE		= 446,	/*显示组队邀请*/	//show_group_invite
+	CMSG_GROUP_AGREE_INVITE		= 447,	/*同意组队邀请*/	//group_agree_invite
+	CMSG_GET_GROUP_SEARCH_INFO_LIST		= 448,	/*便捷组队队伍列表*/	//get_group_search_info_list
+	SMSG_SHOW_GROUP_SEARCH_INFO_LIST		= 449,	/*返回便捷组队队伍列表*/	//show_group_search_info_list
+	CMSG_GROUP_CHANGE_CONFIG		= 450,	/*修改组队设置*/	//group_change_config
+	SMSG_SHOW_GROUP_JOIN_REQUEST		= 451,	/*显示玩家入队申请*/	//show_group_join_request
+	CMSG_GROUP_JOIN_DENIED		= 452,	/*拒绝加入队伍*/	//group_join_denied
+	CMSG_GROUP_INVITE_DENIED		= 453,	/*拒绝邀请*/	//group_invite_denied
+	CMSG_TALISMAN_EQUIP		= 454,	/*装备法宝*/	//talisman_equip
+	CMSG_TALISMAN_UNEQUIP		= 455,	/*卸下法宝*/	//talisman_unequip
+	SMSG_FULLIZE_HP		= 460,	/*回满血*/	//fullize_hp
+	CMSG_AUTO_GROUP_MATCH		= 461,	/*自动匹配*/	//auto_group_match
+	CMSG_CANCEL_AUTO_GROUP_MATCH		= 462,	/*取消自动匹配*/	//cancel_auto_group_match
+	CMSG_KUAFU_3V3_GROUP_MATCH		= 463,	/*组队3v3跨服匹配*/	//kuafu_3v3_group_match
+	CMSG_BOOKING_MONEY		= 470,	/*记录购买订单*/	//booking_money
+	SMSG_BOOKING_MONEY_RESULT		= 471,	/*记录购买订单成功*/	//booking_money_result
+	CMSG_ONE_STEP_ROBOT_UP		= 472,	/*一键机器人强化*/	//one_step_robot_up
+	CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD		= 473,	/*领取7日充值额外奖励*/	//get_seven_day_recharge_extra_reward
+	CMSG_USE_GIFTCODE		= 474,	/*使用兑换码*/	//use_giftcode
+	SMSG_SHOW_GIFTCODE_REWARD_LIST		= 475,	/*显示兑换结果*/	//show_giftcode_reward_list
+	CMSG_LOTTERY_RECHARGE		= 480,	/*转盘抽奖*/	//lottery_recharge
+	SMSG_LOTTERY_RECHARGE_RESULT		= 481,	/*转盘抽奖结果*/	//lottery_recharge_result
+	SMSG_SHOW_CAST_REMAIN_SKILL		= 482,	/*通知前端释放了持续技能*/	//show_cast_remain_skill
+	SMSG_AFTER_CREATE_ROLE		= 483,	/*角色创建完*/	//after_create_role
+	CMSG_BOOKING_GAME2_MONEY		= 484,	/*记录购买订单*/	//booking_game2_money
+	SMSG_BOOKING_GAME2_MONEY_RESULT		= 485,	/*记录购买订单成功*/	//booking_game2_money_result
 	NUM_MSG_TYPES
 };
 
@@ -701,6 +738,32 @@ typedef struct act_rank_info_t{
 
 }act_rank_info;
 
+/*家族战榜单*/
+
+typedef struct faction_match_info_t{
+	char		name[50];		/*家族名称*/
+
+	uint32		result;		/*比赛结果*/
+
+	uint32		rank;		/*本届结果*/
+
+	char		guid[50];		/*家族id*/
+
+}faction_match_info;
+
+/*队伍查询信息*/
+
+typedef struct group_search_info_t{
+	char		guid[50];		/*队伍guid*/
+
+	char		cap_guid[50];		/*队长guid*/
+
+	char		cap_name[50];		/*队长名称*/
+
+	uint32		members;		/*家族id*/
+
+}group_search_info;
+
 
 #if defined( __GNUC__ )
 #	pragma pack()
@@ -940,8 +1003,8 @@ TEA_SVRCORE_API  int   unpack_select_target (packet *src ,uint32 *id);
 TEA_SVRCORE_API	int   pack_combat_state_update (packet**dst ,uint8 cur_state);
 TEA_SVRCORE_API  int   unpack_combat_state_update (packet *src ,uint8 *cur_state);
 /*经验更新*/
-TEA_SVRCORE_API	int   pack_exp_update (packet**dst ,int32 exp,uint8 type,int32 vip_exp);
-TEA_SVRCORE_API  int   unpack_exp_update (packet *src ,int32 *exp,uint8 *type,int32 *vip_exp);
+TEA_SVRCORE_API	int   pack_exp_update (packet**dst ,int32 exp,uint8 added);
+TEA_SVRCORE_API  int   unpack_exp_update (packet *src ,int32 *exp,uint8 *added);
 /*客户端释放技能*/
 TEA_SVRCORE_API	int   pack_spell_start (packet**dst ,uint32 spell_id,uint16 target_pos_x,uint16 target_pos_y,uint32 caster,uint32 target);
 TEA_SVRCORE_API  int   unpack_spell_start (packet *src ,uint32 *spell_id,uint16 *target_pos_x,uint16 *target_pos_y,uint32 *caster,uint32 *target);
@@ -1164,9 +1227,9 @@ TEA_SVRCORE_API  int   unpack_illusion_mount_active (packet *src ,uint16 *illuId
 /*申请幻化坐骑*/
 TEA_SVRCORE_API	int   pack_illusion_mount (packet**dst ,uint16 illuId);
 TEA_SVRCORE_API  int   unpack_illusion_mount (packet *src ,uint16 *illuId);
-/*申请骑乘*/
-TEA_SVRCORE_API	int   pack_ride_mount (packet**dst );
-TEA_SVRCORE_API  int   unpack_ride_mount (packet *src );
+/*坐骑骑乘操作*/
+TEA_SVRCORE_API	int   pack_ride_mount (packet**dst ,uint8 oper);
+TEA_SVRCORE_API  int   unpack_ride_mount (packet *src ,uint8 *oper);
 /*grid中的unit跳跃*/
 TEA_SVRCORE_API	int   pack_grid_unit_jump (packet**dst );
 TEA_SVRCORE_API  int   unpack_grid_unit_jump (packet *src );
@@ -1561,8 +1624,8 @@ TEA_SVRCORE_API  int   unpack_challange_boss (packet *src );
 TEA_SVRCORE_API	int   pack_pick_offline_reward (packet**dst );
 TEA_SVRCORE_API  int   unpack_pick_offline_reward (packet *src );
 /*离线奖励结果*/
-TEA_SVRCORE_API	int   pack_offline_reward_result (packet**dst ,uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4, item_reward_info *list , uint16 len_5);
-TEA_SVRCORE_API  int   unpack_offline_reward_result (packet *src ,uint32 *reserve,uint32 *reserve2,uint32 *reserve3,uint32 *reserve4, item_reward_info **list , uint16 *len_5);
+TEA_SVRCORE_API	int   pack_offline_reward_result (packet**dst ,uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,uint32 reserve5, item_reward_info *list , uint16 len_6);
+TEA_SVRCORE_API  int   unpack_offline_reward_result (packet *src ,uint32 *reserve,uint32 *reserve2,uint32 *reserve3,uint32 *reserve4,uint32 *reserve5, item_reward_info **list , uint16 *len_6);
 /*熔炼装备*/
 TEA_SVRCORE_API	int   pack_smelting_equip (packet**dst ,char const*pos_str);
 TEA_SVRCORE_API  int   unpack_smelting_equip (packet *src ,char **pos_str);
@@ -1636,8 +1699,8 @@ TEA_SVRCORE_API  int   unpack_try_mass_boss (packet *src ,uint8 *id);
 TEA_SVRCORE_API	int   pack_buy_mass_boss_times (packet**dst ,uint8 cnt);
 TEA_SVRCORE_API  int   unpack_buy_mass_boss_times (packet *src ,uint8 *cnt);
 /*组队副本跨服匹配*/
-TEA_SVRCORE_API	int   pack_group_instance_match (packet**dst ,uint8 indx);
-TEA_SVRCORE_API  int   unpack_group_instance_match (packet *src ,uint8 *indx);
+TEA_SVRCORE_API	int   pack_group_instance_match (packet**dst ,uint8 indx,uint8 isGroup);
+TEA_SVRCORE_API  int   unpack_group_instance_match (packet *src ,uint8 *indx,uint8 *isGroup);
 /*组队副本跨服次数购买*/
 TEA_SVRCORE_API	int   pack_buy_group_instance_times (packet**dst ,uint8 count);
 TEA_SVRCORE_API  int   unpack_buy_group_instance_times (packet *src ,uint8 *count);
@@ -1801,8 +1864,8 @@ TEA_SVRCORE_API  int   unpack_pick_quest_realmbreak (packet *src ,uint32 *indx);
 TEA_SVRCORE_API	int   pack_pick_realmbreak_daily_reward (packet**dst );
 TEA_SVRCORE_API  int   unpack_pick_realmbreak_daily_reward (packet *src );
 /*创建队伍*/
-TEA_SVRCORE_API	int   pack_group_create (packet**dst );
-TEA_SVRCORE_API  int   unpack_group_create (packet *src );
+TEA_SVRCORE_API	int   pack_group_create (packet**dst ,uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag);
+TEA_SVRCORE_API  int   unpack_group_create (packet *src ,uint32 *type,uint32 *min_lev,uint32 *max_lev,uint32 *auto_flag);
 /*申请加入队伍*/
 TEA_SVRCORE_API	int   pack_group_join_request (packet**dst ,char const*guid);
 TEA_SVRCORE_API  int   unpack_group_join_request (packet *src ,char **guid);
@@ -1813,11 +1876,11 @@ TEA_SVRCORE_API  int   unpack_group_join_accept (packet *src ,char **guid);
 TEA_SVRCORE_API	int   pack_group_quit (packet**dst );
 TEA_SVRCORE_API  int   unpack_group_quit (packet *src );
 /*移交队伍队长*/
-TEA_SVRCORE_API	int   pack_group_give_captain (packet**dst ,char const*guid);
-TEA_SVRCORE_API  int   unpack_group_give_captain (packet *src ,char **guid);
+TEA_SVRCORE_API	int   pack_group_give_captain (packet**dst ,uint32 index);
+TEA_SVRCORE_API  int   unpack_group_give_captain (packet *src ,uint32 *index);
 /*踢队员*/
-TEA_SVRCORE_API	int   pack_group_kick (packet**dst ,char const*guid);
-TEA_SVRCORE_API  int   unpack_group_kick (packet *src ,char **guid);
+TEA_SVRCORE_API	int   pack_group_kick (packet**dst ,uint32 index);
+TEA_SVRCORE_API  int   unpack_group_kick (packet *src ,uint32 *index);
 /*显示掉落东西*/
 TEA_SVRCORE_API	int   pack_show_loot_animate (packet**dst ,char const*info);
 TEA_SVRCORE_API  int   unpack_show_loot_animate (packet *src ,char **info);
@@ -1827,6 +1890,117 @@ TEA_SVRCORE_API  int   unpack_enter_stage_instance (packet *src );
 /*领取闯关副本奖励*/
 TEA_SVRCORE_API	int   pack_pick_stage_instance_bonus (packet**dst ,uint32 id);
 TEA_SVRCORE_API  int   unpack_pick_stage_instance_bonus (packet *src ,uint32 *id);
+/*进入组队副本*/
+TEA_SVRCORE_API	int   pack_enter_group_exp (packet**dst ,uint8 isGroup);
+TEA_SVRCORE_API  int   unpack_enter_group_exp (packet *src ,uint8 *isGroup);
+/*队长通知进入某副本*/
+TEA_SVRCORE_API	int   pack_check_for_group_enter (packet**dst ,uint32 instSubType);
+TEA_SVRCORE_API  int   unpack_check_for_group_enter (packet *src ,uint32 *instSubType);
+/*队伍成员选择AorD*/
+TEA_SVRCORE_API	int   pack_select_group_enter (packet**dst ,uint8 choise);
+TEA_SVRCORE_API  int   unpack_select_group_enter (packet *src ,uint8 *choise);
+/*经验副本次数购买*/
+TEA_SVRCORE_API	int   pack_buy_group_exp_times (packet**dst ,uint8 count);
+TEA_SVRCORE_API  int   unpack_buy_group_exp_times (packet *src ,uint8 *count);
+/*购买鼓舞*/
+TEA_SVRCORE_API	int   pack_buy_inspiration (packet**dst ,uint8 category);
+TEA_SVRCORE_API  int   unpack_buy_inspiration (packet *src ,uint8 *category);
+/*家族战进入*/
+TEA_SVRCORE_API	int   pack_enter_faction_match_map (packet**dst );
+TEA_SVRCORE_API  int   unpack_enter_faction_match_map (packet *src );
+/*领取家族战盟主每日奖励*/
+TEA_SVRCORE_API	int   pack_pick_faction_match_champion_daily_reward (packet**dst );
+TEA_SVRCORE_API  int   unpack_pick_faction_match_champion_daily_reward (packet *src );
+/*请求家族战榜单*/
+TEA_SVRCORE_API	int   pack_query_faction_match_info (packet**dst );
+TEA_SVRCORE_API  int   unpack_query_faction_match_info (packet *src );
+/*返回家族战榜单*/
+TEA_SVRCORE_API	int   pack_show_faction_match_info_list (packet**dst , faction_match_info *list , uint16 len_1);
+TEA_SVRCORE_API  int   unpack_show_faction_match_info_list (packet *src , faction_match_info **list , uint16 *len_1);
+/*领取资源副本首次通关奖励*/
+TEA_SVRCORE_API	int   pack_pick_res_instance_first_reward (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_pick_res_instance_first_reward (packet *src ,uint32 *id);
+/*发送组队邀请*/
+TEA_SVRCORE_API	int   pack_group_send_invite (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_group_send_invite (packet *src ,char **guid);
+/*显示组队邀请*/
+TEA_SVRCORE_API	int   pack_show_group_invite (packet**dst ,char const*guid,char const*name,uint32 type,uint32 level,double force,char const*sender_guid);
+TEA_SVRCORE_API  int   unpack_show_group_invite (packet *src ,char **guid,char **name,uint32 *type,uint32 *level,double *force,char **sender_guid);
+/*同意组队邀请*/
+TEA_SVRCORE_API	int   pack_group_agree_invite (packet**dst ,char const*guid,char const*sendGuid);
+TEA_SVRCORE_API  int   unpack_group_agree_invite (packet *src ,char **guid,char **sendGuid);
+/*便捷组队队伍列表*/
+TEA_SVRCORE_API	int   pack_get_group_search_info_list (packet**dst ,uint32 type);
+TEA_SVRCORE_API  int   unpack_get_group_search_info_list (packet *src ,uint32 *type);
+/*返回便捷组队队伍列表*/
+TEA_SVRCORE_API	int   pack_show_group_search_info_list (packet**dst , group_search_info *list , uint16 len_1);
+TEA_SVRCORE_API  int   unpack_show_group_search_info_list (packet *src , group_search_info **list , uint16 *len_1);
+/*修改组队设置*/
+TEA_SVRCORE_API	int   pack_group_change_config (packet**dst ,uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag);
+TEA_SVRCORE_API  int   unpack_group_change_config (packet *src ,uint32 *type,uint32 *min_lev,uint32 *max_lev,uint32 *auto_flag);
+/*显示玩家入队申请*/
+TEA_SVRCORE_API	int   pack_show_group_join_request (packet**dst ,char const*guid,char const*name,uint32 gender,uint32 level,uint32 vip,double force);
+TEA_SVRCORE_API  int   unpack_show_group_join_request (packet *src ,char **guid,char **name,uint32 *gender,uint32 *level,uint32 *vip,double *force);
+/*拒绝加入队伍*/
+TEA_SVRCORE_API	int   pack_group_join_denied (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_group_join_denied (packet *src ,char **guid);
+/*拒绝邀请*/
+TEA_SVRCORE_API	int   pack_group_invite_denied (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_group_invite_denied (packet *src ,char **guid);
+/*装备法宝*/
+TEA_SVRCORE_API	int   pack_talisman_equip (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_talisman_equip (packet *src ,uint32 *id);
+/*卸下法宝*/
+TEA_SVRCORE_API	int   pack_talisman_unequip (packet**dst ,uint32 slot_id);
+TEA_SVRCORE_API  int   unpack_talisman_unequip (packet *src ,uint32 *slot_id);
+/*回满血*/
+TEA_SVRCORE_API	int   pack_fullize_hp (packet**dst ,char const*guid);
+TEA_SVRCORE_API  int   unpack_fullize_hp (packet *src ,char **guid);
+/*自动匹配*/
+TEA_SVRCORE_API	int   pack_auto_group_match (packet**dst ,uint32 targetType);
+TEA_SVRCORE_API  int   unpack_auto_group_match (packet *src ,uint32 *targetType);
+/*取消自动匹配*/
+TEA_SVRCORE_API	int   pack_cancel_auto_group_match (packet**dst );
+TEA_SVRCORE_API  int   unpack_cancel_auto_group_match (packet *src );
+/*组队3v3跨服匹配*/
+TEA_SVRCORE_API	int   pack_kuafu_3v3_group_match (packet**dst );
+TEA_SVRCORE_API  int   unpack_kuafu_3v3_group_match (packet *src );
+/*记录购买订单*/
+TEA_SVRCORE_API	int   pack_booking_money (packet**dst ,char const*orderid,char const*goodsname,char const*money1,uint32 goodsnum);
+TEA_SVRCORE_API  int   unpack_booking_money (packet *src ,char **orderid,char **goodsname,char **money1,uint32 *goodsnum);
+/*记录购买订单成功*/
+TEA_SVRCORE_API	int   pack_booking_money_result (packet**dst ,char const*orderid,uint8 result);
+TEA_SVRCORE_API  int   unpack_booking_money_result (packet *src ,char **orderid,uint8 *result);
+/*一键机器人强化*/
+TEA_SVRCORE_API	int   pack_one_step_robot_up (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_one_step_robot_up (packet *src ,uint32 *id);
+/*领取7日充值额外奖励*/
+TEA_SVRCORE_API	int   pack_get_seven_day_recharge_extra_reward (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_get_seven_day_recharge_extra_reward (packet *src ,uint32 *id);
+/*使用兑换码*/
+TEA_SVRCORE_API	int   pack_use_giftcode (packet**dst ,char const*giftcode);
+TEA_SVRCORE_API  int   unpack_use_giftcode (packet *src ,char **giftcode);
+/*显示兑换结果*/
+TEA_SVRCORE_API	int   pack_show_giftcode_reward_list (packet**dst , item_reward_info *list , uint16 len_1);
+TEA_SVRCORE_API  int   unpack_show_giftcode_reward_list (packet *src , item_reward_info **list , uint16 *len_1);
+/*转盘抽奖*/
+TEA_SVRCORE_API	int   pack_lottery_recharge (packet**dst );
+TEA_SVRCORE_API  int   unpack_lottery_recharge (packet *src );
+/*转盘抽奖结果*/
+TEA_SVRCORE_API	int   pack_lottery_recharge_result (packet**dst ,uint8 indx);
+TEA_SVRCORE_API  int   unpack_lottery_recharge_result (packet *src ,uint8 *indx);
+/*通知前端释放了持续技能*/
+TEA_SVRCORE_API	int   pack_show_cast_remain_skill (packet**dst ,uint32 id);
+TEA_SVRCORE_API  int   unpack_show_cast_remain_skill (packet *src ,uint32 *id);
+/*角色创建完*/
+TEA_SVRCORE_API	int   pack_after_create_role (packet**dst ,char const*serverId,char const*guid,char const*nickname);
+TEA_SVRCORE_API  int   unpack_after_create_role (packet *src ,char **serverId,char **guid,char **nickname);
+/*记录购买订单*/
+TEA_SVRCORE_API	int   pack_booking_game2_money (packet**dst ,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc);
+TEA_SVRCORE_API  int   unpack_booking_game2_money (packet *src ,char **serverName,char **cpOrderId,char **productName,char **productId,char **productDesc);
+/*记录购买订单成功*/
+TEA_SVRCORE_API	int   pack_booking_game2_money_result (packet**dst ,uint8 result,uint32 serverId,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc,char const*amount,char const*extend,char const*time,char const*sign);
+TEA_SVRCORE_API  int   unpack_booking_game2_money_result (packet *src ,uint8 *result,uint32 *serverId,char **serverName,char **cpOrderId,char **productName,char **productId,char **productDesc,char **amount,char **extend,char **time,char **sign);
 /*rand send msg*/
 TEA_SVRCORE_API	int   pack_rand_send_msg (packet**dst ,const char* msg);
 #ifdef __cplusplus
@@ -2874,13 +3048,12 @@ __INLINE__ int Call_combat_state_update (Delegate_Sendpackt SendPacket ,uint8 cu
 }
 
 /*经验更新*/
-__INLINE__ int Call_exp_update (Delegate_Sendpackt SendPacket ,int32 exp,uint8 type,int32 vip_exp)
+__INLINE__ int Call_exp_update (Delegate_Sendpackt SendPacket ,int32 exp,uint8 added)
 {
 	packet *dst = external_protocol_new_packet(SMSG_EXP_UPDATE);
 		
 	packet_write(dst,(char *)&exp,sizeof(int32));
-	packet_write(dst,(char *)&type,sizeof(uint8));
-	packet_write(dst,(char *)&vip_exp,sizeof(int32));
+	packet_write(dst,(char *)&added,sizeof(uint8));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -3907,11 +4080,12 @@ __INLINE__ int Call_illusion_mount (Delegate_Sendpackt SendPacket ,uint16 illuId
 	return 0;	
 }
 
-/*申请骑乘*/
-__INLINE__ int Call_ride_mount (Delegate_Sendpackt SendPacket )
+/*坐骑骑乘操作*/
+__INLINE__ int Call_ride_mount (Delegate_Sendpackt SendPacket ,uint8 oper)
 {
 	packet *dst = external_protocol_new_packet(CMSG_RIDE_MOUNT);
 		
+	packet_write(dst,(char *)&oper,sizeof(uint8));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -5654,7 +5828,7 @@ __INLINE__ int Call_pick_offline_reward (Delegate_Sendpackt SendPacket )
 }
 
 /*离线奖励结果*/
-__INLINE__ int Call_offline_reward_result (Delegate_Sendpackt SendPacket ,uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,const vector< item_reward_info > &list )
+__INLINE__ int Call_offline_reward_result (Delegate_Sendpackt SendPacket ,uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,uint32 reserve5,const vector< item_reward_info > &list )
 {
 	packet *dst = external_protocol_new_packet(SMSG_OFFLINE_REWARD_RESULT);
 		
@@ -5662,6 +5836,7 @@ __INLINE__ int Call_offline_reward_result (Delegate_Sendpackt SendPacket ,uint32
 	packet_write(dst,(char *)&reserve2,sizeof(uint32));
 	packet_write(dst,(char *)&reserve3,sizeof(uint32));
 	packet_write(dst,(char *)&reserve4,sizeof(uint32));
+	packet_write(dst,(char *)&reserve5,sizeof(uint32));
 	*dst << list;
 	update_packet_len(dst);
 	
@@ -5988,11 +6163,12 @@ __INLINE__ int Call_buy_mass_boss_times (Delegate_Sendpackt SendPacket ,uint8 cn
 }
 
 /*组队副本跨服匹配*/
-__INLINE__ int Call_group_instance_match (Delegate_Sendpackt SendPacket ,uint8 indx)
+__INLINE__ int Call_group_instance_match (Delegate_Sendpackt SendPacket ,uint8 indx,uint8 isGroup)
 {
 	packet *dst = external_protocol_new_packet(CMSG_GROUP_INSTANCE_MATCH);
 		
 	packet_write(dst,(char *)&indx,sizeof(uint8));
+	packet_write(dst,(char *)&isGroup,sizeof(uint8));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -6714,10 +6890,14 @@ __INLINE__ int Call_pick_realmbreak_daily_reward (Delegate_Sendpackt SendPacket 
 }
 
 /*创建队伍*/
-__INLINE__ int Call_group_create (Delegate_Sendpackt SendPacket )
+__INLINE__ int Call_group_create (Delegate_Sendpackt SendPacket ,uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag)
 {
 	packet *dst = external_protocol_new_packet(CMSG_GROUP_CREATE);
 		
+	packet_write(dst,(char *)&type,sizeof(uint32));
+	packet_write(dst,(char *)&min_lev,sizeof(uint32));
+	packet_write(dst,(char *)&max_lev,sizeof(uint32));
+	packet_write(dst,(char *)&auto_flag,sizeof(uint32));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -6764,11 +6944,11 @@ __INLINE__ int Call_group_quit (Delegate_Sendpackt SendPacket )
 }
 
 /*移交队伍队长*/
-__INLINE__ int Call_group_give_captain (Delegate_Sendpackt SendPacket ,char const*guid)
+__INLINE__ int Call_group_give_captain (Delegate_Sendpackt SendPacket ,uint32 index)
 {
 	packet *dst = external_protocol_new_packet(CMSG_GROUP_GIVE_CAPTAIN);
 		
-	packet_write_str(dst,guid);		
+	packet_write(dst,(char *)&index,sizeof(uint32));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -6777,11 +6957,11 @@ __INLINE__ int Call_group_give_captain (Delegate_Sendpackt SendPacket ,char cons
 }
 
 /*踢队员*/
-__INLINE__ int Call_group_kick (Delegate_Sendpackt SendPacket ,char const*guid)
+__INLINE__ int Call_group_kick (Delegate_Sendpackt SendPacket ,uint32 index)
 {
 	packet *dst = external_protocol_new_packet(CMSG_GROUP_KICK);
 		
-	packet_write_str(dst,guid);		
+	packet_write(dst,(char *)&index,sizeof(uint32));
 	update_packet_len(dst);
 	
 	SendPacket(*dst);
@@ -6820,6 +7000,515 @@ __INLINE__ int Call_pick_stage_instance_bonus (Delegate_Sendpackt SendPacket ,ui
 	packet *dst = external_protocol_new_packet(CMSG_PICK_STAGE_INSTANCE_BONUS);
 		
 	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*进入组队副本*/
+__INLINE__ int Call_enter_group_exp (Delegate_Sendpackt SendPacket ,uint8 isGroup)
+{
+	packet *dst = external_protocol_new_packet(CMSG_ENTER_GROUP_EXP);
+		
+	packet_write(dst,(char *)&isGroup,sizeof(uint8));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*队长通知进入某副本*/
+__INLINE__ int Call_check_for_group_enter (Delegate_Sendpackt SendPacket ,uint32 instSubType)
+{
+	packet *dst = external_protocol_new_packet(SMSG_CHECK_FOR_GROUP_ENTER);
+		
+	packet_write(dst,(char *)&instSubType,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*队伍成员选择AorD*/
+__INLINE__ int Call_select_group_enter (Delegate_Sendpackt SendPacket ,uint8 choise)
+{
+	packet *dst = external_protocol_new_packet(CMSG_SELECT_GROUP_ENTER);
+		
+	packet_write(dst,(char *)&choise,sizeof(uint8));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*经验副本次数购买*/
+__INLINE__ int Call_buy_group_exp_times (Delegate_Sendpackt SendPacket ,uint8 count)
+{
+	packet *dst = external_protocol_new_packet(CMSG_BUY_GROUP_EXP_TIMES);
+		
+	packet_write(dst,(char *)&count,sizeof(uint8));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*购买鼓舞*/
+__INLINE__ int Call_buy_inspiration (Delegate_Sendpackt SendPacket ,uint8 category)
+{
+	packet *dst = external_protocol_new_packet(CMSG_BUY_INSPIRATION);
+		
+	packet_write(dst,(char *)&category,sizeof(uint8));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*家族战进入*/
+__INLINE__ int Call_enter_faction_match_map (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_ENTER_FACTION_MATCH_MAP);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*领取家族战盟主每日奖励*/
+__INLINE__ int Call_pick_faction_match_champion_daily_reward (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*请求家族战榜单*/
+__INLINE__ int Call_query_faction_match_info (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_QUERY_FACTION_MATCH_INFO);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*返回家族战榜单*/
+__INLINE__ int Call_show_faction_match_info_list (Delegate_Sendpackt SendPacket ,const vector< faction_match_info > &list )
+{
+	packet *dst = external_protocol_new_packet(SMSG_SHOW_FACTION_MATCH_INFO_LIST);
+		
+	*dst << list;
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*领取资源副本首次通关奖励*/
+__INLINE__ int Call_pick_res_instance_first_reward (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_PICK_RES_INSTANCE_FIRST_REWARD);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*发送组队邀请*/
+__INLINE__ int Call_group_send_invite (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_SEND_INVITE);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*显示组队邀请*/
+__INLINE__ int Call_show_group_invite (Delegate_Sendpackt SendPacket ,char const*guid,char const*name,uint32 type,uint32 level,double force,char const*sender_guid)
+{
+	packet *dst = external_protocol_new_packet(SMSG_SHOW_GROUP_INVITE);
+		
+	packet_write_str(dst,guid);		
+	packet_write_str(dst,name);		
+	packet_write(dst,(char *)&type,sizeof(uint32));
+	packet_write(dst,(char *)&level,sizeof(uint32));
+	packet_write(dst,(char *)&force,sizeof(double));
+	packet_write_str(dst,sender_guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*同意组队邀请*/
+__INLINE__ int Call_group_agree_invite (Delegate_Sendpackt SendPacket ,char const*guid,char const*sendGuid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_AGREE_INVITE);
+		
+	packet_write_str(dst,guid);		
+	packet_write_str(dst,sendGuid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*便捷组队队伍列表*/
+__INLINE__ int Call_get_group_search_info_list (Delegate_Sendpackt SendPacket ,uint32 type)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GET_GROUP_SEARCH_INFO_LIST);
+		
+	packet_write(dst,(char *)&type,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*返回便捷组队队伍列表*/
+__INLINE__ int Call_show_group_search_info_list (Delegate_Sendpackt SendPacket ,const vector< group_search_info > &list )
+{
+	packet *dst = external_protocol_new_packet(SMSG_SHOW_GROUP_SEARCH_INFO_LIST);
+		
+	*dst << list;
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*修改组队设置*/
+__INLINE__ int Call_group_change_config (Delegate_Sendpackt SendPacket ,uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_CHANGE_CONFIG);
+		
+	packet_write(dst,(char *)&type,sizeof(uint32));
+	packet_write(dst,(char *)&min_lev,sizeof(uint32));
+	packet_write(dst,(char *)&max_lev,sizeof(uint32));
+	packet_write(dst,(char *)&auto_flag,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*显示玩家入队申请*/
+__INLINE__ int Call_show_group_join_request (Delegate_Sendpackt SendPacket ,char const*guid,char const*name,uint32 gender,uint32 level,uint32 vip,double force)
+{
+	packet *dst = external_protocol_new_packet(SMSG_SHOW_GROUP_JOIN_REQUEST);
+		
+	packet_write_str(dst,guid);		
+	packet_write_str(dst,name);		
+	packet_write(dst,(char *)&gender,sizeof(uint32));
+	packet_write(dst,(char *)&level,sizeof(uint32));
+	packet_write(dst,(char *)&vip,sizeof(uint32));
+	packet_write(dst,(char *)&force,sizeof(double));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*拒绝加入队伍*/
+__INLINE__ int Call_group_join_denied (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_JOIN_DENIED);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*拒绝邀请*/
+__INLINE__ int Call_group_invite_denied (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GROUP_INVITE_DENIED);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*装备法宝*/
+__INLINE__ int Call_talisman_equip (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_TALISMAN_EQUIP);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*卸下法宝*/
+__INLINE__ int Call_talisman_unequip (Delegate_Sendpackt SendPacket ,uint32 slot_id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_TALISMAN_UNEQUIP);
+		
+	packet_write(dst,(char *)&slot_id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*回满血*/
+__INLINE__ int Call_fullize_hp (Delegate_Sendpackt SendPacket ,char const*guid)
+{
+	packet *dst = external_protocol_new_packet(SMSG_FULLIZE_HP);
+		
+	packet_write_str(dst,guid);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*自动匹配*/
+__INLINE__ int Call_auto_group_match (Delegate_Sendpackt SendPacket ,uint32 targetType)
+{
+	packet *dst = external_protocol_new_packet(CMSG_AUTO_GROUP_MATCH);
+		
+	packet_write(dst,(char *)&targetType,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*取消自动匹配*/
+__INLINE__ int Call_cancel_auto_group_match (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_CANCEL_AUTO_GROUP_MATCH);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*组队3v3跨服匹配*/
+__INLINE__ int Call_kuafu_3v3_group_match (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_KUAFU_3V3_GROUP_MATCH);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*记录购买订单*/
+__INLINE__ int Call_booking_money (Delegate_Sendpackt SendPacket ,char const*orderid,char const*goodsname,char const*money1,uint32 goodsnum)
+{
+	packet *dst = external_protocol_new_packet(CMSG_BOOKING_MONEY);
+		
+	packet_write_str(dst,orderid);		
+	packet_write_str(dst,goodsname);		
+	packet_write_str(dst,money1);		
+	packet_write(dst,(char *)&goodsnum,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*记录购买订单成功*/
+__INLINE__ int Call_booking_money_result (Delegate_Sendpackt SendPacket ,char const*orderid,uint8 result)
+{
+	packet *dst = external_protocol_new_packet(SMSG_BOOKING_MONEY_RESULT);
+		
+	packet_write_str(dst,orderid);		
+	packet_write(dst,(char *)&result,sizeof(uint8));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*一键机器人强化*/
+__INLINE__ int Call_one_step_robot_up (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_ONE_STEP_ROBOT_UP);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*领取7日充值额外奖励*/
+__INLINE__ int Call_get_seven_day_recharge_extra_reward (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*使用兑换码*/
+__INLINE__ int Call_use_giftcode (Delegate_Sendpackt SendPacket ,char const*giftcode)
+{
+	packet *dst = external_protocol_new_packet(CMSG_USE_GIFTCODE);
+		
+	packet_write_str(dst,giftcode);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*显示兑换结果*/
+__INLINE__ int Call_show_giftcode_reward_list (Delegate_Sendpackt SendPacket ,const vector< item_reward_info > &list )
+{
+	packet *dst = external_protocol_new_packet(SMSG_SHOW_GIFTCODE_REWARD_LIST);
+		
+	*dst << list;
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*转盘抽奖*/
+__INLINE__ int Call_lottery_recharge (Delegate_Sendpackt SendPacket )
+{
+	packet *dst = external_protocol_new_packet(CMSG_LOTTERY_RECHARGE);
+		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*转盘抽奖结果*/
+__INLINE__ int Call_lottery_recharge_result (Delegate_Sendpackt SendPacket ,uint8 indx)
+{
+	packet *dst = external_protocol_new_packet(SMSG_LOTTERY_RECHARGE_RESULT);
+		
+	packet_write(dst,(char *)&indx,sizeof(uint8));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*通知前端释放了持续技能*/
+__INLINE__ int Call_show_cast_remain_skill (Delegate_Sendpackt SendPacket ,uint32 id)
+{
+	packet *dst = external_protocol_new_packet(SMSG_SHOW_CAST_REMAIN_SKILL);
+		
+	packet_write(dst,(char *)&id,sizeof(uint32));
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*角色创建完*/
+__INLINE__ int Call_after_create_role (Delegate_Sendpackt SendPacket ,char const*serverId,char const*guid,char const*nickname)
+{
+	packet *dst = external_protocol_new_packet(SMSG_AFTER_CREATE_ROLE);
+		
+	packet_write_str(dst,serverId);		
+	packet_write_str(dst,guid);		
+	packet_write_str(dst,nickname);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*记录购买订单*/
+__INLINE__ int Call_booking_game2_money (Delegate_Sendpackt SendPacket ,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc)
+{
+	packet *dst = external_protocol_new_packet(CMSG_BOOKING_GAME2_MONEY);
+		
+	packet_write_str(dst,serverName);		
+	packet_write_str(dst,cpOrderId);		
+	packet_write_str(dst,productName);		
+	packet_write_str(dst,productId);		
+	packet_write_str(dst,productDesc);		
+	update_packet_len(dst);
+	
+	SendPacket(*dst);
+	external_protocol_free_packet(dst);
+	return 0;	
+}
+
+/*记录购买订单成功*/
+__INLINE__ int Call_booking_game2_money_result (Delegate_Sendpackt SendPacket ,uint8 result,uint32 serverId,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc,char const*amount,char const*extend,char const*time,char const*sign)
+{
+	packet *dst = external_protocol_new_packet(SMSG_BOOKING_GAME2_MONEY_RESULT);
+		
+	packet_write(dst,(char *)&result,sizeof(uint8));
+	packet_write(dst,(char *)&serverId,sizeof(uint32));
+	packet_write_str(dst,serverName);		
+	packet_write_str(dst,cpOrderId);		
+	packet_write_str(dst,productName);		
+	packet_write_str(dst,productId);		
+	packet_write_str(dst,productDesc);		
+	packet_write_str(dst,amount);		
+	packet_write_str(dst,extend);		
+	packet_write_str(dst,time);		
+	packet_write_str(dst,sign);		
 	update_packet_len(dst);
 	
 	SendPacket(*dst);

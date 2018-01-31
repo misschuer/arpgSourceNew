@@ -66,8 +66,8 @@ public:
 
 	//货币相关
 	double GetMoney(uint16 type);
-	void addMoney(uint8 type, uint8 oper_type, double val, const string &trace_id = "", uint32 p1 = 0, uint32 p2 = 0, uint8 item_bind = 0, uint8 item_del = 0);
-	bool subMoney(uint8 type, uint8 oper_type, double val, const string &trace_id = "", uint32 p1 = 0, uint32 p2 = 0, uint8 item_bind = 0, uint8 item_del = 0);
+	void addMoney(uint8 type, uint8 oper_type, double val, string& relateItemIds, string& relateItemNums);
+	bool subMoney(uint8 type, uint8 oper_type, double val, string& relateItemIds, string& relateItemNums);
 
 	//保存元宝消费信息
 	void SaveGoldLog(const string &account, const string &player_id,  const string &player_name, uint16 money_type, uint16 oper_type,
@@ -87,6 +87,7 @@ public:
 protected:
 	void Handle_LUA(packet& pkt);
 
+	void Handle_Booking_Money(packet& pkt);				//记录购买订单
 	void Handle_Rank_List_Query(packet& pkt);			//请求排行榜信息
 
 	void Handle_Char_Remotestore(packet& pkt);			//保存客户端配置信息

@@ -219,7 +219,11 @@ void AppdContext::NewOtherBinlog()
 		return binlog;
 	});
 	// NewOtherBinlog(ObjectTypeLimit, PLAYER_APPD_INT_FIELD_FLAGS_LIMIT_CREATE);
-	NewOtherBinlog(ObjectTypeItemMgr, PLAYER_APPD_INT_FIELD_FLAGS_ITEM_CREATE);
+	NewOtherBinlog(ObjectTypeItemMgr, PLAYER_APPD_INT_FIELD_FLAGS_ITEM_CREATE,[](){
+		BinLogObject *binlog = new BinLogObject;
+		binlog->SetBinlogMaxSize(core_obj::SyncEventRecorder::MAX_BINLOG_SIZE_UNLIME);
+		return binlog;
+	});
 	// 玩家逻辑
 	NewOtherBinlog(ObjectTypeLogical, PLAYER_APPD_INT_FIELD_FLAGS_LOGICAL_CREATE);
 	// 玩家技能
@@ -346,21 +350,21 @@ int AppdContext::DoPlayerLogout()
 
 //战力改变
 int AppdContext::OnForceChanged() {
-	
+	LuaStackAutoPopup autoPopup(L);
 	LuaGetObjFunc(L, this->GetGuid().c_str(), "OnForceChanged");
-	if(LUA_PCALL(L, 1, 0, 0))
-	{
+	if(LUA_PCALL(L, 1, 0, 0)) {
 		tea_perror("lua error:LuaOnForceChanged player guid: %s", this->GetGuid().c_str());
 		return 0;
 	}
 
 	return 0;
 }
+
 //等级改变
 int AppdContext::OnLevelChanged() {
+	LuaStackAutoPopup autoPopup(L);
 	LuaGetObjFunc(L, this->GetGuid().c_str(), "OnLevelChanged");
-	if(LUA_PCALL(L, 1, 0, 0))
-	{
+	if(LUA_PCALL(L, 1, 0, 0)) {
 		tea_perror("lua error:LuaOnLevelChanged player guid: %s", this->GetGuid().c_str());
 		return 0;
 	}

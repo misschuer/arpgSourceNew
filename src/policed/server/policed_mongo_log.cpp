@@ -92,9 +92,10 @@ void PolicedMongoLog::UpdatePlayerLockStatus(string account_id,uint32 status)
 	wheres["server_name"] = GetServerNameFromAccount(account_id);
 	wheres["account"] = account_id;
 	values["u_lock"] = toString(status);
-	if(Query(GetLogNS("ht_basic_info"),wheres,results) == MONGO_RES_SUCCESS)
+	string dbTable = GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID()));
+	if(Query(dbTable,wheres,results) == MONGO_RES_SUCCESS)
 	{
-		Update(GetLogNS("ht_basic_info"),wheres,values);
+		Update(dbTable,wheres,values);
 	}
 }
 
@@ -107,9 +108,10 @@ void PolicedMongoLog::UpdatePlayerGagStatus(string player_guid,uint32 end_time)
 	wheres["server_name"] = GetServerName(player_guid);
 	wheres["guid"] = player_guid;
 	values["u_gag"] = toString(end_time);	//禁言时间大于当前时间表示已经禁言
-	if(Query(GetLogNS("ht_basic_info"),wheres,results) == MONGO_RES_SUCCESS)
+	string dbTable = GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID()));
+	if(Query(dbTable,wheres,results) == MONGO_RES_SUCCESS)
 	{
-		Update(GetLogNS("ht_basic_info"),wheres,values);
+		Update(dbTable,wheres,values);
 	}
 }
 
@@ -144,13 +146,14 @@ void PolicedMongoLog::GetBasicInfoOnlinePlayer(set<string> &vec)
 	Results results;
 	string server_name;
 	wheres["i_online"] = "1";
+	string dbTable = GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID()));
 	//防止死循环，怎么也没用一万合一吧！
 	for (int i = 0; i < 10000;++i)
 	{
 		wheres["server_name"] = PolicedApp::g_app->GetServerID(i);		
 		if(wheres["server_name"].empty())
 			break;
-		if(Query(GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID())),wheres,results) == MONGO_RES_ERROR)
+		if(Query(dbTable,wheres,results) == MONGO_RES_ERROR)
 		{
 			tea_pwarn("PolicedMongoLog::GetBasicInfoOnlinePlayer query ht_basic_info from db fail, %s", wheres["server_name"].c_str());
 			continue;
@@ -171,7 +174,8 @@ void PolicedMongoLog::UpdateHTBasicOffline(string player_guid)
 	wheres["server_name"] = GetServerName(player_guid);
 	wheres["guid"] = player_guid;
 	values["i_online"] = "0";
-	Update(GetLogNS("ht_basic_info"),wheres,values);
+	string dbTable = GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID()));
+	Update(dbTable,wheres,values);
 }
 
 //保存玩家后台基本信息
@@ -205,9 +209,11 @@ void PolicedMongoLog::SaveHTBasicInfo(PlayerBase* player,bool online)
 	values["u_recharge_last_time"] = toString(player->GetRechargeLastTime());
 	values["i_online"] = toString(uint32(online));
 	values["i_gender"] = toString((uint32)player->GetGender());
-	if(Query(GetLogNS("ht_basic_info"),wheres,results) == MONGO_RES_ERROR)
+
+	string dbTable = GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID()));
+	if(Query(dbTable,wheres,results) == MONGO_RES_ERROR)
 	{
-		tea_pdebug("query ht_basic_info from db fail, %s", server_name_.c_str());
+		tea_pdebug("query %s from db fail, %s", dbTable.c_str(), server_name_.c_str());
 		return;
 	}
 	if(results.empty())
@@ -217,11 +223,11 @@ void PolicedMongoLog::SaveHTBasicInfo(PlayerBase* player,bool online)
 		values["account"] = player->GetAccount();//玩家帐号
 		values["create_ip"] = player->GetCreateLoginIp();//角色创建ip
 		values["u_create_date"] = toString(player->GetCreateTime());//角色创建时间
-		Insert(GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID())),values);
+		Insert(dbTable,values);
 	}
 	else
 	{
-		Update(GetLogBaseNS(toString(PolicedApp::g_app->GetPlatformID())),wheres,values);
+		Update(dbTable,wheres,values);
 	}
 }
 
@@ -416,4 +422,111 @@ void PolicedMongoLog::SaveGoldLog( const string &account, const string &player_i
 	string table_name = "gold" + toString((p->tm_year + 1900) * 100 + (p->tm_mon + 1));
 
 	Insert(GetMoneyNS(table_name),insertInfo);
+}
+
+
+void PolicedMongoLog::SaveRechargeLog(uint32 pid, const string& uid, uint32 sid, const string& guid, const string& name, 
+									  const string& payid, const string& paytime, 
+									  const string& goodsname, const string& money, uint32 linuxTime) {
+
+	Map insertInfo;
+	insertInfo["pid"]=toString(pid);
+	insertInfo["operateid"]=uid;
+	insertInfo["sid"]=toString(sid);
+	insertInfo["guid"]=guid;
+	insertInfo["name"]=name;
+	insertInfo["payid"]=payid;
+	insertInfo["paytime"]=paytime;
+	insertInfo["goodsname"]=goodsname;
+	insertInfo["money"]=money;
+	insertInfo["timestamp"]=toString(linuxTime);
+
+	string table_name = "recharge";
+	Insert(GetRechargeNS(table_name), insertInfo);
+}
+
+
+//保存玩家后台日常信息
+void PolicedMongoLog::SaveHTDailyInfo(PlayerBase* player)
+{
+	Map wheres,values;
+	Results results;
+
+	uint32 login_date = GetTimeDate(player->GetLastLoginTime());
+	uint32 logout_date = GetTimeDate(player->GetLastLogoutTime()==0?PolicedApp::g_app->GetKaiFuShiJian():player->GetLastLogoutTime());
+	uint32 now_time = (uint32)time(NULL);
+
+	wheres["server_name"] = GetServerName(player->GetGuid());
+
+	wheres["guid"] = player->GetGuid();
+	wheres["i_date_type"] = toString(GetTimeDate(now_time));
+
+	uint32 now_date = GetCurYearMonth();//201601
+
+	if(Query(GetDailyNS(toString(now_date)),wheres,results) == MONGO_RES_ERROR)
+	{
+		tea_pdebug("query ht_daily_info from db fail, %s", server_name_.c_str());
+		return;
+	}
+	if(results.empty())
+	{
+		values["name"] = player->GetName();
+		values["server_name"] = GetServerName(player->GetGuid());
+		values["guid"] = player->GetGuid();
+		values["i_date_type"] = toString(GetTimeDate(now_time));//登录日期，比如今天是20160120
+		////是否登录器登录
+		//if (player->GetFlags(PLAYER_FLAG_MICRO_CLIENT_LOGIN))
+		//{
+		//	values["i_client_cnt"] = "1";
+		//}
+		//else
+		//{
+			values["i_client_cnt"] = "0";
+		//}
+		//是否回流用户,离线超过3天后再次登录的玩家
+		if ((login_date - logout_date) > 3 )
+		{
+			values["i_is_back"] = "1";
+		}
+		else
+		{
+			values["i_is_back"] = "0"; 
+		}
+
+		values["i_online_time"] = "0";
+		values["i_active"] = "0";
+		values["i_offdate_type"] = toString(logout_date);//离线日期
+		values["i_hungup_time"] =toString(0); //玩家挂机时间
+		values["i_force"] =toString(player->GetForce()); //退出时战斗力 
+		values["i_level"] =toString(player->GetLevel()); //退出时等级
+		values["i_monster_kill"] = toString(0);//被怪物杀死总数
+		values["i_player_kill"] = toString(0);//被玩家杀总数
+
+		Insert(GetDailyNS(toString(now_date)),values);
+	}
+	else
+	{
+		values["i_online_time"] = toString(player->GetDailyOnlineTime()); //今日在线总时长
+		values["i_active"] = toString(player->GetUInt32(PLAYER_INT_FIELD_ACTIVE)); // 活跃度
+
+		////是否登录器登录
+		//if (player->GetFlags(PLAYER_FLAG_MICRO_CLIENT_LOGIN))
+		//{
+		//	values["i_client_cnt"] = "1";
+		//}
+		//else
+		//{
+			values["i_client_cnt"] = "0";
+		//}
+		values["i_offdate_type"] = toString(logout_date);//离线日期
+		values["i_hungup_time"] =toString(0); //当日累积挂机时长
+		values["i_force"] =toString(player->GetForce()); //退出时战斗力 
+		values["i_level"] =toString(player->GetLevel()); //退出时等级
+		values["i_monster_kill"] = toString(0);//被怪物杀死总数
+		values["i_player_kill"] = toString(0);//被玩家杀总数
+		values["i_frist_gift"] = toString(player->GetIsPickFirstRecharge());//是否领取每日首充
+
+		Update(GetDailyNS(toString(now_date)),wheres,values);
+	}
+
 }

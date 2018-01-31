@@ -133,7 +133,15 @@ function InstanceQualify:OnJoinPlayer(player)
 	
 	local maxHealth = binLogLib.GetUInt32(player, UNIT_FIELD_MAX_HEALTH)
 	unitLib.SetHealth(player, maxHealth)
-	playerInfo:SetToGroupMode(playerInfo:GetPlayerGuid())
+	playerInfo:SetUInt32(PLAYER_INT_FIELD_VIRTUAL_CAMP, playerInfo:GetIntGuid())
+	--playerInfo:SetToGroupMode(playerInfo:GetPlayerGuid())
+end
+
+function InstanceQualify:DoIsMate(killer_ptr, target_ptr)
+	if not killer_ptr or not target_ptr then
+		return false
+	end
+	return GetVirtualCamp(killer_ptr) == GetVirtualCamp(target_ptr)
 end
 
 --当玩家离开时触发

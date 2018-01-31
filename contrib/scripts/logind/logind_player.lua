@@ -303,6 +303,26 @@ function LogindPlayer:SetDao(val)
 	self:SetDouble(PLAYER_FIELD_DAO, val)
 end
 
+-- 设置PVP伤害增加
+function LogindPlayer:SetPvpDamageAmplifyRate(val)
+	self:SetDouble(PLAYER_FIELD_PVP_DAMAGE_AMPLIFY_RATE, val)
+end
+
+-- 设置减少PVP伤害
+function LogindPlayer:SetPvpDamageResistRate(val)
+	self:SetDouble(PLAYER_FIELD_PVP_DAMAGE_RESIST_RATE, val)
+end
+
+-- 设置增加PVE伤害
+function LogindPlayer:SetPveDamageAmplifyRate(val)
+	self:SetDouble(PLAYER_FIELD_PVE_DAMAGE_AMPLIFY_RATE, val)
+end
+
+-- 设置减少伤害
+function LogindPlayer:SetDamageResistValue(val)
+	self:SetDouble(PLAYER_FIELD_DAMAGE_RESIST_VALUE, val)
+end
+
 local InitAttrFunc = {
 	[EQUIP_ATTR_MAX_HEALTH] = LogindPlayer.SetMaxHealth,	--设置最大生命
 	[EQUIP_ATTR_DAMAGE] = LogindPlayer.SetDamage,	--设置攻击力
@@ -336,6 +356,11 @@ local InitAttrFunc = {
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = LogindPlayer.SetControlResistRate,	--设置控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = LogindPlayer.SetStrengthArmor,	--设置强化护甲
 	[EQUIP_ATTR_DAO] = LogindPlayer.SetDao,	--设置境界
+	
+	[EQUIP_ATTR_PVP_DAMAGE_AMPLIFY_RATE] = LogindPlayer.SetPvpDamageAmplifyRate,	--设置PVP伤害增加
+	[EQUIP_ATTR_PVP_DAMAGE_RESIST_RATE] = LogindPlayer.SetPvpDamageResistRate,	--设置减少PVP伤害
+	[EQUIP_ATTR_PVE_DAMAGE_AMPLIFY_RATE] = LogindPlayer.SetPveDamageAmplifyRate,	--设置增加PVE伤害
+	[EQUIP_ATTR_DAMAGE_RESIST_VALUE] = LogindPlayer.SetDamageResistValue,	--设置减少伤害
 }
 
 

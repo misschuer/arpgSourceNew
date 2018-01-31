@@ -156,6 +156,7 @@ end
 --领取首冲奖励标记
 function AppQuestMgr:setWelfareShouchong()
 	self:SetUInt32(QUEST_FIELD_WELFARE_SHOUCHONG,1)
+	self:getOwner():SetUInt32(PLAYER_INT_FIELD_WELFARE_SHOUCHONG,1)
 end
 
 --每日签到奖励是否已领取
@@ -341,7 +342,8 @@ QUEST_FIELD_QUEST_END			//任务结束
 function AppQuestMgr:OnGetDailyQuestRewards()
 	local playerInfo = self:getOwner()
 	local finished = playerInfo:GetDailyQuestFinished()
-	local config = tb_quest_daily[finished]
+	--local config = tb_quest_daily[finished]
+	local config = tb_quest_daily[playerInfo:GetLevel()]
 	if config then
 		local rewards = config.rewards
 		-- 判断背包格子是否足够
@@ -363,10 +365,10 @@ function AppQuestMgr:RandomGenerateDailyQuest()
 	if finished >= tb_quest_daily_base[ 1 ].dailyLimit then
 		return
 	end
-	
 	-- 接下一个任务
+
 	local level = playerInfo:GetLevel()
-	local questList = tb_quest_daily_list[level]
+	local questList = tb_char_level[level].dailyQuests
 	if questList then
 		local indx = randInt(1, #questList)
 		local questId = questList[indx]
@@ -407,7 +409,10 @@ function AppQuestMgr:OnAddFirstCircleQuest(firstQuestId)
 	-- 删除原来的任务
 	for start = QUEST_FIELD_QUEST_START, QUEST_FIELD_QUEST_END - 1, MAX_QUEST_INFO_COUNT do
 		local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
-
+		if questId ~= 0 and not tb_quest[questId] then
+			outFmtError("!!!!!!!!!!!!!!!OnAddFirstCircleQuest quest id not exist")
+			self:OnRemoveQuest(start)
+		end
 		if questId > 0 and tb_quest[questId].type == QUEST_TYPE_DAILY then
 			self:OnRemoveQuest(start)
 		end
@@ -524,6 +529,7 @@ function AppQuestMgr:ActiveFlowingQuests(questId)
 		if config.start == 0 then
 			-- 完成数+1
 			playerInfo:AddDailyQuestFinished()
+			playerInfo:AddActiveItem(VITALITY_TYPE_DAILY_QUEST)
 		end
 		self:OnGetDailyQuestRewards()
 		self:RandomGenerateDailyQuest()
@@ -686,7 +692,7 @@ function AppQuestMgr:CheckIfTheTurnItemInQuest(start)
 	end
 	
 	-- 扣道具成功
-	if playerInfo:useAllItems(MONEY_CHANGE_USE_ITEM,{{entry, count}}) then
+	if playerInfo:useAllItems(MONEY_CHANGE_USE_ITEM, LOG_ITEM_OPER_TYPE_QUEST_USE_ITEM, {{entry, count}}) then
 		-- 设置进度信息
 		local qtIndx = GetOneQuestTargetStartIndx(start, 0)
 		self:SetUInt32(qtIndx + QUEST_TARGET_INFO_PROCESS, count)
@@ -769,7 +775,7 @@ function AppQuestMgr:OnSubmitQuestDaily2()
 	
 	playerInfo:onUpdatePlayerQuest(QUEST_TARGET_TYPE_DAILY_TASK, {})
 	
-	playerInfo:AddActiveItem(VITALITY_TYPE_DAILY_QUEST)
+	--playerInfo:AddActiveItem(VITALITY_TYPE_DAILY_QUEST)
 end
 
 --[[
@@ -792,7 +798,9 @@ function AppQuestMgr:OnInnerPickQuest(start, fixedReward)
 
 	-- 设一个已领取状态
 	self:OnQuestPicked(start)
-	
+	if not tb_quest[questId] then
+		outFmtDebug("OnInnerPickQuest  id %d not exist",questId)
+	end
 	-- 日常任务不能删除
 	if tb_quest[questId].type == QUEST_TYPE_DAILY2 and tb_quest[questId].start == 0 then
 		-- 由于策划保证多个任务会配一样的任务奖励, 那就走任务那套奖励
@@ -852,6 +860,8 @@ function AppQuestMgr:OnInnerPickQuest(start, fixedReward)
 	end
 	
 	playerInfo:AfterQuestDoing(tb_quest[questId].afterFinish)
+	
+	WriteMainTask(playerInfo,os.time(),questId,1,"")
 end
 
 -- 如果需要初始化进度的
@@ -893,6 +903,23 @@ function AppQuestMgr:OnCheckMainQuestActive(currLevel)
 	end
 end
 
+
+-- 升级了判断境界任务是否解锁
+function AppQuestMgr:OnCheckRealmQuestActive(currLevel)
+	for start = QUEST_FIELD_REALMBREAK_QUEST_START, QUEST_FIELD_REALMBREAK_QUEST_END - 1, MAX_QUEST_INFO_COUNT do
+		local questId = self:GetUInt16(start + QUEST_INFO_ID, 0)
+		local state   = self:GetUInt16(start + QUEST_INFO_ID, 1)
+		if questId > 0 and state == QUEST_STATUS_UNAVAILABLE then
+			if tb_quest[questId].level <= currLevel then
+				local state = QUEST_STATUS_INCOMPLETE
+				self:SetUInt16(start + QUEST_INFO_ID, 1, state)
+				self:ProcessInit(start)
+				self:CheckQuestFinish(start)
+			end
+			return
+		end
+	end
+end
 -- 增加任务
 function AppQuestMgr:OnAddQuest(addQuestId, binlogStart, binlogEnd)
 	local playerInfo = self:getOwner()
@@ -927,6 +954,9 @@ function AppQuestMgr:OnAddQuest(addQuestId, binlogStart, binlogEnd)
 			playerInfo:UpdateGuideIdByTaskId(addQuestId)
 			
 			playerInfo:AfterQuestDoing(tb_quest[addQuestId].afterAccept)
+			
+			WriteMainTask(playerInfo,os.time(),addQuestId,0,"")
+			
 			return
 		end
 	end
@@ -984,6 +1014,11 @@ function AppQuestMgr:FinishCurrentMainQuest()
 				break
 			end
 		end
+	end
+	
+	-- 没有查找到
+	if st >= QUEST_FIELD_QUEST_END then
+		return
 	end
 	
 	self:OnInnerPickQuest(st)
@@ -1109,6 +1144,37 @@ end
 function AppQuestMgr:SetQuestEscortFinishTime(value)
 	self:SetUInt32(QUEST_FIELD_ESCORT_QUEST_FINISH_TIME,value)
 end
+
+
+--七日充值奖励
+function AppQuestMgr:GetWelfareSevenDayRechargeProcess()
+	return self:GetUInt32(QUEST_FIELD_WELFARE_SEVEN_DAY_RECHARGE_PROCESS)
+end
+
+function AppQuestMgr:SetWelfareSevenDayRechargeProcess(value)
+	self:SetUInt32(QUEST_FIELD_WELFARE_SEVEN_DAY_RECHARGE_PROCESS,value)
+end
+
+function AppQuestMgr:GetWelfareSevenDayRechargeExtraFlag(index)
+	return self:GetBit(QUEST_FIELD_WELFARE_SEVEN_DAY_RECHARGE_EXTRA_FLAG,index)
+end
+
+function AppQuestMgr:SetWelfareSevenDayRechargeExtraFlag(index)
+	self:SetBit(QUEST_FIELD_WELFARE_SEVEN_DAY_RECHARGE_EXTRA_FLAG,index)
+end
+
+function AppQuestMgr:GetWelfareSevenDayRechargeTodayFlag()
+	return self:GetBit(QUEST_FIELD_WELFARE_SEVEN_DAY_RECHARGE_EXTRA_FLAG,31)
+end
+
+function AppQuestMgr:SetWelfareSevenDayRechargeTodayFlag()
+	self:SetBit(QUEST_FIELD_WELFARE_SEVEN_DAY_RECHARGE_EXTRA_FLAG,31)
+end
+
+function AppQuestMgr:UnSetWelfareSevenDayRechargeTodayFlag()
+	self:UnSetBit(QUEST_FIELD_WELFARE_SEVEN_DAY_RECHARGE_EXTRA_FLAG,31)
+end
+
 
 
 

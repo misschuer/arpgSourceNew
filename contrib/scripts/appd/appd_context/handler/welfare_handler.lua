@@ -2,7 +2,13 @@
 --领取首冲奖励
 function PlayerInfo:Handle_Welfare_Shouchong(pkt)
 	--local questMgr = self:getQuestMgr()
-	self:WelfareShouchong()
+	--self:WelfareShouchong()
+end
+
+function PlayerInfo:Handle_Get_Seven_Day_Recharge_Extra_Reward(pkt)
+	local id = pkt.id
+	local questMgr = self:getQuestMgr()
+	self:GetSevenDayRechargeExtraReward(id)
 end
 
 --领取签到奖励
@@ -25,11 +31,21 @@ function PlayerInfo:Handle_Welfare_CheckIn_Getback(pkt)
 	if day >= curday then
 		return
 	end
-	if self:GetVIP() == 0 then
+	--if self:GetVIP() == 0 then
+		--return
+	--end
+	
+	if self:getQuestMgr():getWelfareCheckIn(day) then 
+		--self:CallOptResult(OPRATE_TYPE_ACTIVITY, ACTIVITY_OPERATE_HASGET)
 		return
 	end
+	local count = self:GetUInt32(PLAYER_INT_FIELD_WELFARE_CHECKIN_GETBACK_COUNT)
+	local config = tb_welfare_checkin[count + 1]
 	
-	self:WelfareCheckIn(day)
+	if config and self:useAllItems(MONEY_CHANGE_CHECKIN_GETBACK, nil, config.getback_cost) then
+		self:AddUInt32(PLAYER_INT_FIELD_WELFARE_CHECKIN_GETBACK_COUNT,1)
+		self:WelfareCheckIn(day)
+	end
 end
 
 --领取等级奖励
@@ -94,3 +110,7 @@ function PlayerInfo:Handle_Welfare_Get_Sevenday_Reward(pkt)
 end
 
 
+function PlayerInfo:Handle_Use_Giftcode(pkt)
+	local giftcode = pkt.giftcode
+	self:UseGiftcode(giftcode)
+end

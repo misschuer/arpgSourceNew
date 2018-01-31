@@ -141,8 +141,8 @@ void Grid::SendObjectUpdate()
 	ud.clear();
 
 	//创建和离开只通知当前格
-	ud.insert(ud.end(),out_area_blocks.begin(),out_area_blocks.end());
 	ud.insert(ud.end(),create_blocks.begin(),create_blocks.end());	
+	ud.insert(ud.end(),out_area_blocks.begin(),out_area_blocks.end());
 	create_blocks.clear();
 
 	//更新块
@@ -152,6 +152,8 @@ void Grid::SendObjectUpdate()
 	//如果对象没有变化
 	if(ud.empty())
 		return;
+
+	tea_pdebug("grid %u SendObjectUpdate", this->index);
 
 	ByteArray *byte = ObjMgr.GridMallocByteArray();
 	byte->clear();
@@ -500,9 +502,25 @@ void GridManager::Update(uint32 diff)
 		it != m_active_grid.end();
 		++it)
 	{
-		std::for_each((*it)->players.begin(),(*it)->players.end(),func);
+		std::for_each((*it)->players.begin(),(*it)->players.end(),func);		
+	}
+
+	for (std::set<Grid*>::iterator it = m_active_grid.begin();
+		it != m_active_grid.end();
+		++it)
+	{
 		std::for_each((*it)->creatures.begin(),(*it)->creatures.end(),func);		
 	}
+	/*
+	stringstream os;
+	for (auto ti = m_wo_need_refresh_grid.begin(); ti != m_wo_need_refresh_grid.end(); ++ ti) {
+		os << char((*ti)->GetTypeId() + '0') << " ";
+	}
+	string str = os.str();
+	if (str.length() > 0) {
+		tea_pdebug("update ######## ");
+		tea_pdebug("%s", str.c_str());
+	}*/
 
 	//根据坐标变化计算出现，需要刷新grid的对象
 	std::for_each(m_wo_need_refresh_grid.begin(),m_wo_need_refresh_grid.end(),
@@ -558,6 +576,7 @@ void GridManager::AddPlayer(Player *player)
 	//增加到队列
 	grid.players.insert(player);//!!
 	player->SetGrid(&grid);	
+	tea_pdebug("##################player %s born at grid %d", player->GetGuid().c_str(), grid.index);
 	ASSERT(player->GetMap()->GetMapId() == player->GetMapId());
 }
 
@@ -664,6 +683,7 @@ void GridManager::AddWorldObject(Unit *wo)
 		grid.worldobjs.push_back(wo);
 	wo->SetGrid(&grid);
 
+	tea_pdebug("!!!!!!!!!!!!!!creature %s born at grid %d", wo->GetGuid().c_str(), grid.index);
 	//如果可以激活grid
 	if(wo->CanActiveGrid())
 		RefreshGridIdle(grid);
@@ -836,11 +856,17 @@ void GridManager::RefreshGrid(Unit* wo)
 		old_grid.worldobjs.erase(std::find_if(old_grid.worldobjs.begin(),old_grid.worldobjs.end(),
 			std::bind2nd(std::equal_to<Unit*>(),wo)));
 
+	if(wo->GetTypeId() == TYPEID_PLAYER) {
+		tea_pdebug("######### player %s change grid index %d to %d", wo->GetGuid().c_str(), old_grid.index, new_grid.index);
+	} else if(wo->GetTypeId() == TYPEID_UNIT) {
+		tea_pdebug("!!!!!!!!! creature %s change grid index %d to %d", wo->GetGuid().c_str(), old_grid.index, new_grid.index);
+	}
+
 	it = old_grid.notice_grid.begin();
 	end = old_grid.notice_grid.end();
 	for(;it != end; ++it)
 	{
-		//远离的3个grid
+		//远离的多个grid
 		if(abs((*it)->x - new_grid.x)>1 || abs((*it)->y - new_grid.y)>1)
 		{			
 			(*it)->AddOutArea(wo);
@@ -868,26 +894,35 @@ void GridManager::RefreshGrid(Unit* wo)
 	{
 		for(; it != end; ++it)
 		{
-			//新接近的3个grid
+			//新接近的多个grid
 			if(abs((*it)->x - old_grid.x)>1 || abs((*it)->y -old_grid.y)>1)
 			{
 				//设置为活动
 				if((*it)->active == false && wo->CanActiveGrid())
 					SetGridIdleStatus(**it,true);
 
-				//将这些grid中的对象通知该grid
-				if(wo->GetTypeId() == TYPEID_PLAYER)
+				//将这些grid中的对象通知该玩家
+				if(wo->GetTypeId() == TYPEID_PLAYER) {
+					uint32 prev = ud.size();
 					(*it)->GetCreateBlocForNewPlayer(ud);
+					uint32 curr = ud.size();
+					if (curr > prev) {
+						tea_pdebug("######### player %s add object from grid %u", wo->GetGuid().c_str(), (*it)->index);
+					}
+				}
 				
-				if((*it)->active)
-					(*it)->AddCreateBlock(bytes);
-			} else  {
-				// 防止多个对象到 与运动方向垂直的包含new_grid的一条线的grid内, 没法通知到在这条线内的grid中的player的BUG
-				// 如grid 8 和grid 10的对象同时走到grid 9
 				if((*it)->active) {
+					tea_pdebug("%s create block in grid %u to notice other", wo->GetGuid().c_str(), (*it)->index);
 					(*it)->AddCreateBlock(bytes);
 				}
 			}
+			//else  {
+				// 防止多个对象到 与运动方向垂直的包含new_grid的一条线的grid内, 没法通知到在这条线内的grid中的player的BUG
+				// 如grid 8 和grid 10的对象同时走到grid 9
+			//	if((*it)->active) {
+			//		(*it)->AddCreateBlock(bytes);
+			//	}
+			//}
 		}
 	}
 

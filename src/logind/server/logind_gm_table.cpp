@@ -114,7 +114,7 @@ void LogindGMTable::SendOnilne(TimerHolder& th)
 		if(LogindContext::FindContext(it->second))
 			player_count++;
 	}
-	WriteOnline(account_count, player_count);
+	//WriteOnline(account_count, player_count);
 	globalValue->SetUInt32(GLOBALVALUE_INT_FIELD_ONLINE_PLAYER_NUM,player_count);
 	th._next_time += 600;
 }

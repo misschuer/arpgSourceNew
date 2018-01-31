@@ -1,10 +1,12 @@
 InstanceResBase = class("InstanceResBase", InstanceInstBase)
 
 InstanceResBase.Name = "InstanceResBase"
+InstanceResBase.start_time = 5
+
 InstanceResBase.exit_time = 10
 --刷新坐标偏移值
 InstanceResBase.RefreshOffset = 3;
-
+InstanceResBase.broadcast_nogrid = 1
 InstanceResBase.MonsterRefreshInterval = 500
 
 function InstanceResBase:ctor(  )
@@ -39,7 +41,13 @@ function InstanceResBase:OnInitScript(  )
 	-- 加副本任务
 	self:OnAddQuests(questTable)
 	-- 加任务任务时间
-	local timestamp = os.time() + time
+	
+	local timestamp = os.time() + self.start_time
+	self:SetMapStartTime(timestamp)
+	
+	self:AddTimeOutCallback("OnRefreshMonster", timestamp)
+	
+	timestamp = os.time() + time + self.start_time
 	
 	self:SetMapQuestEndTime(timestamp)
 	-- 副本时间超时回调
@@ -158,17 +166,14 @@ function InstanceResBase:OnJoinPlayer(player)
 		mapLib.ExitInstance(self.ptr, player)
 		self:SetMapState(self.STATE_FAIL)
 	end
-	
-	-- 刷新怪物
-	self:OnRefreshMonster(playerInfo)
-	
+		
 end
 
 --刷一波怪
-function InstanceResBase:RefreshMonsterBatch(player)
+function InstanceResBase:RefreshMonsterBatch()
 	local batchIdx = self:GetBatch() - 1
 	
-	local tf,cnt = self:ApplyRefreshMonsterBatch(player,batchIdx)
+	local tf,cnt = self:ApplyRefreshMonsterBatch(batchIdx)
 	if not tf then
 		return
 	end
@@ -179,7 +184,7 @@ function InstanceResBase:RefreshMonsterBatch(player)
 	self:SubBatch()
 end
 
-function InstanceResBase:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceResBase:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("ApplyRefreshMonsterBatch base")
 	local batchPos = self:GetRandomMonsterIndex(batchIdx)
 
@@ -190,7 +195,8 @@ function InstanceResBase:ApplyRefreshMonsterBatch(player,batchIdx)
 	local id = self:GetIndex()
 	local config = tb_instance_res[ id ]
 	local entry = config.monster[batchPos]
-	local plev = player:GetLevel()
+	--local plev = player:GetLevel()
+	local plev = config.level
 	local bornPos = config.monsterInfo[batchPos]
 	local cnt = config.monsternum
 	
@@ -209,12 +215,12 @@ function InstanceResBase:ApplyRefreshMonsterBatch(player,batchIdx)
 	self:SetUInt16(REFRESH_MONSTER_FIELD_ID, 1, cnt)
 	
 	mapLib.DelTimer(self.ptr, 'OnTimer_MonsterBornOneByOne')
-	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval, player:GetPlayerGuid())
+	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval)
 	
 	return true,cnt
 end
 
-function InstanceResBase:OnTimer_MonsterBornOneByOne(playerGuid)
+function InstanceResBase:OnTimer_MonsterBornOneByOne()
 	local dids = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 0)
 	local need = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 1)
 	if dids >= need then
@@ -231,32 +237,17 @@ function InstanceResBase:OnTimer_MonsterBornOneByOne(playerGuid)
 			{templateid = entry, x = bornX, y = bornY, level=level, active_grid = true, 
 			ainame = "AI_res", npcflag = {}, attackType = REACT_AGGRESSIVE})
 	
-	local player_ptr = mapLib.GetPlayerByPlayerGuid(self.ptr, playerGuid)
-	if player_ptr then
-		creatureLib.ModifyThreat(creature, player_ptr, self.THREAT_V)
-	end
+	
 	self:AddUInt16(REFRESH_MONSTER_FIELD_ID, 0, 1)
 	
 	return true
 end
 
 --刷怪
-function InstanceResBase:OnRefreshMonster(player)
+function InstanceResBase:OnRefreshMonster()
 	
-	-- 由于是进副本就刷的, 判断如果进入时间比开始时间开始时间超过2秒以上则不刷了
-	-- 主要为了解决离线重连的问题
-	local time = os.time()
-	local startTime = self:GetMapCreateTime()
-	if time - startTime > 2 then
-		-- 重新给怪物加仇恨度
-		local creatureTable = mapLib.GetAllCreature(self.ptr)
-		for _, creature in pairs(creatureTable) do
-			creatureLib.ModifyThreat(creature, player.ptr, self.THREAT_V)
-		end
-		return
-	end
 	
-	self:RefreshMonsterBatch(player)
+	self:RefreshMonsterBatch()
 
 end
 
@@ -301,7 +292,7 @@ function InstanceResBase:SendResReward(player)
 	-- 获得随机奖励dropIdTable
 --		local dropIdTable = tb_instance_trial[ id ].reward
 	local playerInfo = UnitInfo:new{ptr = player}
-	local idx = id * 1000 + playerInfo:GetLevel()
+	local idx = tb_instance_res[id].type * 1000 + tb_instance_res[id].level
 	--outFmtDebug("tb_instance_reward idx %d",idx)
 	local config = tb_instance_reward[idx]
 	local tab = {}
@@ -347,7 +338,8 @@ function InstanceResBase:RefreshBoss(player)
 	local id = self:GetIndex()
 	local config = tb_instance_res[ id ]
 	local entry = config.boss
-	local plev = player:GetLevel()
+	--local plev = player:GetLevel()
+	local plev = config.level
 	local bornPos = config.bosspos
 	
 	local creature = mapLib.AddCreature(self.ptr, {templateid = entry, x = bornPos[1], y = bornPos[2], level=plev, 
@@ -362,7 +354,7 @@ function InstanceResBase:SetCreaturePro(creatureInfo, pros, bRecal, mul)
 	local lev = creatureInfo:GetLevel()
 	local idx = entry * 1000 + lev
 	--outFmtDebug("SetBaseAttrs -- ai res %d--%d--%d",entry,lev,idx)
-	local config = tb_creature_resource[idx]
+	local config = nil --tb_creature_resource[idx]
 	if config then
 		--outFmtDebug("shu xing")
 		Instance_base.SetCreaturePro(self, creatureInfo, config.pro, bRecal, mul)
@@ -376,7 +368,7 @@ function InstanceResBase:DoGetCreatureBaseExp(creature, owner)
 	local entry = binLogLib.GetUInt16(creature, UNIT_FIELD_UINT16_0, 0)
 	local level = binLogLib.GetUInt16(creature, UNIT_FIELD_UINT16_0, 1)
 	local index = entry * 1000 + level
-	local config = tb_creature_resource[index]
+	local config = nil --tb_creature_resource[index]
 	
 	if config then
 		return config.exp

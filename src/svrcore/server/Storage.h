@@ -36,6 +36,7 @@ public:
 	bool CopyDirFilse(string& src, string& dst);						//拷贝源路径下的所有文件到目的路径	
 	bool CopyAFile(string& src, string& dst);							//拷贝文件
 	bool SaveFile(const string& file_name, const string& file_content);	//保存一个文件到硬盘
+	bool Rename(const string &from, const string& to);					//重命名
 };
 
 }

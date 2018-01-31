@@ -110,14 +110,18 @@ void RobotdUnit::StartMoving(bool client_path, string from)
 void RobotdUnit::SetPosition(float x, float y, string from)
 {
 	//tea_pdebug("%s from %s set x, y (%.2f, %.2f)\n", this->GetGuid().c_str(), from.c_str(), x, y);
+	if (x <= 0 || y <= 0) {
+		tea_pdebug("%s from %s set x, y (%.2f, %.2f)\n", this->GetGuid().c_str(), from.c_str(), x, y);
+		return;
+	}
 	ASSERT(x > 0 && y > 0);
 #ifdef CHECK_PATH_DEF
 	if(m_main_player)
 	{
-		const MapTemplate *templ = MapTemplate::GetMapTempalte(GetMapId());
 		//ASSERT(x <= templ->GetMapBaseInfo().width);
 		//ASSERT(y <= templ->GetMapBaseInfo().height);
-		if(x > templ->GetMapBaseInfo().width || y > templ->GetMapBaseInfo().height)
+		const MapTemplate *templ = MapTemplate::GetMapTempalte(GetMapId());
+		if(templ && (x > templ->GetMapBaseInfo().width || y > templ->GetMapBaseInfo().height))
 		{
 			tea_perror("RobotdUnit::SetPosition check pos err, %s %s %u %u %u", m_main_player->guid().c_str(), guid().c_str(), GetMapId(), x, y);
 			m_main_player->Close();

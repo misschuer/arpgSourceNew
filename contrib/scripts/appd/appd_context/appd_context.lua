@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------------------------------------------------------------------------
 --玩家封装
 PlayerInfo = class('PlayerInfo', BinLogObject)
+local security = require("base/Security")
 
 local guidMgr = require 'share.guid_manager'
 
@@ -206,15 +207,17 @@ end
 
 -- 骑乘状态
 function PlayerInfo:rideFlag()
-	return self:GetByte(PLAYER_INT_FIELD_MOUNT_LEVEL, 2)
+	return self:GetUInt32(PLAYER_INT_FIELD_MOUNT_RIDE)
 end
 
 -- 设置骑乘状态
 function PlayerInfo:SetRideState(val)
-	self:SetByte(PLAYER_INT_FIELD_MOUNT_LEVEL, 2, val)
+	self:SetUInt32(PLAYER_INT_FIELD_MOUNT_RIDE, val)
+	--[[
 	local spellMgr = self:getSpellMgr()
 	local speed = GetPlayerSpeed(self:GetLevel(), spellMgr:getMountLevel(), self:GetCurrIllusionId(), self:isRide(), self:GetGender())
 	self:SetMoveSpeed(speed)
+	--]]
 end
 
 -- 幻化id
@@ -239,9 +242,14 @@ function PlayerInfo:SetVIP(vipLevel, time)
 		return
 	end
 	
+	local prevVIP = self:GetVIP()
+	if vipLevel > prevVIP then
+		self:OnVipRaised(prevVIP,vipLevel)
+		
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_VIP_LEVEL, {vipLevel})
+	end
 	self:SetUInt32(PLAYER_FIELD_VIP_LEVEL, vipLevel)
 	self:SetUInt32(PLAYER_FIELD_VIP_TIME_OUT, time)
-	
 	self:UpdateFactionBangZhuInfo()
 	self:UpdateBagSize(vipLevel)
 end
@@ -254,10 +262,23 @@ end
 -- 获得vip等级
 function PlayerInfo:GetVIP()
 	local vipLevel = self:GetUInt32(PLAYER_FIELD_VIP_LEVEL)
-	if self:GetUInt32(PLAYER_FIELD_VIP_TIME_OUT) < os.time() then
+	local time = self:GetUInt32(PLAYER_FIELD_VIP_TIME_OUT)
+	if time < os.time() and time > 0 then
 		vipLevel = 0
 	end
 	return vipLevel
+end
+
+--vip 提升时 补充增加的次数
+function PlayerInfo:OnVipRaised(prev,now)
+	local prev_config = tb_vip_base[prev]
+	local now_config = tb_vip_base[now]
+	
+	local added = now_config.massbossExtraTimes - prev_config.massbossExtraTimes
+	if added > 0 then
+		self:AddUInt32(PLAYER_INT_FIELD_MASS_BOSS_TIMES, added)
+		self:CallScenedDoSomething(APPD_SCENED_RESETDAILY, 0)
+	end
 end
 
 -- 玩家是否还活着
@@ -538,8 +559,10 @@ end
 
 
 -- 扣除钱
-function PlayerInfo:costMoneys(oper_type, costTable, times)
+function PlayerInfo:costMoneys(oper_type, costTable, times, relateItemIds, relateItemNums)
 	times = times or 1
+	relateItemIds = relateItemIds or ''
+	relateItemNums = relateItemNums or ''
 	if times < 1 then
 		return false
 	end
@@ -548,7 +571,7 @@ function PlayerInfo:costMoneys(oper_type, costTable, times)
 	if bool then
 		-- 实际扣除
 		for _, res in pairs(realCostTable) do
-			self:SubMoney(res[ 1 ], oper_type, res[ 2 ])
+			self:SubMoney(res[ 1 ], oper_type, res[ 2 ], relateItemIds, relateItemNums)
 		end
 	end
 	
@@ -561,50 +584,27 @@ function PlayerInfo:GetMoney ( money_type)
 end
 
 --金钱减少
-function PlayerInfo:SubMoney ( money_type, oper_type, val, p1, p2, p3, p4, p5)
+function PlayerInfo:SubMoney ( money_type, oper_type, val, relateItemIds, relateItemNums)
 	if(val <= 0)then
 		return false
 	end
 	val = -1 * val
-	if(p1 == nil)then
-		p1 = ""
-	end
-	if(p2 == nil)then
-		p2 = 0
-	end
-	if(p3 == nil)then
-		p3 = 0
-	end
-	if(p4 == nil)then
-		p4 = 0
-	end
-	if(p5 == nil)then
-		p5 = 0
-	end
-	return playerLib.ModifyMoney(self.ptr, money_type, oper_type, val, p1, p2, p3, p4, p5)
+	relateItemIds = relateItemIds or ''
+	relateItemNums = relateItemNums or ''
+	
+	return playerLib.ModifyMoney(self.ptr, money_type, oper_type, val, relateItemIds, relateItemNums)
 end
 
 --金钱增加
-function PlayerInfo:AddMoney ( money_type, oper_type, val, p1, p2, p3, p4, p5)
+function PlayerInfo:AddMoney ( money_type, oper_type, val, relateItemIds, relateItemNums)
 	if(val <= 0)then
 		return false
 	end
-	if(p1 == nil)then
-		p1 = ""
-	end
-	if(p2 == nil)then
-		p2 = 0
-	end
-	if(p3 == nil)then
-		p3 = 0
-	end
-	if(p4 == nil)then
-		p4 = 0
-	end
-	if(p5 == nil)then
-		p5 = 0
-	end
-	return playerLib.ModifyMoney(self.ptr, money_type, oper_type, val, p1, p2, p3, p4, p5)
+	
+	relateItemIds = relateItemIds or ''
+	relateItemNums = relateItemNums or ''
+	
+	return playerLib.ModifyMoney(self.ptr, money_type, oper_type, val, relateItemIds, relateItemNums)
 end
 
 --获取元宝和绑元数量
@@ -612,7 +612,7 @@ function PlayerInfo:GetGoldMoney ()
 	return self:GetMoney(MONEY_TYPE_GOLD_INGOT) + self:GetMoney(MONEY_TYPE_BIND_GOLD)
 end
 
---消耗元宝和绑元
+--[[--消耗元宝和绑元
 function PlayerInfo:SubGoldMoney (log_type,val)
 	if(self:GetMoney(MONEY_TYPE_BIND_GOLD) >= val)then
 		return self:SubMoney(MONEY_TYPE_BIND_GOLD,log_type,val)
@@ -624,7 +624,7 @@ function PlayerInfo:SubGoldMoney (log_type,val)
 		return self:SubMoney(MONEY_TYPE_GOLD_INGOT,log_type,money)
 	end
 	return false
-end
+end--]]
 
 --玩家消费行为
 function PlayerInfo:OnConsumption(money_type,val)
@@ -647,7 +647,7 @@ function PlayerInfo:DoGlodConsumeStatistics ( val)
 	end
 	self:SetConsumeSum(count)
 	
-	outFmtInfo("DoGlodConsumeStatistics  cur %d", self:GetConsumeSum())
+	outFmtDebug("DoGlodConsumeStatistics  cur %d", self:GetConsumeSum())
 --	end
 end
 
@@ -739,11 +739,53 @@ function PlayerInfo:Login()
 	-- 
 	local logoutTime = self:GetUInt32(PLAYER_EXPAND_INT_LAST_LOGOUT_TIME)
 	if logoutTime > 0 then
-		local times = math.floor((os.time() - logoutTime) / 10)
+		local times = math.floor((os.time() - logoutTime) / 60)
 		self:onPickedOfflineRiskReward(times)
 	end
 	
 	self:ResetLastInstanceInfo()
+	
+	local groupId = self:GetGroupId()
+	if string.len(groupId) > 0 then
+		local groupObj = app.objMgr:getObj(groupId)
+		if not groupObj or not app.objMgr:IsGroupGuid(groupId) or not groupObj:groupOnline(self) then
+			self:SetGroupId('')
+		end
+		
+		-- 如果是正在匹配然后推掉的 下次进来清空记号
+		if groupObj and groupObj:IsPlayerCaptain(self:GetGuid()) then
+			groupObj:SetUInt32(GROUP_INT_FIELD_TARGET_INST, 0)
+		end
+	end
+	
+	-- 3v3参与奖励获得
+	local timestamp = GetTodayStartTimestamp()
+	if self:GetKuafu3v3Score() > 0 and (self:GetKuafu3v3TotalScore() ~= timestamp or not isLocal3V3Open(self)) then
+		self:SetKuafu3v3Score(0)
+		self:Get3v3JoinReward()
+	end
+	
+	self:SetUInt32(PLAYER_INT_FIELD_AUTO_GROUP_MATCH, 0)
+	OnGroupMatchRemove(self:GetGuid())
+	
+	
+	-- 检测充值信息
+	app.http:RchhargeOnLogin(self)
+	
+	--重置每月签到
+	
+	self:CheckClearCheckInData()
+	self:ResetActRankData()
+	self:LoginUpdateModuleUnlock()
+end
+
+function PlayerInfo:Get3v3JoinReward()
+	local config = tb_kuafu3v3_base[ 1 ]
+	local desc = config.maildesc
+	local name = config.mailname
+	local reward = config.joinReward
+	local giftType = 3
+	AddGiftPacksData(self:GetGuid(),0,giftType,os.time(),os.time() + 86400*30, name, desc, reward, SYSTEM_NAME)
 end
 
 --pk服玩家登陆做点啥
@@ -767,6 +809,15 @@ function PlayerInfo:Logout ()
 	
 	--备份修炼信息
 	self:LogoutBackupCultivation()
+	
+	-- 如果有队伍 退出队伍
+	local groupId = self:GetGroupId()
+	if string.len(groupId) > 0 then
+		local group = app.objMgr:getObj(groupId)
+		if group then
+			group:groupOffline(self)
+		end
+	end	
 end
 
 --有多少个物品
@@ -827,9 +878,22 @@ function PlayerInfo:SetRechageLastTime ( val)
 end
 
 --充值后
-function PlayerInfo:DoAddRechargeSum (recharge_id,val,recharge_time)
+function PlayerInfo:DoAddRechargeSum (recharge_id,rmbval,recharge_time, callback)
+	if  rmbval == 0 then
+		return
+	end
 	if(self:GetRechageLastTime() <= recharge_time and self:GetRechageID() ~= recharge_id)then
-		self:AddUInt32(PLAYER_APPD_INT_FIELD_RECHARGE_SUM,val)
+		self:AddUInt32(PLAYER_APPD_INT_FIELD_RECHARGE_SUM,rmbval)
+		
+		--首充
+		local isFirst = self:WelfareShouchong()
+		if isFirst and callback then
+			callback()
+		end
+		--7日充值
+		self:WelfareSevenDayRecharge(recharge_time)
+		
+		
 		self:SetRechageLastTime(recharge_time)
 		self:SetRechageID(recharge_id)
 		--self:AddUInt32(PLAYER_HT_INT_FIELD_RECHARGE_COUNT,1)
@@ -837,7 +901,7 @@ function PlayerInfo:DoAddRechargeSum (recharge_id,val,recharge_time)
 		--限时活动充值
 		local limit_acti = self:getLimitActivityInfo()
 		if limit_acti then
-			limit_acti:OnRecharge(self, val, recharge_id, recharge_time)
+			limit_acti:OnRecharge(self, rmbval, recharge_id, recharge_time)
 		end
 
 		--设置下付费等级
@@ -864,8 +928,21 @@ function PlayerInfo:DoAddRechargeSum (recharge_id,val,recharge_time)
 			end
 		end
 		
-		local tm = os.time() + 30 * 24 * 3600
-		self:SetVIP(vipLev,tm)
+		-- 充值转盘
+		local lotteryTimes = 0
+		for k, v in ipairs(tb_recharge_wheel) do
+			local cz = v.recharges
+			if rechage >= cz then
+				lotteryTimes = v.id
+			else
+				break
+			end
+		end
+		self:SetRechargeLotteryTimes(lotteryTimes)
+		
+		if vipLev > 0 then
+			self:SetVIP(vipLev, 0)
+		end
 		
 	end
 end
@@ -929,6 +1006,10 @@ function PlayerInfo:AddItemByEntry(entry, count, money_log, item_log, item_bind,
 		if record == ITEM_RECORD_BROADCAST then
 			local itemName = GetColordItemName(entry)
 			app:CallOptResult(OPRATE_TYPE_REWARD, item_log, {ToShowName(self:GetName()), itemName})
+			
+			--if config.quality >= 4 and config.type == ITEM_TYPE_EQUIP then
+			--	app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_PAIWEI_RANKUP, {ToShowName(self:GetName()), itemName})
+			--end
 		end
 		
 		--[[
@@ -939,11 +1020,11 @@ function PlayerInfo:AddItemByEntry(entry, count, money_log, item_log, item_bind,
 		end
 		--]]
 	end
-	WriteItemLog(self, item_log,entry,count, item_bind)
+	WriteItemLog(self, item_log, entry, 0, count)
 end
 
 --使用多个物品
-function PlayerInfo:useAllItems(moneyLog, costItemTable, multiple)
+function PlayerInfo:useAllItems(moneyLog, itemLog, costItemTable, multiple, relateItemIds, relateItemNums)
 	local resources, items, _ = AllItemsSplitResourceAndItemAndExp(costItemTable, multiple)
 	
 	if not self:checkMoneyEnoughs(resources, multiple) then
@@ -953,9 +1034,16 @@ function PlayerInfo:useAllItems(moneyLog, costItemTable, multiple)
 	if not self:hasMulItem(items, multiple) then
 		return false
 	end
-	
-	self:costMoneys(moneyLog, resources, multiple)
-	self:useMulItem(items, multiple)
+	-- moneyLog 为nil
+	if not moneyLog and #resources > 0 then
+		return false
+	end
+	self:costMoneys(moneyLog, resources, multiple, relateItemIds, relateItemNums)
+	-- itemLog 为nil
+	if not itemLog and #items > 0 then
+		return false
+	end
+	self:useMulItem(itemLog, items, multiple)
 	
 	return true
 end
@@ -977,9 +1065,12 @@ end
 
 
 --使用多个物品
-function PlayerInfo:useMulItem(costItemTable,multiple)
+function PlayerInfo:useMulItem(itemLog, costItemTable,multiple)
+	if not itemLog then
+		return false
+	end
 	local itemMgr = self:getItemMgr()						
-	return itemMgr:useMulItem(costItemTable,multiple)
+	return itemMgr:useMulItem(itemLog, costItemTable,multiple)
 end
 
 --判断是否同时拥有多个物品
@@ -989,14 +1080,14 @@ function PlayerInfo:hasMulItem(costItemTable,multiple)
 end
 
 -- 扣除多个物品 不够用钱换
-function PlayerInfo:useMulItemIfCostMoneyEnabled(costItemTable, multiple)
+function PlayerInfo:useMulItemIfCostMoneyEnabled(itemLog, costItemTable, multiple)
 	multiple = multiple or 1
 	
 	local ret, items, res = self:checkItemEnoughIfCostMoneyEnabled(costItemTable, multiple)
 	if not ret then
 		return false
 	end
-	if not self:useMulItem(items) then
+	if not self:useMulItem(itemLog, items) then
 		return false
 	end
 	if not self:costMoneys(MONEY_CHANGE_USE_ITEM, res) then
@@ -1196,9 +1287,27 @@ function PlayerInfo:SetSkillForce(val)
 end
 --[[
 	PLAYER_FIELD_SKILL_FORCE			= PLAYER_FIELD_MOUNT_FORCE + 1,				//技能战力
-	PLAYER_FILED_GEM_FORCE				= PLAYER_FIELD_SKILL_FORCE + 1,				//宝石战力
-	PLAYER_FIELD_STRENGTH_FORCE			= PLAYER_FILED_GEM_FORCE + 1,				//强化战力
+	PLAYER_FILED_EQUIP_FORCE				= PLAYER_FIELD_SKILL_FORCE + 1,				//装备战力
+	PLAYER_FIELD_EQUIPDEVELOP_FORCE			= PLAYER_FILED_GEM_FORCE + 1,				//炼器战力
+	PLAYER_INT_FIELD_REALMBREAK_FORCE	//境界战力
 --]]
+
+function PlayerInfo:SetEquipForce(val)
+	self:SetUInt32(PLAYER_FILED_EQUIP_FORCE, val)
+end
+
+function PlayerInfo:SetEquipDevelopForce(val)
+	self:SetUInt32(PLAYER_FIELD_EQUIPDEVELOP_FORCE, val)
+end
+
+function PlayerInfo:SetRealmbreakForce(val)
+	self:SetUInt32(PLAYER_INT_FIELD_REALMBREAK_FORCE, val)
+end
+
+function PlayerInfo:SetAdventureSkillForce(val)
+	self:SetUInt32(PLAYER_INT_FIELD_ADVENTURE_SKILL_FORCE, val)
+end
+
 
 --设置神兵总战力
 function PlayerInfo:SetAllTalismanForce(val)
@@ -1302,6 +1411,7 @@ function PlayerInfo:OnLevelChanged()
 	local questMgr = self:getQuestMgr()
 	questMgr:OnUpdate(QUEST_TARGET_TYPE_PLAYER_LEVEL, {self:GetLevel()})
 	questMgr:OnCheckMainQuestActive(self:GetLevel())
+	questMgr:OnCheckRealmQuestActive(self:GetLevel())
 end
 
 -- 战力改变了
@@ -1332,7 +1442,7 @@ function PlayerInfo:AddLevelActiveQuest(level)
 	local questMgr = self:getQuestMgr()
 	
 	for _, questId in pairs(quests) do
-		if questId > 0 then
+		if questId > 0 and tb_quest[questId] then
 			if tb_quest[questId].type == QUEST_TYPE_DAILY2 then
 				questMgr:OnAddFirstDaily2Quest(tb_quest_daily2_base[ 1 ].npcQuest)
 			elseif tb_quest[questId].type == QUEST_TYPE_DAILY then
@@ -1349,6 +1459,8 @@ function PlayerInfo:AddLevelActiveQuest(level)
 				end 
 				questMgr:OnAddQuest(questId, binstart, binend)
 			end
+		else
+			outFmtDebug("!!!!!!!!!!!!!!!!AddLevelActiveQuest quest id %d not exist",questId)
 		end
 	end
 end
@@ -1388,6 +1500,10 @@ end
 -- 设置跨服3v3积分
 function PlayerInfo:SetKuafu3v3Score(val)
 	self:SetUInt32(PLAYER_INT_FIELD_WORLD_3V3_SCORE, val)
+	if val == 0 then
+		self:SetKuafu3v3TrendInfo(0)
+		self:SetUInt32(PLAYER_INT_FIELD_WORLD_3V3_WINS, 0)
+	end
 end
 
 -- 增加跨服3v3积分
@@ -1397,52 +1513,54 @@ function PlayerInfo:AddKuafu3v3Score(val)
 	ret = math.max(ret, 0)
 	self:SetKuafu3v3Score(ret)
 	
-	-- 加总积分
-	local totalret = val + self:GetKuafu3v3TotalScore()
-	totalret = math.max(totalret, 0)
-	self:SetKuafu3v3TotalScore(totalret)
-	-- 对积分进行排名
-	self:World3v3Rank()
+	local timestamp = GetTodayStartTimestamp()
+	self:SetKuafu3v3TotalScore(timestamp)
+
+	-- 更新排名
+	rankInsertTask(self:GetGuid(), RANK_TYPE_3V3)
 end
 
--- 获得跨服3v3总积分
+function PlayerInfo:On3v3RankChanged(rank)
+	--[[if rank >=1 and rank <= 10 then
+		app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_3V3_RANKUP,{self:GetNoticeName(),rank})
+	end--]]
+end
+
+
+-- 获得参与时间
 function PlayerInfo:GetKuafu3v3TotalScore()
 	return self:GetUInt32(PLAYER_INT_FIELD_WORLD_3V3_TOTAL_SCORE)
 end
 
--- 设置跨服3v3总积分
+-- 设置参与时间
 function PlayerInfo:SetKuafu3v3TotalScore(val)
 	self:SetUInt32(PLAYER_INT_FIELD_WORLD_3V3_TOTAL_SCORE, val)
 end
 
--- 获得跨服3v3胜负趋势
+-- 获得当作总局数
 function PlayerInfo:GetKuafu3v3TrendInfo()
-	return self:GetInt32(PLAYER_INT_FIELD_WORLD_3V3_TREND_INFO)
+	return self:GetUInt32(PLAYER_INT_FIELD_WORLD_3V3_TREND_INFO)
 end
 
--- 设置跨服3v3胜负趋势
+-- 设置当作总局数
 function PlayerInfo:SetKuafu3v3TrendInfo(value)
-	self:SetInt32(PLAYER_INT_FIELD_WORLD_3V3_TREND_INFO, value)
+	self:SetUInt32(PLAYER_INT_FIELD_WORLD_3V3_TREND_INFO, value)
+end
+
+function PlayerInfo:AddKuafu3v3TrendInfo()
+	self:AddUInt32(PLAYER_INT_FIELD_WORLD_3V3_TREND_INFO, 1)
 end
 
 -- 增加跨服3v3胜负趋势
 function PlayerInfo:Kuafu3v3Win()
-	local value = self:GetKuafu3v3TrendInfo()
-	if value < 0 then
-		value = 0
-	end
-	value = value + 1
-	self:SetKuafu3v3TrendInfo(value)
+	self:AddUInt32(PLAYER_INT_FIELD_WORLD_3V3_WINS, 1)
+	-- 胜利场数+1
+	self:AddKuafu3v3TrendInfo()
 end
 
 -- 减少跨服3v3胜负趋势
 function PlayerInfo:Kuafu3v3Lose()
-	local value = self:GetKuafu3v3TrendInfo()
-	if value > 0 then
-		value = 0
-	end
-	value = value - 1
-	self:SetKuafu3v3TrendInfo(value)
+	self:AddKuafu3v3TrendInfo()
 end
 
 -- 获得斗剑台排名
@@ -1452,7 +1570,7 @@ end
 
 -- 设置斗剑台排名
 function PlayerInfo:SetDoujiantaiRank(rank)
-	if rank > 0 and rank <= 100 and rank < self:GetDoujiantaiRank() then
+	if rank > 0 and rank <= 10 and rank < self:GetDoujiantaiRank() then
 		app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_DOUJIANTAI_RANKUP,{self:GetNoticeName(),rank})
 	end
 	
@@ -1514,8 +1632,20 @@ function PlayerInfo:GetSpells()
 	return spells
 end
 
+function PlayerInfo:passiveSpellInRange(ps, a, b)
+	for i = a, b do
+		local spellID	= self:GetUInt16(i, 0)
+		local level		= self:GetUInt16(i, 1)
+		if spellID > 0 then
+			table.insert(ps, {spellID, level})
+		end
+	end
+end
+
 function PlayerInfo:GetPassivespells()
-	return {}
+	local ps = {}
+	self:passiveSpellInRange(ps, PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_START, PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_END-1)
+	return ps
 end
 
 function PlayerInfo:GetDummyInfo()
@@ -1542,11 +1672,7 @@ end
 
 -- 获得avatar
 function PlayerInfo:GetAvatar()
-	local fashionId = self:GetUInt32(PLAYER_FIELD_EQUIPMENT + EQUIPMENT_TYPE_FASHION)
-	if fashionId > 0 then
-		return fashionId
-	end
-	return self:GetUInt32(PLAYER_FIELD_EQUIPMENT + EQUIPMENT_TYPE_COAT)
+	return self:GetUInt16(PLAYER_INT_FIELD_APPEARANCE, 1)
 end
 
 -- 获得武器
@@ -1556,7 +1682,7 @@ end
 
 -- 获得神兵
 function PlayerInfo:GetDivine()
-	return self:GetUInt32(PLAYER_INT_FIELD_DIVINE_ID)
+	return self:GetUInt16(PLAYER_INT_FIELD_APPEARANCE, 0)
 end
 
 -- 获得欠款
@@ -1964,7 +2090,7 @@ function PlayerInfo:GetFactionGiftExreward(count_id)
 	if self:GetGuid() ~= self:GetGiftGuid(index) then
 		self:CallOptResult(OPERTE_TYPE_FACTION, OPERTE_TYPE_FACTION_GIFT_GET_EXREWARD)
 	end
-	outFmtInfo("============GetFactionGiftExreward finish ")
+	outFmtDebug("============GetFactionGiftExreward finish ")
 end
 
 --领取所有额外奖励
@@ -1974,7 +2100,7 @@ function PlayerInfo:GetAllFactionGiftExreward(factionData,player)
 		self:GetFactionGiftExreward(count_id)
 	end
 	
-	outFmtInfo("============GetAllFactionGiftExreward finish ")
+	outFmtDebug("============GetAllFactionGiftExreward finish ")
 	
 end
 
@@ -2039,16 +2165,7 @@ end
 --]]
 
 ---------------------------------全民boss---------------------------------------
-function PlayerInfo:costMassBossTimes()
-	local curr = self:getMassBossTimes()
-	if curr > 0 then
-		self:SubUInt32(PLAYER_INT_FIELD_MASS_BOSS_TIMES, 1)
-		if curr == tb_mass_boss_base[ 1 ].dailytimes then
-			self:SetMassBossCD(os.time() + 60 * tb_mass_boss_base[ 1 ].cd)
-		end
-		return true
-	end
-	
+function PlayerInfo:costMassBossTimes()	
 	return false
 end
 
@@ -2091,7 +2208,7 @@ function PlayerInfo:GetMassBossCD()
 end
 
 function PlayerInfo:CheckAddMassBossTimes()
-	if self:getMassBossTimes() >= tb_mass_boss_base[ 1 ].dailytimes then
+	--[[if self:getMassBossTimes() >= tb_mass_boss_base[ 1 ].dailytimes then
 		return
 	end
 	
@@ -2103,16 +2220,17 @@ function PlayerInfo:CheckAddMassBossTimes()
 		if curr < tb_mass_boss_base[ 1 ].dailytimes then
 			self:SetMassBossCD(os.time() + 60 * tb_mass_boss_base[ 1 ].cd)
 		end
-	end
+	end--]]
 end
 
 -- 重置全民boss的次数
 function PlayerInfo:ResetMassBossTimes()
-	if self:getMassBossTimes() < tb_mass_boss_base[ 1 ].dailytimes then
-		self:SetMassBossTimes(tb_mass_boss_base[ 1 ].dailytimes)
-	end
-	self:SetMassBossCD(0)
-	self:SetMassBossBuyedTimes(0)
+	local vipLevel = self:GetVIP()
+	self:SetMassBossTimes(tb_mass_boss_base[ 1 ].dailytimes + tb_vip_base[vipLevel].massbossExtraTimes)
+	--self:SetMassBossCD(0)
+	-- self:SetMassBossBuyedTimes(0)
+	
+	self:CallScenedDoSomething(APPD_SCENED_RESETDAILY, 0)
 end
 
 --组队副本
@@ -2276,15 +2394,18 @@ function PlayerInfo:OnFactionSkillBuildingLvChange(building_lv)
 		if config.unlock_level > building_lv then
 			self:SetFactionSkillNowLv(id,0)
 			self:updatePassive(config.skill_id,0)
+			self:RecalcAttrAndBattlePoint()
 			--outFmtDebug("OnFactionSkillBuildingLvChange 1 skill %d lv %d",config.skill_id,0)
 		else
 			if learn_lv > level_limit then
 				self:SetFactionSkillNowLv(id,level_limit)
 				self:updatePassive(config.skill_id,level_limit)
+				self:RecalcAttrAndBattlePoint()
 				--outFmtDebug("OnFactionSkillBuildingLvChange 2 skill %d lv %d",config.skill_id,level_limit)
 			else
 				self:SetFactionSkillNowLv(id,learn_lv)
 				self:updatePassive(config.skill_id,learn_lv)
+				self:RecalcAttrAndBattlePoint()
 				--outFmtDebug("OnFactionSkillBuildingLvChange 3 skill %d lv %d",config.skill_id,learn_lv)
 			end
 		end
@@ -2350,7 +2471,7 @@ function PlayerInfo:BuyRevengeTimes(count)
 		return
 	end
 	
-	if self:useAllItems(MONEY_CHANGE_TYPE_STORE_BUY,total_cost) then
+	if self:useAllItems(MONEY_CHANGE_TYPE_STORE_BUY, nil, total_cost) then
 		self:SetRevengeTimes(self:GetRevengeTimes() + count)
 		self:SetRevengeBuyTimes(self:GetRevengeBuyTimes() + count)
 	end
@@ -2430,7 +2551,7 @@ function PlayerInfo:BuyVipGift(id)
 		return
 	end
 	
-	if self:useAllItems(MONEY_CHANGE_TYPE_STORE_BUY,config.cost) then
+	if self:useAllItems(MONEY_CHANGE_TYPE_STORE_BUY, nil, config.cost) then
 		self:AppdAddItems(config.gift, MONEY_CHANGE_TYPE_STORE_BUY,LOG_ITEM_OPER_TYPE_SHOP_BUY)
 		
 		self:SetVipGiftFlag(id)
@@ -2452,7 +2573,7 @@ function PlayerInfo:ActiveActivity(act_id)
 		return
 	end
 	
-	outFmtInfo("#########player ActiveActivity id = %d", act_id)
+	outFmtDebug("#########player ActiveActivity id = %d", act_id)
 	
 	self:SetActivityDataActId(category,act_id)
 	for offset = 0,2 do
@@ -2568,6 +2689,12 @@ function PlayerInfo:LoginUpdateSevenDayProcess()
 	end
 end
 
+--每日充值标识重置
+function PlayerInfo:ClearWelfareSevenDayRechargeTodayFlag()
+	local questMgr = self:getQuestMgr()
+	questMgr:UnSetWelfareSevenDayRechargeTodayFlag()
+end
+
 ------------------------------------------
 function PlayerInfo:getLastPassedSectionId()
 	return self:GetUInt32(PLAYER_INT_FIELD_TRIAL_FINISHED_SECTIONID)
@@ -2584,26 +2711,42 @@ end
 
 function PlayerInfo:onPickedOfflineRiskReward(times)
 	-- 系统未激活
+	--[[
 	if (not self:GetOpenMenuFlag(MODULE_WORLD_RISK, MODULE_WORLD_RISK_MAIN)) then
 		return
 	end
+	--]]
 	
-	if times == 0 then
+	if (not self:GetOpenMenuFlag(MODULE_ACTIVE, MODULE_ACTIVE_ALL)) then
+		return
+	end
+	if times < tb_offline_exp_base[ 1 ].offlineMins then
 		return
 	end
 	
-	local rewardDict, sell = self:onCalRiskReward(times)
+	local level = self:GetLevel()
+	local rewardDict, ccnt, sell, exp, minutes = self:onCalRiskReward(times)
 	if rewardDict then
+		local allxp = self:GetExp() + exp
+		local topLevel = level
+		for i = level, 1000 do
+			if not tb_char_level[i+1] or allxp < tb_char_level[ i ].next_exp then
+				break
+			end
+			allxp = allxp - tb_char_level[ i ].next_exp
+			topLevel = topLevel + 1
+		end
 		self:AppdAddItems(rewardDict, MONEY_CHANGE_OFFLINE, LOG_ITEM_OPER_TYPE_OFFLINE, nil, nil, nil, 3)
-		local list = Change_List_To_Item_Reward_Info(rewardDict, sell, true)
-		self:call_offline_reward_result (sell, times * 10, 0, 0, list)
+--		local list = Change_List_To_Item_Reward_Info(rewardDict, sell, true)
+		local list = {}
+		self:call_offline_reward_result (ccnt * 65536 + sell, minutes, exp, level, topLevel, list)
 	end
 end
 
 -- 领取世界冒险奖励
 function PlayerInfo:onPickRiskReward()
 
-	-- 系统未激活
+	--[[-- 系统未激活
 	if (not self:GetOpenMenuFlag(MODULE_WORLD_RISK, MODULE_WORLD_RISK_MAIN)) then
 		return
 	end
@@ -2614,31 +2757,36 @@ function PlayerInfo:onPickRiskReward()
 		if sell > 0 then
 			self:CallOptResult(OPRATE_TYPE_BAG, BAG_RESULT_BAG_FULL_AUTO_SELL, sell)
 		end
-	end
+	end--]]
 end
 
 
 function PlayerInfo:onCalRiskReward(times)
-	local passedSectionId = self:getLastPassedSectionId()
-	local sectionId = onGetAvailableSectionId(passedSectionId)
 	-- 最大次数
-	local limit = 1440 * 6
+	local limit = self:GetRestOfflineMinutes()
 	if times > limit then
 		times = limit
 	end
 	
-	local rate = 100
-	if times > tb_risk_base[ 1 ].reduceTime * 6 then
-		rate = tb_risk_base[ 1 ].rate
-	end
+	-- 扣时间
+	self:ModifyRestOfflineMinutes(-times)
 	
-	local config = tb_risk_data[sectionId]
+	local rate = 100
+	local config = tb_offline_exp_data[self:GetLevel()]	
 	local dict = {}
 	local vip = self:GetVIP()
-	dict[config.goldReward[ 1 ]] = math.floor(config.goldReward[ 2 ] * times * rate / 100 * (1 + tb_vip_base[vip].riskReward / 100))
-	dict[config. expReward[ 1 ]] = math.floor(config. expReward[ 2 ] * times * rate / 100 * (1 + tb_vip_base[vip].riskReward / 100))
+	local vipFactor = tb_vip_base[vip].offlineExpRate
+	local exp = math.floor(config. expReward[ 2 ] * times * rate / 100 * (1 + vipFactor / 100))
+	local factor = math.floor(self:GetForce() * 100 / config.standardForce)
 	
-	local score = math.floor(config.suitScore * times * rate / 100 * (1 + tb_vip_base[vip].riskReward / 100))
+	local a = tb_offline_exp_base[ 1 ].factorRange[ 1 ]
+	local b = tb_offline_exp_base[ 1 ].factorRange[ 2 ]
+	factor = math.max(a, math.min(b, factor))
+	exp = math.floor(exp * factor / 100)
+	
+	dict[config. expReward[ 1 ]] = exp
+	
+	local score = math.floor(config.suitScore * times * rate / 100 * (1 + vipFactor / 100))
 	local prevScore = self:getRiskSuitScore()
 	score = score + prevScore
 	
@@ -2652,6 +2800,7 @@ function PlayerInfo:onCalRiskReward(times)
 		DoRandomDrop(dropid, dict)
 	end
 	
+	local ccnt = 0
 	local sell = 0
 	local itemMgr = self:getItemMgr()
 	local empty_count = itemMgr:getEmptyCount(BAG_TYPE_EQUIP_BAG)	--取出剩余位置个数
@@ -2665,6 +2814,7 @@ function PlayerInfo:onCalRiskReward(times)
 	for entry, count in pairs(dict) do
 		if tb_item_template[entry].pos > 0 then
 			empty_count = empty_count - count
+			ccnt = ccnt + count
 			for k = 1, count do
 				table.insert(rewardDict, {entry, 1})
 			end
@@ -2675,7 +2825,7 @@ function PlayerInfo:onCalRiskReward(times)
 		sell = -empty_count
 	end
 	
-	return rewardDict, sell
+	return rewardDict, ccnt, sell, exp, times
 end
 
 function PlayerInfo:onUpdatePlayerQuest(type,params)
@@ -2749,7 +2899,7 @@ function PlayerInfo:UseMoneytree()
 		return
 	end
 	
-	if self:useAllItems(MONEY_CHANGE_MONEYTREE_USE,base_config.cost) then
+	if self:useAllItems(MONEY_CHANGE_MONEYTREE_USE, nil, base_config.cost) then
 		local random = randInt(1, 10000)
 		local total_chance = 0
 		local result = 0
@@ -2803,7 +2953,9 @@ function PlayerInfo:GetMoneytreeGift(id)
 	end
 	
 	self:SetMoneytreeGiftFlag(id - 1)
-	self:AppdAddItems(config.rewards,nil,LOG_ITEM_OPER_TYPE_MONEYTREE_GIFT)
+	
+	local reward = {tb_moneytree_lv[self:GetLevel()]["gift_"..id]}
+	self:AppdAddItems(reward,nil,LOG_ITEM_OPER_TYPE_MONEYTREE_GIFT)
 	
 end
 
@@ -2857,6 +3009,10 @@ end
 function PlayerInfo:CheckEscortTimeOut()
 	local questMgr = self:getQuestMgr()
 	local itemMgr = self:getItemMgr()
+	
+	if not questMgr or not itemMgr then
+		return
+	end
 	local finish_time =  questMgr:GetQuestEscortFinishTime() 
 	
 	if finish_time > 0 and os.time() >= finish_time then
@@ -2898,28 +3054,46 @@ function PlayerInfo:AddRealmbreakExp(val)
 	local uplevel = 0
 	
 	local config = tb_realmbreak_base[level]
-	while (config and now_exp + val >= config.exp) do
+	while (config and now_exp + val >= config.exp and tb_realmbreak_base[level + uplevel + 1] and self:GetLevel() >= tb_realmbreak_base[level + uplevel+ 1].level) do
 		uplevel = uplevel + 1
 		config = tb_realmbreak_base[level + uplevel]
 	end
-	if not config then
-		uplevel = uplevel - 1
-	end
+	
 	if uplevel > 0 then
 		self:SetRealmbreakLevel(level + uplevel)
 		--重算属性
 		self:RecalcAttrAndBattlePoint()
 		
 		--其他处理
+		self:OnRealmbreakLevUp(level,level + uplevel)
 		
-		
+		self:onUpdatePlayerQuest( QUEST_TARGET_TYPE_REALMBREAK_LEVEL,{})
 	end
 	
 	self:AddUInt32(PLAYER_INT_FIELD_REALMBREAK_EXP,val)
 end
 
+function PlayerInfo:OnRealmbreakLevUp(from,to)
+	for level = from + 1, to do
+		local config = tb_realmbreak_base[level]
+		if not config then
+			return
+		end
+		
+		local unlocks_config = tb_char_skill[self:GetGender()].realmbreak_unlocks
+		for _, skillInfo in ipairs(unlocks_config) do
+			
+			if level == skillInfo[1] then
+				self:activeBaseSpell(skillInfo[2], SPELL_ACTIVE_BY_LEVEL)
+			end
+		end
+		
+		self:UnlockTalismanSlotByRealmbreakLv(level)
+	end
+end
 function PlayerInfo:calculRealmbreakAttr(attrs)
 	outFmtDebug("calculRealmbreakAttr")
+	
 	local player_level = self:GetLevel()
 	local realmbreak_level = self:GetRealmbreakLevel()
 	local config = tb_realmbreak_base[realmbreak_level]
@@ -2927,15 +3101,20 @@ function PlayerInfo:calculRealmbreakAttr(attrs)
 		if player_level >= config.level then
 			outFmtDebug("calculRealmbreakAttr level %d", realmbreak_level)
 			mergeAttrs(attrs,config.props)
-			--self:SetRealmbreakForce()
+			
 			break
 		else
 			realmbreak_level = realmbreak_level - 1
 			config = tb_realmbreak_base[realmbreak_level]
 		end
 	end
+	local level = math.max(realmbreak_level, 0)
+	attrs[EQUIP_ATTR_DAO] = level
+	local force = tb_realmbreak_base[level].force
+	self:SetRealmbreakForce(force)
 	
-	attrs[EQUIP_ATTR_DAO] = realmbreak_level
+	
+	return force
 end
 
 function PlayerInfo:GetRealmbreakDailyQuestCount()
@@ -3005,7 +3184,7 @@ end
 
 --应用服协议具有CD
 app_operate_need_cd = {
-	[CMSG_BAG_EXCHANGE_POS] = 0,
+	--[CMSG_BAG_EXCHANGE_POS] = 0,
 	[CMSG_BAG_ITEM_USER] = 0,
 	[CMSG_BAG_ITEM_SELL] = 0,
 	[CMSG_BAG_ITEM_SORT] = 0,
@@ -3031,10 +3210,10 @@ app_operate_need_cd = {
 	[CMSG_WELFARE_GET_RECHARGE_REWARD] = 0,
 	[CMSG_WELFARE_GET_CONSUME_REWARD] = 0,
 	[CMSG_WELFARE_GET_SEVENDAY_REWARD] = 0,
-	[CMSG_TALISMAN_ACTIVE] = 0,
+	--[CMSG_TALISMAN_ACTIVE] = 0,
 	[CMSG_TALISMAN_LVUP] = 0,
-	[CMSG_WINGS_ACTIVE] = 0,
-	[CMSG_WINGS_BLESS] = 0,
+	--[CMSG_WINGS_ACTIVE] = 0,
+	--[CMSG_WINGS_BLESS] = 0,
 	[CMSG_WINGS_RANKUP] = 0,
 	[CMSG_WINGS_STRENGTH] = 0,
 	[CMSG_EQUIPDEVELOP_OPERATE] = 0,
@@ -3045,9 +3224,12 @@ app_operate_need_cd = {
 	[CMSG_RAISE_BASE_SPELL_ALL] = 0,
 	[CMSG_PICK_QUEST_ADVENTURE] = 0,
 	[CMSG_RAISE_ADVENTURESPELL] = 0,
-	[CMSG_PICK_QUEST_REALMBREAK] = 0,
+	--[CMSG_PICK_QUEST_REALMBREAK] = 0,
 	[CMSG_PICK_REALMBREAK_DAILY_REWARD] = 0,
 	[CMSG_PICK_STAGE_INSTANCE_BONUS] = 0,
+	[CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD] = 0,
+	[CMSG_QUERY_FACTION_MATCH_INFO] = 0,
+	[CMSG_PICK_RES_INSTANCE_FIRST_REWARD] = 0,
 	[CMSG_RANK_LIST_QUERY] = 0,
 	[CMSG_QUERY_PLAYER_INFO] = 0,--查询玩家信息
 	[CMSG_CHAT_WHISPER] = 0,--私聊
@@ -3057,8 +3239,8 @@ app_operate_need_cd = {
 	[CMSG_FACTION_JOIN] = 0,
 	[CMSG_RAISE_BASE_SPELL] = 0,
 	[CMSG_UPGRADE_ANGER_SPELL] = 0,
-	[CMSG_RAISE_MOUNT] = 0,
-	[CMSG_UPGRADE_MOUNT] = 0,
+	--[CMSG_RAISE_MOUNT] = 0,
+	--[CMSG_UPGRADE_MOUNT] = 0,
 	[CMSG_UPGRADE_MOUNT_ONE_STEP] = 0,
 	[CMSG_ILLUSION_MOUNT_ACTIVE] = 0,
 	[CMSG_ILLUSION_MOUNT] = 0,
@@ -3140,7 +3322,7 @@ app_operate_need_cd = {
 	[CMSG_MERIDIAN_PRACTISE] = 0,		-- /*经脉修炼*/	
 	[CMSG_ADD_MERIDIAN_EXP] = 0,		-- /*加经脉修炼经验值*/
 	[CMSG_RAISE_MOUNT_LEVEL_BASE] = 0,	-- 升级坐骑等级
-	[CMSG_ACTIVE_MOUNT] = 0,				-- 激活坐骑
+	--[CMSG_ACTIVE_MOUNT] = 0,				-- 激活坐骑
 	[CMSG_MATCH_SINGLE_PVP] = 0,
 	[CMSG_BUY_MATCH_SINGLE_PVP_TIMES] = 0, -- /*购买单人pvp次数*/	
 	[CMSG_PICK_MATCH_SINGLE_PVP_EXTRA_REWARD] = 0, -- /*领取单人pvp额外奖励*/
@@ -3151,6 +3333,37 @@ app_operate_need_cd = {
 	[CMSG_DRAW_LOTTERY] = 0,			-- 抽奖
 	[CMSG_RENAME] = 0,				--改名
 	[CMSG_RISK_GET_RANK] = 0,
+	
+	[CMSG_GROUP_CREATE] = 0,			-- /*创建队伍*/	
+	[CMSG_GROUP_JOIN_REQUEST] = 0,	-- /*申请加入队伍*/	
+	[CMSG_GROUP_JOIN_ACCEPT] = 0,		-- /*同意加入队伍*/	
+	[CMSG_GROUP_QUIT] = 0,			-- /*退出队伍*/	
+	[CMSG_GROUP_GIVE_CAPTAIN] = 0,	--移交队伍队长
+	[CMSG_GROUP_KICK] = 0,			--踢队员
+	
+	[CMSG_GROUP_SEND_INVITE] = 0,		--发送组队邀请
+	[CMSG_GROUP_AGREE_INVITE] = 0,	--同意组队邀请
+	
+	[CMSG_GET_GROUP_SEARCH_INFO_LIST] = 0,--便捷组队队伍列表
+	
+	[CMSG_GROUP_CHANGE_CONFIG] = 0,	--修改组队设置
+	[CMSG_GROUP_JOIN_DENIED] = 0,		--拒绝加入队伍
+	[CMSG_GROUP_INVITE_DENIED] = 0,	--拒绝邀请
+	
+	[CMSG_SELECT_GROUP_ENTER] = 0,	-- 队伍决定
+	[CMSG_BUY_GROUP_EXP_TIMES] = 0, 	-- 经验副本都买次数
+	[CMSG_TALISMAN_EQUIP] = 0,		-- 装备法宝
+	[CMSG_TALISMAN_UNEQUIP] = 0,		-- 卸下法宝
+	
+	--[CMSG_AUTO_GROUP_MATCH] = 0,
+	--[CMSG_CANCEL_AUTO_GROUP_MATCH] = 0,
+	
+	[CMSG_KUAFU_3V3_GROUP_MATCH] = 0,	-- /*组队3v3跨服匹配*/
+	[CMSG_ONE_STEP_ROBOT_UP] = 0,	-- /*机器人*/
+	[MSG_PING_PONG] = 0,	-- /*测试连接*/
+	[CMSG_USE_GIFTCODE] = 0,	-- /*使用兑换码*/
+	
+		
 }	-- dict
 
 function PlayerInfo:CheckOperateCD(operate_id)
@@ -3169,6 +3382,101 @@ function PlayerInfo:CheckOperateCD(operate_id)
 	return true
 end
 
+-----------------------------------------------------------------------------------------
+--家族战操作
+--进入战场
+
+function PlayerInfo:EnterFactionMatchMap()
+	local ret, detailId, teamId = globalValue:CheckCanEnterFactionMatchMap(self)
+	if ret then
+		local faction = app.objMgr:getObj(self:GetFactionId())
+		if not faction then
+			return
+		end
+		local Faction_Pos = faction:FindPlayerIndex(self:GetGuid())
+		if Faction_Pos == nil then
+			return
+		end		
+		local enterFactionTime = tb_faction_match_base[1].enterFactionTime
+		if os.time() - faction:GetFactionMemberEnterTime(Faction_Pos) < enterFactionTime then
+			self:CallOptResult(OPERTE_TYPE_FACTION, OPERTE_TYPE_FACTION_MATCH_CANNOT_JOIN,{}) -- 提示
+			return
+		end
+		
+		local config = tb_faction_match_base[1]
+		local x = 0
+		local y = 0
+		local map_id = config.map_id
+		if teamId == 1 then
+			x = config.born_1[1]
+			y = config.born_1[2]
+		elseif teamId == 2 then
+			x = config.born_2[1]
+			y = config.born_2[2]
+		end
+		local generalId =   string.format("%d|%d",detailId,globalValue:GetUInt32(GLOBALVALUE_INT_FIELD_FACTION_MATCH_BATTLE_SATRT_TIME))
+		call_appd_teleport(self:GetScenedFD(),self:GetGuid(),x,y,map_id,generalId)
+		
+		
+		self:AddActiveItem(VITALITY_TYPE_FACTION_MATCH)
+		outFmtDebug("!!!!!!!!!!!!!!!!PlayerInfo:EnterFactionMatchMap join success detailId %d teamId %d",detailId,teamId)
+	else
+		outFmtDebug("!!!!!!!!!!!!!!!!PlayerInfo:EnterFactionMatchMap can not join FactionMatch now")
+	end
+end
+
+function PlayerInfo:SetFactionMatchChampionDailyRewardFlag()
+	self:SetBit(PLAYER_INT_FIELD_FACTION_MATCH_CHAMPION_DAILY_REWARD_FLAG,0)
+end
+
+function PlayerInfo:GetFactionMatchChampionDailyRewardFlag()
+	return self:GetBit(PLAYER_INT_FIELD_FACTION_MATCH_CHAMPION_DAILY_REWARD_FLAG,0)
+end
+
+function PlayerInfo:UnSetFactionMatchChampionDailyRewardFlag()
+	self:UnSetBit(PLAYER_INT_FIELD_FACTION_MATCH_CHAMPION_DAILY_REWARD_FLAG,0)
+end
+
+--领取每日奖励
+function PlayerInfo:PickFactionMatchChampionDailyReward()
+	local guid = self:GetFactionId()
+	if guid == "" then
+		return
+	end
+	
+	if guid ~= globalValue:GetFactionMatchChampionFactionGuid() then
+		return
+	end
+	
+	if self:GetFactionMatchChampionDailyRewardFlag() then
+		return
+	end
+	
+	self:AppdAddItems(tb_faction_match_champion[1].dailyReward, MONEY_CHANGE_FACTION_MATCH_DAILY_REWARD,LOG_ITEM_OPER_TYPE_FACTION_MATCH_DAILY_REWARD)
+	
+	--发送奖励
+	outFmtDebug("PlayerInfo:PickFactionMatchChampionDailyReward pick reward")
+	
+	self:SetFactionMatchChampionDailyRewardFlag()
+end
+
+--请求榜单
+function PlayerInfo:QueryFactionMatchInfo()
+	local rank_table = globalValue:GetFactionMatchInfoTable()
+	
+	local list = {}
+	for _,v in ipairs(rank_table) do
+	--奖励通知
+		local stru = faction_match_info_t .new()
+		stru.name		= v[1]
+		stru.result 	= v[2]
+		stru.rank		= v[3]
+		stru.guid		= v[4]
+		table.insert(list, stru)
+	end
+	
+	self:call_show_faction_match_info_list(list)
+end
 
 
 ------------------------------------------------------------------------------------------
@@ -3223,10 +3531,118 @@ function PlayerInfo:GetGemTotalLevel()
 	return count
 end
 
+
+function PlayerInfo:GetRestOfflineMinutes()
+	return self:GetUInt32(PLAYER_INT_FIELD_OFFLINE_MINUTES)
+end
+
+function PlayerInfo:ModifyRestOfflineMinutes(minutes)
+	minutes = minutes or 0
+	local val = self:GetRestOfflineMinutes() + minutes
+	local limit = tb_offline_exp_base[ 1 ].limitMins
+	val = math.max(0, math.min(val, limit))
+	self:SetUInt32(PLAYER_INT_FIELD_OFFLINE_MINUTES, val)
+end
+
+-- 充值接口
+function PlayerInfo:DoRecharge(obj)
+	local ret = true
+	
+	security.call(
+		--try block
+		function()
+			-- 这里计算实际获得的值
+			obj.real = math.floor(tonumber(obj.money) * 10)
+			
+			--添加每档首次奖励
+			--tb_shop_chongzhi
+			for i,info in pairs(tb_shop_chongzhi) do
+				if tonumber(obj.money) == info.cost then
+					if self:GetShopChargeFlag(i) then
+						obj.real = obj.real + info.non_first_extra_gold
+					else
+						if info.first_reward == 1 then
+							obj.real = obj.real * info.rate
+							self:SetShopChargeFlag(i)
+						else
+							obj.real = obj.real + info.non_first_extra_gold
+						end
+					end
+					break
+				end
+			end
+			
+			self:AppdAddItems({{MONEY_TYPE_GOLD_INGOT, obj.real}}, MONEY_CHANGE_TYPE_CHARGE, nil, nil, nil, nil, 1)
+			local payId = obj.payid
+			if not payId then
+				payId = obj.oid
+			end
+			self:DoAddRechargeSum(payId, math.floor(tonumber(obj.money)), os.time(), function()
+				-- 记录首冲日志
+				WriteFirstRechargeInfoLog(self, obj.money, os.time(), obj.ext)
+			end)
+			outFmtInfo("============== guid = %s has charged gold = %d", self:GetGuid(), obj.real)
+		end,
+		function(errors)
+			ret = false
+			outFmtError("%s", errors)
+		end
+	)
+	
+	return ret
+end
+
+function PlayerInfo:SetShopChargeFlag(index)
+	self:SetBit(PLAYER_INT_FIELD_SHOP_CHARGE_FLAG,index)
+end
+
+
+function PlayerInfo:GetShopChargeFlag(index)
+	return self:GetBit(PLAYER_INT_FIELD_SHOP_CHARGE_FLAG,index)
+end
+
 function PlayerInfo:isLogined()
 	return playerLib.CppCheckPlayerIsLogined(self.ptr) == 1
 end
 
+function PlayerInfo:SetRechargeLotteryTimes(val)
+	self:SetUInt16(PLAYER_INT_FIELD_RECHARGE_LOTTERY_TIMES, 1, val)	
+end
+
+function PlayerInfo:CheckRechargeLotteryTimes()
+	local used = self:GetUInt16(PLAYER_INT_FIELD_RECHARGE_LOTTERY_TIMES, 0)
+	local hasd = self:GetUInt16(PLAYER_INT_FIELD_RECHARGE_LOTTERY_TIMES, 1)
+	if used >= hasd then
+		return 0
+	end
+	return used + 1
+end
+
+function PlayerInfo:AddRechargeLotteryTimesUsed()
+	self:AddUInt16(PLAYER_INT_FIELD_RECHARGE_LOTTERY_TIMES, 0, 1)
+end
+
+
+function PlayerInfo:CheckClearCheckInData()
+	local month = self:GetUInt32(PLAYER_INT_FIELD_WELFARE_CURRENT_MONTH)
+	
+	local curmonth = os.date("*t", os.time()).month
+	
+	if curmonth ~= month then
+		self:SetUInt32(PLAYER_INT_FIELD_WELFARE_CURRENT_MONTH,curmonth)
+		
+		self:getQuestMgr():SetUInt32(QUEST_FIELD_WELFARE_CHECKIN,0)
+		self:getQuestMgr():SetUInt32(QUEST_FIELD_WELFARE_CHECKIN_ALL,0)
+		self:SetUInt32(PLAYER_INT_FIELD_WELFARE_CHECKIN_GETBACK_COUNT,0)
+		
+	end
+end
+
+function PlayerInfo:ResetActRankData()
+	for i = 1, 9 do
+		DoActivitySystemDataUpdateByScriptId(ACT_RANK,{i,self})
+	end
+end
 -- 关闭连接
 function PlayerInfo:CloseSession(fd, is_force)
 	if is_force == nil then is_force = false end
@@ -3290,7 +3706,8 @@ require("appd/appd_context/handler/welfare_handler")
 require("appd/appd_context/handler/guide_handler")
 require("appd/appd_context/handler/cultivation_handler")
 require("appd/appd_context/handler/login_activity_handler")
-
+require("appd/appd_context/handler/group_handler")
+require("appd/appd_context/handler/recharge_handler")
 
 require("appd/appd_context/appd_context_hanlder")
 

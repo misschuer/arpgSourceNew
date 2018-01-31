@@ -17,6 +17,7 @@
 #include <protocol/external.h>
 #include "appd_object_manager.h"
 #include "AppdLoginManager.h"
+#include "appd_localdb_manager.h"
 
 class RankListManager;
 class GroupManager;
@@ -83,10 +84,16 @@ public:
 	uint32 update_firend_info_interval;		//更新玩家好友资料间隔
 
 	string recharge_folder;						//充值数据保存文件夹
+	string memory_db_folder;					//内存数据文件夹
 	string mail_folder;							//离线邮件保存文件夹
 protected:
 	virtual bool _Load(config_loader *loader);
 };
+
+typedef struct group_match_info_t {
+	uint32 groupType;
+	uint32 timestamp;
+} GroupMatchInfo;
 
 class AppdContext;
 
@@ -251,6 +258,20 @@ public:
 		return kuafu_match_type >> 16; 
 	}
 
+	// 寻找组队
+	static std::set<string> matchSet;
+	static std::map<string, GroupMatchInfo> groupMatchHash;
+
+	// 本地3v3匹配
+	static std::set<string> local3v3Set;
+	static std::map<string, uint32> local3V3Hash;
+
+	static std::map<string, uint32> instancePrepareHash;
+
+	static std::map<string, std::map<string, uint8>> cuInfoHash;
+	static std::map<string, uint32> cuTimestampHash;
+
+	static int getCuInfo(lua_State *scriptL, std::map<string, uint8>& stateHash, uint32 timestamp);
 public:
 
 	AppdApp(SvrCoreParams& params,SvrCoreConfig& config);
@@ -277,6 +298,8 @@ public:
 	AppdObjectManager *m_obj_mgr;
 	//登录管理器
 	AppdLoginMgr *m_login_mgr;
+
+	AppdLocaldbManager* m_localdb_mgr;
 
 	string GetRankPlayerGuidByType(int type, uint32 rank);				//获取排行榜玩家guid
 
@@ -331,6 +354,7 @@ private:
 #define globalValue (AppdApp::g_app->m_globalvalue)
 #define g_GuidMgr (AppdApp::g_app->m_guid_mgr)
 #define ObjMgr (*AppdApp::g_app->m_obj_mgr)
+#define LocalDBMgr (*AppdApp::g_app->m_localdb_mgr)
 #define ServerList (*AppdApp::g_app->m_server_conn_list)
 #define globalNoticeMessage (AppdApp::g_app->m_notice_message)
 #define RankListMgr (AppdApp::g_app->m_rank_list_mgr)

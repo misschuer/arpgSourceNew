@@ -60,7 +60,7 @@ function PlayerInfo:OnCheckGroupInstanceMatch()
 				local pos = enter_info.pos
 				local war_id = enter_info.war_id
 				local battle_server = enter_info.battle_server
-				outFmtInfo("$$$$ on xianfu matched guid = %s war_id = %s battle_server = %s", self:GetGuid(), war_id, battle_server)
+				outFmtDebug("$$$$ on xianfu matched guid = %s war_id = %s battle_server = %s", self:GetGuid(), war_id, battle_server)
 				call_appd_login_to_send_kuafu_info(login_fd, guid, war_id, indx, battle_server, '', KUAFU_TYPE_GROUP_INSTANCE)
 				-- 设置正在进行跨服标志
 				self:KuafuMarked(KUAFU_TYPE_GROUP_INSTANCE)
@@ -113,7 +113,7 @@ function PlayerInfo:OnGroupInstanceMatch(indx)
 		return false
 	end
 	
-	outFmtInfo("###OnGroupInstanceMatch guid = %s", self:GetGuid())
+	outFmtDebug("###OnGroupInstanceMatch guid = %s", self:GetGuid())
 	local url = string.format("%s%s/match", globalGameConfig:GetExtWebInterface(), sub)
 	local data = {}
 	data.player_guid = self:GetGuid()
@@ -206,7 +206,10 @@ function PlayerInfo:OnBuyGroupInstanceTicket(count)
 	local instMgr = self:getInstanceMgr()
 	local buy_count = instMgr:GetGroupInstanceBuyCount()
 	
-	if buy_count + count > #buy_type then
+	local vipLevel = self:GetVIP()
+	local limit = math.min(#buy_type, tb_vip_base[vipLevel].groupInstanceBuyTimes)
+	
+	if buy_count + count > limit then
 		outFmtError("OnBuyGroupInstanceTicket buy more than limit")
 		return
 	end
@@ -237,6 +240,43 @@ function PlayerInfo:OnBuyGroupInstanceTicket(count)
 	end
 	
 end
+
+function PlayerInfo:OnBuyGroupExpTicket(count)
+	local buy_type = tb_instance_group_exp[ 1 ].buy_type
+	local buy_price = tb_instance_group_exp[ 1 ].buy_price
+	local instMgr = self:getInstanceMgr()
+	local buy_count = instMgr:GetGroupExpBuyCount()
+	
+	local vipLevel = self:GetVIP()
+	local limit = math.min(#buy_type, tb_vip_base[vipLevel].groupExpBuyTimes)
+	if buy_count + count > limit then
+		outFmtError("OnBuyGroupExpTicket buy more than limit")
+		return
+	end
+	
+	local cost_table = {}
+	
+	for i = buy_count + 1,buy_count+ count do
+		if cost_table[buy_type[i]] then
+			cost_table[buy_type[i]] = cost_table[buy_type[i]] + buy_price[i]
+		else
+			cost_table[buy_type[i]] = buy_price[i]
+		end
+	end
+	
+	local cost = {}
+	for k,v in pairs(cost_table) do
+		table.insert(cost, {k,v})
+	end
+	
+	if self:costMoneys(MONEY_CHANGE_GROUP_EXP_BUY_TIMES, cost, 1) then
+		instMgr:AddGroupExpBuyCount(count)
+		instMgr:AddGroupExpDailyTimes(count)
+	else
+		outFmtError("OnBuyGroupExpTicket resource not enough")
+	end
+end
+
 
 -- 重置组队副本
 function PlayerInfo:OnResetGroupInstanceDayTimes()

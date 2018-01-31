@@ -201,7 +201,7 @@ function PlayerInfo:Handle_Raise_Mount(pkt)
 	local trainConfig = tb_mount_train[seq]
 	
 	-- 扣资源
-	if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, trainConfig.traincost) then
+	if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, LOG_ITEM_OPER_TYPE_MOUNT_BLESS, trainConfig.traincost) then
 		outFmtError("resouce not enough")
 		return
 	end
@@ -237,16 +237,10 @@ function PlayerInfo:Handle_Upgrade_Mount(pkt)
 	
 	-- 如果扣除物品失败, 返回
 --	if useItem == 0 then
-	if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, cost) then
+	if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, nil, cost) then
 		outFmtError("player has not enough item")
 		return
 	end
---[[	else
-		if not self:useMulItemIfCostMoneyEnabled(cost) then
-			outFmtError("ingots not enough")
-			return
-		end
-	end--]]
 	
 	self:DoHandleUpgradeMount()
 end
@@ -360,7 +354,7 @@ end
 -- 激活神兵
 function PlayerInfo:Handle_Divine_Active(pkt)
 	local id = pkt.id
-	--outFmtInfo("divine active id %d",id)
+	--outFmtDebug("divine active id %d",id)
 	if tb_divine_base[id] == nil then
 		outFmtError("table has no divine id = %d", id)
 		return
@@ -514,6 +508,34 @@ function PlayerInfo:Handle_Talisman_Lvup(pkt)
 	self:TalismanLvUp(id)
 end
 
+--装备法宝
+function PlayerInfo:Handle_Talisman_Equip(pkt)
+	local id = pkt.id
+	if tb_talisman_base[id] == nil then
+		outFmtError("table has no talisman id = %d", id)
+		return
+	end
+	local spellMgr = self:getSpellMgr()
+	if not spellMgr:hasTalisman(id) then
+		outFmtError("lvup talisman - player has not already active talisman id = %d", id)
+		return
+	end
+	
+	self:EquipTalismanToSlot(id)
+end
+
+--卸下法宝
+function PlayerInfo:Handle_Talisman_Unequip(pkt)
+	local slot_id = pkt.slot_id
+	if tb_talisman_slot[slot_id] == nil then
+		outFmtError("table has no talisman slot id = %d", slot_id)
+		return
+	end
+	
+	self:UnEquipTalismanFromSlot(slot_id)
+end
+
+
 --神羽激活
 function PlayerInfo:Handle_Wings_Active(pkt)
 	self:WingsActive()
@@ -596,8 +618,11 @@ function PlayerInfo:Handle_Equipdevelop_Operate(pkt)
 		if reserve_int1 < 1 or reserve_int1 > 10 then
 			return
 		end
+		if reserve_int2 < 0 then
+			return
+		end
 		
-		self:EquipDevelopRefineStarUp(reserve_int1)
+		self:EquipDevelopRefineStarUp(reserve_int1,reserve_int2)
 	elseif opt_type == EQUIPDEVELOP_TYPE_REFINE_RANK_LVUP then
 		if reserve_int1 < 1 or reserve_int1 > 10 then
 			return
@@ -679,7 +704,7 @@ function PlayerInfo:Handle_Active_Appearance(pkt)
 	end
 	
 	local costs = tb_appearance_info[ id ].costs
-	if not self:useAllItems(MONEY_CHANGE_APPEARANCE, costs) then
+	if not self:useAllItems(MONEY_CHANGE_APPEARANCE, LOG_ITEM_OPER_TYPE_APPEARANCE_ACTIVE, costs) then
 		return
 	end
 
@@ -766,14 +791,6 @@ function PlayerInfo:Handle_Raise_AdventureSpell(pkt)
 			return
 		end
 		
-		-- 判断消耗道具
-		if #upLevelConfig.uplevel_item > 0 then
-			if not self:hasMulItem(upLevelConfig.uplevel_item) then
-				outFmtError("item not enough")
-				return
-			end
-		end
-		
 		-- 判断消耗资源
 		if #upLevelConfig.uplevel_cost > 0 then
 			if not self:checkMoneyEnoughs(upLevelConfig.uplevel_cost) then
@@ -781,15 +798,7 @@ function PlayerInfo:Handle_Raise_AdventureSpell(pkt)
 				return
 			end
 		end
-		
-		-- 扣除道具
-		if #upLevelConfig.uplevel_item > 0 then
-			if not self:useMulItem(upLevelConfig.uplevel_item) then
-				outFmtError("use item fail")
-				return
-			end
-		end
-		
+
 		-- 扣除资源
 		if #upLevelConfig.uplevel_cost > 0 then
 			if not self:costMoneys(MONEY_CHANGE_UP_ASSISTSPELL, upLevelConfig.uplevel_cost) then
@@ -833,7 +842,7 @@ function PlayerInfo:Handle_Raise_AdventureSpell(pkt)
 			end
 		end
 		
-		if not self:useAllItems(MONEY_CHANGE_UP_ASSISTSPELL, adventure_config.cost) then
+		if not self:useAllItems(MONEY_CHANGE_UP_ASSISTSPELL, nil, adventure_config.cost) then
 			outFmtDebug("Handle_Raise_AdventureSpell res not enough")
 			return
 		end

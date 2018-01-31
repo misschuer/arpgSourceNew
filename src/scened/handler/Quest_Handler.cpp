@@ -192,7 +192,7 @@ void ScenedContext::Handle_QuestGiver_Remove_Quest(packet& pkt)
         }
 
 		//记录放弃任务日志
-		WriteTask(GetAccount(),GetGuid(), quest_id, m_player->GetMapId(),1);
+		//WriteTask(GetAccount(),GetGuid(), quest_id, m_player->GetMapId(),1);
        
 		m_player->GetQuestMgr()->SetQuestSlot(slot, 0);
     }  

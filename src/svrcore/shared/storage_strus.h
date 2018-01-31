@@ -539,6 +539,7 @@ struct creature_template
 	int lockfaceto;
 	int attack_range;
 	int exp;
+	int recure;
 	int rebornTime;
 	union
 	{
@@ -547,6 +548,7 @@ struct creature_template
 	};
 	char dialogue [50];
 	int move_type;
+	uint32 body_miss;
 	int money_min;
 	int money_max;
 	int money_percent;
@@ -571,5 +573,25 @@ struct grade_up
 
 };
 
+
+struct recharge_info
+{
+	char guid[50];		//商品所属者
+	char name[50];		//玩家名称
+	char account[50];	//账号
+	char orderid[50];	//CP的订单ID，调用Pay时传入
+	char goodsname[50];	//物品名称
+	char money1[50];	//购买物品总金额（元）,保留两位小数
+	uint32 goodsnum;	//购买物品的数量
+
+	char payid[50];		//5玩的交易单号
+	char paytime[50];	//支付时间
+	char money2[50];	//购买物品总金额（元）,保留两位小数
+};
+
+struct giftcode_info
+{
+	char giftcode[50];	//礼物码
+};
 
 #endif

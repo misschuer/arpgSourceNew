@@ -330,6 +330,7 @@ void LogindContext::Handle_Char_Create(packet &pkt)
 	new_player->SetCreateLoginIp(m_remote_ip);
 	new_player->SetPlatData(accountInfo->platdata);
 	new_player->SetFactionId("");
+	new_player->SetUInt32(PLAYER_INT_FIELD_LV_UP_TIMESTAMP, (uint32)time(NULL));
 	
 	/**
 	new_player->SetStr(PLAYER_STRING_FIELD_INVITE_FACTION_GUID, info->inviteGuid);
@@ -345,7 +346,7 @@ void LogindContext::Handle_Char_Create(packet &pkt)
 	*/
 	//记一下日志
 	//g_DAL.InsertGuidByName(guid,charName);	
-	WriteCreateRole(m_account, new_player->GetGuid(), new_player->GetName().c_str(), m_remote_ip);
+	WriteCreateRole(m_account, new_player->GetGuid(), new_player->GetName().c_str(), m_remote_ip, new_player->GetGender());
 	//腾讯日志
 	if(LogindApp::g_app->GetPlatformID() == PLATFORM_QQ)
 		WriteTXUserLog(m_account,new_player->GetGuid(), new_player->GetName().c_str(),1,GetPlatInfo(accountInfo->platdata,"pf"),(uint32)time(NULL));
@@ -367,6 +368,8 @@ void LogindContext::Handle_Char_Create(packet &pkt)
 	m_lguid = guid;
 	SetStatus(STATUS_TRANSFER2);
 	LogindContext::SessionQues.push_back(fd_);
+	string serverId = string(accountInfo->pid) + "_" + string(accountInfo->sid);
+	Call_after_create_role(m_delegate_sendpkt, serverId.c_str(), guid.c_str(), realName.c_str());
 }
 
 void LogindContext::Handle_Char_Update_Info(packet &pkt)

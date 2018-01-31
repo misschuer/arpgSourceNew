@@ -47,15 +47,15 @@ private:
 	void Handle_Write_Deal(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_ItemLog(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_YbIncome(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
-	void Handle_Write_YbExpend(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
+	void Handle_Write_Pay(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_Login(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_Logout(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_CreateRole(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_Death(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_AcceptTask(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_Task(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
-	void Handle_Write_Upgrade(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
-	void Handle_Write_Gold(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
+	void Handle_Write_Lvup(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
+	void Handle_Write_Yxb(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_Map(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_Transcript(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
 	void Handle_Write_Online(uint32, packet *, LogFileStream *, time_t, time_t, account_info*, PolicedContext*);
@@ -75,6 +75,8 @@ private:
 
 	//1001»’÷æ
 	void Handle_Write_ObjectLoss(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*);
+	void Handle_Write_OnlineUser24th(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*);
+	void Handle_Write_Union(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*);
 };
 
 #endif

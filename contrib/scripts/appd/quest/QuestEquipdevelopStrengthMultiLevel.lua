@@ -23,7 +23,7 @@ function QuestEquipdevelopStrengthMultiLevel:OnUpdate(playerInfo, start, offset,
 	local process = 0
 	
 	for i = 0 , EQUIPMENT_COUNT - 1 do
-		local level = playerInfo:getSpellMgr()():GetEquipDevelopStrengthLv(i)
+		local level = playerInfo:getSpellMgr():GetEquipDevelopStrengthLv(i)
 		if level >= targetLv then
 			process = process + 1
 		end

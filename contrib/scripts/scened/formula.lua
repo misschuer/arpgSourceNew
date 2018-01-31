@@ -77,8 +77,8 @@ end
 
 --上线清除一些BUFF
 function DoOnlineClearBuff(player)
-	
-
+	local playerInfo = UnitInfo:new{ptr = player}
+	playerInfo:UnSetUnitFlags(UNIT_FIELD_FLAGS_CANT_CAST)
 end
 
 function DOTiaozhanBonus(player,lv)	
@@ -119,13 +119,22 @@ end
 -- return
 --		是否命中
 function isHit(attackInfo, hurtInfo)
-	local hit = math.max(0, math.min(attackInfo:GetHit(), 3450000))
-	local hitRate  = 0.85 + hit / 100 * 0.0033 / 100
-	hitRate = math.min(hitRate, 2)
+	local hit = attackInfo:GetHit() / 100
+
+	local A = 0
+	if attackInfo:GetTypeID() == TYPEID_PLAYER then
+		A = 1
+		local diff = attackInfo:GetLevel() - hurtInfo:GetLevel()
+		if diff < 0 then
+			A = 1 + diff * 0.015
+		end
+		A = math.max(math.min(1, A), 0.85)
+	end
+	local hitRate  = A + hit * 0.0033 / 100 + attackInfo:GetHitRate() / 10000
 	
-	local miss = math.max(0, math.min(hurtInfo:GetMiss(), 3000000))
-	local missRate = miss / 100 * 0.0017 / 100
-	missRate = math.min(missRate, 0.5)
+	
+	local miss = hurtInfo:GetMiss() / 100
+	local missRate = miss * 0.0017 / 100 + hurtInfo:GetMissRate() / 10000
 	
 	local limit = 100
 	local p = math.floor(hitRate * (1 - missRate) * limit)
@@ -155,11 +164,11 @@ function getCastDamage(attackInfo, hurtInfo, skillDamFactor, skillDamVal, mult)
 	local factor = tb_job_info[jobIndx].rate / 1000000
 	local damageResist = armor / (armor + 25.5 * attackInfo:GetLevel() + 400) + hurtInfo:GetStrengthArmor() / 100 * factor 
 	
-	local damAmp = attackInfo:GetDamageAmplifyRate() / 100 / 10000
-	local damRes = hurtInfo:GetDamageResistRate() / 100 / 10000
+	local damAmp = attackInfo:GetDamageAmplifyRate() / 10000
+	local damRes = hurtInfo:GetDamageResistRate() / 10000
 	local attackDamage = attackInfo:GetDamage() / 100
 	
-	local dam = math.floor((attackDamage * skillDamFactor + skillDamVal) * (1 - damageResist) * mult * (1 + damAmp - damRes))
+	local dam = (attackDamage * skillDamFactor + skillDamVal) * (1 - damageResist) * mult * (1 + damAmp - damRes)
 	return dam
 end
 
@@ -191,13 +200,11 @@ end
 --]]
 
 function isCrit(attackInfo, hurtInfo)
-	local crit = math.max(0, math.min(attackInfo:GetCrit(), 3600000))
-	local critRate = 0.1 + crit / 100 * 0.0017 / 100
-	critRate = math.min(critRate, 0.7)
+	local crit = attackInfo:GetCrit() / 100
+	local critRate = 0.1 + crit * 0.0017 / 100 + attackInfo:GetCritRate() / 10000
 	
-	local tough = math.max(0, math.min(hurtInfo:GetTough(), 3000000))
-	local resistCritRate = tough / 100 * 0.0027 / 100
-	resistCritRate = math.min(resistCritRate, 0.8)
+	local tough = hurtInfo:GetTough() / 100
+	local resistCritRate = tough * 0.0027 / 100 + hurtInfo:GetCritResistRate() / 10000
 	
 	local p = math.floor(critRate * (1 - resistCritRate) * 10000)
 	local val = randInt(1, 10000)
@@ -213,9 +220,9 @@ end
 -- return
 --		暴击倍数
 function critMult(attackInfo, hurtInfo)
-	local critDamRate = math.max(0, math.min(attackInfo:GetCritDamRate(), 4500000))
-	local critResistDamRate = math.max(0, math.min(hurtInfo:GetCritResistDamRate(), 4500000))
-	local ret = 1.5 + (critDamRate - critResistDamRate) / 100 * 0.0033 / 100
+	local critDamRate = attackInfo:GetCritDamRate() / 100
+	local critResistDamRate = hurtInfo:GetCritResistDamRate() / 100
+	local ret = 1.5 + (critDamRate - critResistDamRate) * 0.0033 / 100
 	ret = math.max(1.5, math.min(ret, 3.0))
 	return ret
 end
@@ -235,7 +242,7 @@ end
 -- return
 --		反弹伤害
 function damageReturned(damage, hurtInfo)
-	return math.floor(damage * hurtInfo:GetDamageReturnRate() / 100 / 10000)
+	return math.floor(damage * hurtInfo:GetDamageReturnRate() / 10000)
 end
 
 -- 吸血
@@ -244,5 +251,30 @@ end
 -- return
 --		吸血值
 function damageVampiric(damage, casterInfo)
-	return math.floor(damage * casterInfo:GetVampiricRate() / 100 / 10000)
+	return math.floor(damage * casterInfo:GetVampiricRate() / 10000)
+end
+
+
+-- 玩家组队经验
+--[[
+怪物经验计算程式：
+杀怪经验获得=(怪物标准经验*(1+VIP经验加层+经验药水双倍)/队伍人数)*A*（1+factorA%%*(队伍人数-1)）
+当：|角色等级-怪物等级|≤5,时
+A=1
+当：|角色等级-怪物等级|>5,时	
+A=math.max(0, 1-|角色等级-怪物等级|*factorB%%)
+PS:最终取值向上取整
+--]]
+
+function getFinalExp(targetBaseExp, targetLevel, killerLevel, vipRate, itemRate, groupCnt)
+	-- 计算A值
+	local diff = math.abs(killerLevel - targetLevel)
+	local A = 1
+	if diff > 10 then
+		A = 1 - diff * tb_group_exp[ 1 ].factorB / 10000
+	end
+	A = math.max(0, A)
+	
+	local ret = targetBaseExp * (1 + vipRate / 100 + itemRate / 100) / groupCnt * A * (1 + tb_group_exp[ 1 ].factorA / 10000 * (groupCnt - 1))
+	return math.ceil(ret)
 end

@@ -9,6 +9,10 @@ ACT_RANK_TYPE_DEFINE = 4
 ACT_RANK_TYPE_MOUNT = 5
 ACT_RANK_TYPE_TALISMAN = 6
 ACT_RANK_TYPE_WING = 7
+ACT_RANK_TYPE_LEVEL = 8
+ACT_RANK_TYPE_FORCE = 9
+
+
 
 function ActRank:ctor()
 	
@@ -22,6 +26,7 @@ function ActRank:init(actId)
 	
 	if  act_config.offset <= 0  or  act_config.offset > MAX_ACT_RANK_COUNT then
 		outFmtError("!!!!!!!!!!!!!!!!!!!!!!!!!!ActRank init fail bad offset %d",act_config.offset)
+		return
 	end
 	
 	local offset = act_config.offset - 1
@@ -141,9 +146,18 @@ function ActRank:systemUpdate(actId, params)
 	elseif update_type == 7 then
 		--翅膀阶级
 		value = player:GetUInt32(PLAYER_INT_FIELD_WINGS_RANK) * 1000 + player:GetUInt32(PLAYER_INT_FIELD_WINGS_STAR)
+	elseif update_type == 8 then
+		--等级
+		value = player:GetLevel()
+	elseif update_type == 9 then
+		--战力
+		value = player:GetForce()
 	end
 	
 	--更新个人 当前值
+	if value <= player:GetActivityDataUInt32(actId,0) then
+		return
+	end
 	player:SetActivityDataUInt32(actId,0,value)
 	
 	--更新排行榜
@@ -168,12 +182,14 @@ function ActRank:RankInsert(actId,guid,name,value)
 			for temp_index = index, MAX_ACT_RANK_INFO_COUNT - 1 do
 				out_int = globalCounter:GetUInt32(GLOBALCOUNTER_INT_FIELD_ACT_RANK_INFO_START + offset * MAX_ACT_RANK_INFO_COUNT + temp_index)
 				out_str = globalCounter:GetStr(GLOBALCOUNTER_STRING_FIELD_ACT_RANK_INFO_START + offset * MAX_ACT_RANK_INFO_COUNT + temp_index)
+				--outFmtInfo("RankInsert in %s  out %s",in_str,out_str)
 				globalCounter:SetUInt32(GLOBALCOUNTER_INT_FIELD_ACT_RANK_INFO_START + offset * MAX_ACT_RANK_INFO_COUNT + temp_index,in_int)
-					globalCounter:SetStr(GLOBALCOUNTER_STRING_FIELD_ACT_RANK_INFO_START + offset * MAX_ACT_RANK_INFO_COUNT + temp_index,in_str)
+				globalCounter:SetStr(GLOBALCOUNTER_STRING_FIELD_ACT_RANK_INFO_START + offset * MAX_ACT_RANK_INFO_COUNT + temp_index,in_str)
 				in_int = out_int
 				in_str = out_str
 				local tokens = string.split(out_str,"\1")
 				if out_str == "" or tokens[1] == guid then
+					--outFmtInfo("RankInsert break!!!")
 					break
 				end
 				
@@ -195,6 +211,8 @@ function ActRank:GetRankTable(actId)
 		end
 		local tokens = string.split(temp_str,"\1")
 		table.insert(list,{tokens[1],tokens[2],temp_int})
+		
+		--outFmtInfo("GetRankTable %s %s %s",tokens[1],tokens[2],temp_int)
 	end
 	
 	return list
@@ -235,7 +253,7 @@ function ActRank:OnGetRankList(playerInfo,actId)
 		stru.value 	= v[3]
 		table.insert(list, stru)
 	end
-	
+	--outFmtInfo("call_activity_opt_show_rank_list")
 	playerInfo:call_activity_opt_show_rank_list(actId,list)
 end
 

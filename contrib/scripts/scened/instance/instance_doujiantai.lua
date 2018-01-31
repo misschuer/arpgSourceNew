@@ -44,6 +44,10 @@ function InstanceDoujiantai:SetOtherRank(val)
 	self:SetUInt16(DOUJIANTAI_FIELDS_INT_RANK, 1, val)
 end
 
+function InstanceDoujiantai:GetMyRank()
+	return self:GetUInt16(DOUJIANTAI_FIELDS_INT_RANK, 0)
+end
+
 function InstanceDoujiantai:GetOtherRank()
 	return self:GetUInt16(DOUJIANTAI_FIELDS_INT_RANK, 1)
 end
@@ -166,6 +170,14 @@ end
 --当玩家离开时触发
 function InstanceDoujiantai:OnLeavePlayer( player, is_offline)
 	InstanceInstBase.OnLeavePlayer(self, player, is_offline)
+	
+	if is_offline then
+		-- 通知场景服把锁解了
+		local rank1 = self:GetMyRank()
+		local rank2 = self:GetOtherRank()
+		call_opt_doujiantai_force_unlock(rank1, rank2)
+	end
+	
 	self:RemoveTimeOutCallback(self.Leave_Callback)
 	if self:GetMapState() == self.STATE_START then
 		self:OnFightResult(player, GlobalCounter.LOSE)

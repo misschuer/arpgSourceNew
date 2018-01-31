@@ -73,6 +73,9 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 						table.insert(quest_index_list,index)
 					end
 				end
+				if #quest_index_list == 0 then
+					return
+				end
 				local indx = quest_index_list[randInt(1,#quest_index_list)]
 				local quest_id = escort_config.quest_id[indx]
 				local item_id = escort_config.quest_item_id
@@ -99,7 +102,20 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 	elseif SCENED_APPD_DOUJIANTAI == ntype then
 		-- 斗剑台结果
 		globalCounter:BattleFinish(self, data, tonumber(str))
+		-- 加倒计时
+		local instMgr = self:getInstanceMgr()
+		local curtime = instMgr:getDoujianEnterTimes()
+		local config = tb_doujiantai_base[ 1 ]
+		local bcd = config.battleCountdown
+		local cdSeconds
+		if curtime >= #bcd then
+			cdSeconds = bcd[#bcd]
+		else
+			cdSeconds = bcd[curtime]
+		end
 		
+		instMgr:setDoujianCD(cdSeconds + os.time())
+	
 	elseif SCENED_APPD_XIULIANCHANG == ntype then
 		-- 修练场掠夺结果
 		self:PlunderFinish(data, str)
@@ -211,7 +227,7 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 				table.insert(drop_dict,{item_id,count})
 				outFmtDebug("SCENED_APPD_PLAYER_DEAD_PROCESS drop id %d num %d",item_id,count)
 			end
-			self:useAllItems(MONEY_CHANGE_ADVANTURE_KILL_BY_PLAYER,drop_dict)
+			self:useAllItems(MONEY_CHANGE_ADVANTURE_KILL_BY_PLAYER, nil, drop_dict)
 			
 			local drop_info = ''
 			for _,info in ipairs(drop_dict) do
@@ -226,8 +242,97 @@ function PlayerInfo:DoGetScenedDoSomething  ( ntype, data, str)
 		
 	elseif SCENED_APPD_ENTER_STAGE_INSTANCE == ntype then
 		self:checkStageInstanceTeleport(data)
-		
+	elseif SCENED_APPD_ENTER_GROUP_EXP_INSTANCE == ntype then
+		-- 是单人进入, 需要进行操作
+		if data == 0 then
+			local generalId = makeGroupInstanceGeneralId(INSTANCE_SUB_TYPE_GROUP_EXP, {self:GetLevel()})
+			self:checkGroupExpMapTeleport(generalId)
+		else
+			-- 需要所有人同意进入
+			local groupId = self:GetGroupId()
+			if string.len(groupId) > 0 then
+				local groupObj = app.objMgr:getObj(groupId)
+				if groupObj then
+					groupObj:captainSendChoiseToPlayer(self, INSTANCE_SUB_TYPE_GROUP_EXP, function(playerInfo)
+						-- 判断是否激活 是否有次数
+						return playerInfo:checkGroupExpAvailable()
+					end)
+				end
+			end
+		end
 	elseif SCENED_APPD_PASS_STAGE_INSTANCE == ntype then
 		self:onPassStageInstance(data)
+		
+	elseif SCENED_APPD_ENTER_BUY_INSPIRATION == ntype then
+		local cost = tb_instance_group_exp[ 1 ].moneyCost
+		if data > 0 then
+			cost = tb_instance_group_exp[ 1 ].goldCost
+		end
+		
+		if self:costMoneys(MONEY_CHANGE_GROUP_EXP_BUY_INSPIRATION, cost, 1) then
+			-- 通知场景服鼓舞
+			self:CallScenedDoSomething(APPD_SCENED_INSPIRATION, data)
+		end
+	elseif SCENED_APPD_ENTER_FACTION_MATCH_INSTANCE ==  ntype then
+		self:EnterFactionMatchMap()
+	elseif SCENED_APPD_ENTER_GROUP_INSTANCE == ntype then
+		local indx = tonumber(str)
+		-- 是单人进入, 需要进行操作
+		if data == 0 then
+			local generalId = makeGroupInstanceGeneralId(INSTANCE_SUB_TYPE_KUAFU_GROUP, {indx})
+			self:checkGroupInstanceTeleport(indx, generalId)
+		else
+			-- 需要所有人同意进入
+			local groupId = self:GetGroupId()
+			if string.len(groupId) > 0 then
+				local groupObj = app.objMgr:getObj(groupId)
+				if groupObj then
+					groupObj:captainSendChoiseToPlayer(self, indx * 65536 + INSTANCE_SUB_TYPE_KUAFU_GROUP, function(playerInfo)
+						-- 判断是否激活 是否有次数
+						return playerInfo:checkGroupInstanceAvailable(indx)
+					end)
+				end
+			end
+		end
+	elseif SCENED_APPD_PASS_GROUP_INSTANCE == ntype then
+		
+		local id = data
+		local first = tonumber(str)
+		if first == 0 then
+			local instMgr = self:getInstanceMgr()
+			instMgr:SubGroupInstanceChallengeCount(1)
+		end
+		self:SetGroupInstanceClearFlag(id)
+		self:AddActiveItem(VITALITY_TYPE_GROUP_INSTANCE)
+	elseif SCENED_APPD_PASS_MASS_BOSS_INSTANCE == ntype then
+		if self:GetUInt32(PLAYER_INT_FIELD_MASS_BOSS_TIMES) > 0 then
+			self:SubUInt32(PLAYER_INT_FIELD_MASS_BOSS_TIMES, 1)
+		end
+	
+	elseif SCENED_APPD_PASS_LOCAL_3V3 == ntype then
+		local score = data
+		local params = string.split(str, '#')
+		local honor  = tonumber(params[ 1 ])
+		local result = tonumber(params[ 2 ])
+		
+		-- 任务
+		local questMgr = self:getQuestMgr()
+		questMgr:OnUpdate(QUEST_TARGET_TYPE_JOIN_KUAFU_3V3)
+		if isLocal3V3Open(self) then
+			self:AddKuafu3v3Score(score)
+			if result == 1 then
+				self:Kuafu3v3Win()
+				questMgr:OnUpdate(QUEST_TARGET_TYPE_WIN_KUAFU_3V3)
+			elseif result == -1 then
+				self:Kuafu3v3Lose()
+			else
+				self:AddKuafu3v3TrendInfo()
+			end
+		end
+		
+		-- 加荣誉
+--		self:AddMoney(MONEY_TYPE_HONOR, MONEY_CHANGE_KUAFU_WORLD_3V3, honor)
+	elseif SCENED_APPD_QUEST_MASS_BOSS == ntype then
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES, {})
 	end
 end

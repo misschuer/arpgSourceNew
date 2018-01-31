@@ -144,6 +144,9 @@ enum Internal_Opcode_Type
 	INTERNAL_OPT_UPDATE_CHAR_NAME			= 103,		//更新名字
 
 	INTERNAL_OPT_SEND_TO_APPD_ADD_OFFLINE_MAIL = 104, //增加离线邮件
+	INTERNAL_OPT_MONGO_RECHARGE = 105,					//mongo存充值记录
+
+	INTERNAL_OPT_DOUJIANTAI_FORCE_UNLOCK = 106,			//斗剑台强制解锁
 
 	MAX_INTERNAL_OPT						= 9999,//内部包最大包号
 };

@@ -30,7 +30,7 @@ function PlayerInfo:Handle_Sweep_Res(pkt)
 end
 
 function PlayerInfo:Handle_Buy_Mass_Boss_Times(pkt)
-	local cnt = pkt.cnt
+	--[[local cnt = pkt.cnt
 	if cnt <= 0 then
 		return
 	end
@@ -61,7 +61,7 @@ function PlayerInfo:Handle_Buy_Mass_Boss_Times(pkt)
 	end
 	
 	self:AddMassBossBuyedTimes(cnt)
-	self:AddMassBossTimes(cnt)
+	self:AddMassBossTimes(cnt)--]]
 end
 
 function PlayerInfo:Handle_Buy_Group_Instance_Times(pkt)
@@ -75,4 +75,23 @@ end
 
 function PlayerInfo:Handle_Get_Risk_Reward(pkt)
 	globalCounter:getRiskRank(self)
+end
+
+function PlayerInfo:Handle_Buy_Group_Exp_Times(pkt)
+	local count = pkt.count
+	if count < 1 then
+		return
+	end
+	
+	self:OnBuyGroupExpTicket(count)
+end
+
+
+function PlayerInfo:Handle_Pick_Res_Instance_First_Reward(pkt)
+	local id = pkt.id
+	if id < 1 or id > 40 then
+		return
+	end
+	
+	self:pickResInstanceFirstReward(id)
 end

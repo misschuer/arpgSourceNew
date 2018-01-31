@@ -27,7 +27,7 @@ bool GameObject::Create(const string &lguid, uint32 entry)
 	//设置名称
 	SetName(tpl->name);
 	SetUInt32(GO_FIELD_FLAGS,tpl->go_flag);
-	m_respawn_time = 5;
+	m_respawn_time = 5000;
 
 	return true;
 }
@@ -46,7 +46,7 @@ void GameObject::UpdateLiveStatus(uint32 diff)
 	//尸体状态下变形为死亡状态
 	if(GetDeathState() == DEATH_STATE_CORPSE) {
 		SetDeathState(DEATH_STATE_DEAD);
-		m_live_timer.Reset(m_respawn_time*1000);
+		m_live_timer.Reset(m_respawn_time);
 	}
 	else if(GetDeathState() == DEATH_STATE_DEAD)	//复活
 	{

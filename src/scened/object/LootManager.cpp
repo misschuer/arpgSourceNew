@@ -228,9 +228,11 @@ void LootManager::LootAllot(Unit* unit, Creature *m_obj, bool isOneOne)
 
 		if(m_obj->GetTypeId() == TYPEID_UNIT)
 		{
-			//经验加成,最后一下杀死怪物的玩家可获得该怪物100%的经验
+			// 经验加成,最后一下杀死怪物的玩家可获得该怪物100%的经验
+			// 这里计算killer所在队伍的经验获得信息
 			double exp =DOComputeExpBonusScript(killer, m_obj, m_obj->GetFinallyExp(killer),100,vip_exp); //如果不是生物会被return
-			killer->GainExp(exp,0, vip_exp);
+			// 这里的在lua中处理了
+			//killer->GainExp(exp,0, vip_exp);
 		}
 	}
 }

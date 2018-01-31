@@ -51,7 +51,7 @@ end
 
 function InstanceFaction:parseGeneralId()
 	local guid	= self:GetMapGeneralId()
-	--outFmtInfo('============================= %s', tostring(guid))
+	--outFmtDebug('============================= %s', tostring(guid))
 	self:SetFactionGuid(guid)
 end
 

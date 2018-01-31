@@ -444,7 +444,7 @@ void QuestGetter::CompleteQuest(uint32 quest_id)
 		//记录完成任务日志
 		if(m_obj.GetSession())
 		{
-			WriteTask(m_obj.GetSession()->GetAccount(),m_obj.GetSession()->GetGuid(), quest_id, m_obj.GetMapId(),0);
+			//WriteTask(m_obj.GetSession()->GetAccount(),m_obj.GetSession()->GetGuid(), quest_id, m_obj.GetMapId(),0);
 			//腾讯日志
 			if(ScenedApp::g_app->GetPlatformID() == PLATFORM_QQ)
 				WriteTXNewTaskLog(m_obj.GetSession()->GetAccount(),m_obj.GetSession()->GetGuid(),m_obj.GetSession()->GetName(),quest_id,1,0,(uint32)time(NULL));

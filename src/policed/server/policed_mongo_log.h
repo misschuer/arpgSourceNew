@@ -24,6 +24,7 @@ public:
 	string GetDailyNS(string ns){return "ht_daily_info.ht_daily_info"+ns;};
 	string GetForgeNS(string ns){return "ht_forge_info."+ns;};
 	string GetMoneyNS(string ns){return "log_gold_ingot."+ns;};
+	string GetRechargeNS(string ns){return "recharge."+ns;};
 	string GetLogBaseNS(string ns){return "logs.ht_basic_info_"+ns;};
 	string GetLogSystemNS(string ns){return "logs.ht_system_info_"+ns;};
 	string GetServerName(string char_guid);
@@ -71,6 +72,26 @@ public:
 	void SaveBackupInfo(string guid,string save_time,uint32 level);
 	//保存元宝消费信息
 	void SaveGoldLog( const string &account, const string &player_id, const string &player_name, uint16 money_type, uint16 oper_type, double v,double old_value, double new_value, const string &trace_id, uint32 item_id, uint32 count, double unit_price, uint16 item_bind, uint16 item_del, uint32 level, uint32 quest);
+
+	void SaveRechargeLog(uint32 pid, const string& uid, uint32 sid, const string& guid, const string& name, 
+		const string& payid, const string& paytime, 
+		const string& goodsname, const string& money, uint32 linuxTime);
+
+	void SaveHTDailyInfo(PlayerBase* player);
+
+	//获取当前年月
+	uint32 GetCurYearMonth(){
+		time_t _time = (uint32)time(NULL);
+		tm *p= localtime(&_time);
+		uint32 now_date = (p->tm_year + 1900) * 100 + (p->tm_mon + 1);//201601
+		return now_date;
+	};
+	//根据时间戳获取日期
+	uint32 GetTimeDate(time_t _time = (uint32)time(NULL))
+	{
+		tm *p= localtime(&_time);
+		return (p->tm_year + 1900) * 10000 + (p->tm_mon + 1) * 100 + p->tm_mday;
+	}
 
 	template<typename T>
 	string toString(T t)

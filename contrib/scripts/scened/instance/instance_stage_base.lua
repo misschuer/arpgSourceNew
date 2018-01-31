@@ -1,11 +1,14 @@
 InstanceStageBase = class("InstanceStageBase", InstanceInstBase)
 
 InstanceStageBase.Name = "InstanceStageBase"
+InstanceStageBase.start_time = 5
+
 InstanceStageBase.exit_time = 10
 --刷新坐标偏移值
-InstanceStageBase.RefreshOffset = 3;
+InstanceStageBase.RefreshOffset = 1;
 
 InstanceStageBase.MonsterRefreshInterval = 500
+InstanceStageBase.broadcast_nogrid = 1
 
 function InstanceStageBase:ctor(  )
 	
@@ -39,8 +42,12 @@ function InstanceStageBase:OnInitScript(  )
 	-- 加副本任务
 	self:OnAddQuests(questTable)
 	-- 加任务任务时间
-	local timestamp = os.time() + time
+	local timestamp = os.time() + self.start_time
+	self:SetMapStartTime(timestamp)
 	
+	self:AddTimeOutCallback("OnRefreshMonster", timestamp)
+	
+	timestamp = os.time() + time + self.start_time
 	self:SetMapQuestEndTime(timestamp)
 	-- 副本时间超时回调
 	self:AddTimeOutCallback(self.Time_Out_Fail_Callback, timestamp)
@@ -146,17 +153,13 @@ function InstanceStageBase:OnJoinPlayer(player)
 		mapLib.ExitInstance(self.ptr, player)
 		self:SetMapState(self.STATE_FAIL)
 	end
-	
-	-- 刷新怪物
-	self:OnRefreshMonster(playerInfo)
-	
 end
 
 --刷一波怪
-function InstanceStageBase:RefreshMonsterBatch(player)
+function InstanceStageBase:RefreshMonsterBatch()
 	local batchIdx = self:GetBatch() - 1
 	
-	local tf,cnt = self:ApplyRefreshMonsterBatch(player,batchIdx)
+	local tf,cnt = self:ApplyRefreshMonsterBatch(batchIdx)
 	if not tf then
 		return
 	end
@@ -167,29 +170,15 @@ function InstanceStageBase:RefreshMonsterBatch(player)
 	self:SubBatch()
 end
 
-function InstanceStageBase:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceStageBase:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("ApplyRefreshMonsterBatch base need todo by child")
 	return false,0
 end
 
 --刷怪
-function InstanceStageBase:OnRefreshMonster(player)
-	
-	-- 由于是进副本就刷的, 判断如果进入时间比开始时间开始时间超过2秒以上则不刷了
-	-- 主要为了解决离线重连的问题
-	local time = os.time()
-	local startTime = self:GetMapCreateTime()
-	if time - startTime > 2 then
-		-- 重新给怪物加仇恨度
-		local creatureTable = mapLib.GetAllCreature(self.ptr)
-		for _, creature in pairs(creatureTable) do
-			creatureLib.ModifyThreat(creature, player.ptr, self.THREAT_V)
-		end
-		return
-	end
-	
-	self:RefreshMonsterBatch(player)
-
+function InstanceStageBase:OnRefreshMonster()
+		
+	self:RefreshMonsterBatch()
 end
 
 --当玩家死亡后触发()
@@ -293,7 +282,7 @@ function InstanceStageBase:RefreshBoss(player)
 	local bornPos = config.bosspos
 	
 	local creature = mapLib.AddCreature(self.ptr, {templateid = entry, x = bornPos[1], y = bornPos[2], level=plev, 
-		active_grid = true, alias_name = config.name, ainame = "AI_stageBoss", npcflag = {}})
+		active_grid = true, alias_name = config.name, ainame = "AI_stageBoss", attackType = REACT_AGGRESSIVE, npcflag = {}})
 	creatureLib.ModifyThreat(creature, player.ptr, self.THREAT_V)
 end
 
@@ -304,7 +293,7 @@ function InstanceStageBase:SetCreaturePro(creatureInfo, pros, bRecal, mul)
 	local lev = creatureInfo:GetLevel()
 	local idx = entry * 1000 + lev
 	--outFmtDebug("SetBaseAttrs -- ai res %d--%d--%d",entry,lev,idx)
-	local config = tb_creature_resource[idx]
+	local config = nil --tb_creature_resource[idx]
 	if config then
 		--outFmtDebug("shu xing")
 		Instance_base.SetCreaturePro(self, creatureInfo, config.pro, bRecal, mul)
@@ -318,7 +307,7 @@ function InstanceStageBase:DoGetCreatureBaseExp(creature, owner)
 	local entry = binLogLib.GetUInt16(creature, UNIT_FIELD_UINT16_0, 0)
 	local level = binLogLib.GetUInt16(creature, UNIT_FIELD_UINT16_0, 1)
 	local index = entry * 1000 + level
-	local config = tb_creature_resource[index]
+	local config =  nil --tb_creature_resource[index]
 	
 	if config then
 		return config.exp
@@ -334,6 +323,31 @@ function InstanceStageBase:DoMapBuffBonus(unit)
 		if buffEffectId ~= 0 then
 			local buff_id = tb_buff_effect[buffEffectId].buff_id
 			SpelladdBuff(unit, buff_id, unit, buffEffectId, 180)
+		end
+	end
+end
+
+
+-- 退出倒计时到了准备退出
+function InstanceStageBase:prepareToLeave()
+	local id = self:GetIndex()
+	-- 没有下一关或者失败也退出
+	if self:GetMapState() == self.STATE_FAIL or not tb_instance_stage[id+1] or id < tb_instance_stage_auto[1].auto then
+		mapLib.ExitInstance(self.ptr)
+		return
+	else
+		local allPlayers = mapLib.GetAllPlayer(self.ptr)
+		for _, player in pairs(allPlayers) do
+			--发到应用服进行进入判断
+			local playerInfo = UnitInfo:new{ptr = player}
+			if playerInfo:GetForce() < tb_instance_stage[id + 1].force or playerInfo:GetLevel() < tb_instance_stage[id + 1].limLev then
+				mapLib.ExitInstance(self.ptr)
+				return
+			else
+				playerLib.SendToAppdDoSomething(player, SCENED_APPD_ENTER_STAGE_INSTANCE, id+1)
+				return
+			end
+			
 		end
 	end
 end
@@ -396,9 +410,15 @@ function AI_stageBoss:LootAllot(owner, player, killer, drop_rate_multiples, boss
 	local map_ptr = unitLib.GetMap(owner)
 	local mapid = mapLib.GetMapID(map_ptr)
 	local instanceInfo = Select_Instance_Script(mapid):new{ptr = map_ptr}
+	local id = instanceInfo:GetIndex()
+	local config = tb_instance_stage[ id ]
 	local dict = {}
-	DoRandomDropTable(tb_creature_template[entry].reward_id, dict)
-	DoRandomDropTable(tb_creature_template[7001].reward_id, dict)
+	for _, dropInfo in ipairs(config.fixedDrop) do
+		if dropInfo[ 1 ] and dropInfo[ 2 ] then
+			dict[dropInfo[ 1 ]] = dropInfo[ 2 ]
+		end
+	end
+	DoRandomDropTable(config.rewardId, dict)
 	
 	-- 客户端显示拾取假动画
 	local destX, destY = unitLib.GetPos(owner)

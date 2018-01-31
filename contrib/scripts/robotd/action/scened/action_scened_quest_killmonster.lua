@@ -23,29 +23,6 @@ function ActionScenedQuestKillMonster:Initialize(object_id, mapid, x, y, IsFinis
 	self.callback = callback
 	
 	self.is_goto = false
-	
-	self.skillIdInfo, self.skillLevelInfo = self.player:GetSkillInfo()
-end
-
---获取当前技能
-function ActionScenedQuestKillMonster:GetCurrentSkillId()
-	local slotList = {}
-	for slot, _ in pairs(self.skillIdInfo) do
-		table.insert(slotList, slot)
-	end
-	self.slot = slotList[randInt(1, #slotList)]
-	return self.skillIdInfo[self.slot][ 1 ]
-end
-
-function ActionScenedQuestKillMonster:GetCurrentSkillLevel()
-	return self.skillLevelInfo[self.slot]
-end
-
-function ActionScenedQuestKillMonster:SkillMoveToTail()
-	local normalAttackInfo = self.skillIdInfo[self.slot]
-	local skillId = normalAttackInfo[ 1 ]
-	table.remove(normalAttackInfo, 1)
-	table.insert(normalAttackInfo, skillId)
 end
 
 --获取类型名
@@ -142,14 +119,12 @@ function ActionScenedQuestKillMonster:Update(diff)
 	end
 	
 	-- 进行简单的普通攻击
-
-	local skillId = self:GetCurrentSkillId()
-	local skillLevel = self:GetCurrentSkillLevel()
+	local skillId, skillLevel = self.player:GetCastSkillInfo()
 	local skillLevelIndx = tb_skill_base[skillId].uplevel_id[ 1 ] + skillLevel - 1
 	local range = tb_skill_uplevel[skillLevelIndx].distance
 	--已经到攻击范围内，攻击
 	if(self.player.my_unit:GetDistance(attack_create) <= range)then
-		self:SkillMoveToTail()
+		--self:SkillMoveToTail()
 		self:AttectCreate(tb_skill_base[skillId].skill_slot, attack_create)
 		self:SetWaitTimeInterval(900)
 		return true

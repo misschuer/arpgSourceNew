@@ -67,3 +67,33 @@ function PlayerInfo:Handle_Activity_Opt_Show_Rank_List(pkt)
 	
 	DoActivityDataUpdate (self, act_id, {2,index})
 end
+
+
+
+
+
+
+
+
+-- 转盘抽奖
+function PlayerInfo:Handle_Lottery_Recharge(pkt)
+	local indx = self:CheckRechargeLotteryTimes()
+	if indx > 0 then
+		local config = tb_recharge_wheel[indx]
+		if config then
+			--outFmtDebug("Handle_Lottery_Recharge indx = %d", indx)
+			if not self:costMoneys(MONEY_CHANGE_RECHARGE_LOTTERY, config.cost) then
+				return
+			end
+			self:AddRechargeLotteryTimesUsed()
+			local retIndx = GetRandomIndexByRateList(config.rates)
+			local mult = config.muls[retIndx]
+			local earn = {{MONEY_TYPE_BIND_GOLD, math.floor(config.cost[ 1 ][ 2 ] * mult / 100)}}
+			self:AppdAddItems(earn, MONEY_CHANGE_RECHARGE_LOTTERY, nil, 1, nil, nil, nil, false)
+			-- 全服通知
+			app:CallOptResult(OPRATE_TYPE_NEED_NOTICE, NEED_NOTICE_TYPE_RECHARGE_LOTTERY, {ToShowName(self:GetName()), config.cost[ 1 ][ 2 ], mult / 100, earn[ 1 ][ 2 ]})
+			-- 发送抽奖结果
+			self:call_lottery_recharge_result(retIndx)
+		end
+	end
+end

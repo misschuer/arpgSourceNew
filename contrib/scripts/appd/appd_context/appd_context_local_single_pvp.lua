@@ -6,7 +6,7 @@ function OnProcessLocalSinglePVPMatch()
 end
 
 function OnLocalSinglePVPMatched(guid, key, now)
-	outFmtInfo("################# OnLocalSinglePVPMatched matched, guid = %s key = %s", guid, key)
+	outFmtDebug("################# OnLocalSinglePVPMatched matched, guid = %s key = %s", guid, key)
 	-- 进行进入比赛逻辑
 	local generalId = string.format("%d|%s", now, key)
 	local playerInfo = app.objMgr:getObj(guid)
@@ -140,7 +140,7 @@ function PlayerInfo:OnProcessSingleMatchResult(result, fightName)
 	rankInsertTask(self:GetGuid(), RANK_TYPE_SINGLE_PVP)
 	
 	local new_indx = self:calcQueueIndx()
-	if new_indx > indx then
+	if new_indx > indx and new_indx >= 4 then --达到黄金
 		
 		app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_PAIWEI_RANKUP,{self:GetNoticeName(),tb_single_pvp_grade[new_indx].name})
 	end
@@ -179,7 +179,7 @@ function PlayerInfo:SetInitQualifyScore()
 		local indx = self:calcQueueIndx()
 		local config = tb_single_pvp_grade[indx]
 		local giftType = 3
-		outFmtInfo("SetInitQualifyScore indx = %d", indx)
+		outFmtDebug("SetInitQualifyScore indx = %d", indx)
 		-- 发邮件
 		AddGiftPacksData(self:GetGuid(),0,giftType,os.time(),os.time() + 86400*30, config.name, config.desc, config.weekRewards, SYSTEM_NAME)
 		--self:AppdAddItems(rewards, MONEY_CHANGE_SINGLE_PVP, LOG_ITEM_OPER_TYPE_SINGLE_PVP)

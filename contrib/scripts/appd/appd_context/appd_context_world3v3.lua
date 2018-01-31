@@ -327,7 +327,7 @@ end
 
 -- 有人未准备好
 function PlayerInfo:SomeOneDeclineMatch()
-	app:SetMatchingKuafuType(self:GetGuid(), nil)
+--	app:SetMatchingKuafuType(self:GetGuid(), nil)
 	self:call_kuafu_3v3_decline_match(KUAFU_TYPE_FENGLIUZHEN)
 end
 

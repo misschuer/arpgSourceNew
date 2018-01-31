@@ -40,6 +40,8 @@ class OprateResult
 		public static OPRATE_TYPE_GEM			:number = 34;	// 宝石
 		public static OPRATE_TYPE_MONEYTREE			:number = 35;	// 摇钱树
 		public static OPRATE_TYPE_NEED_NOTICE			:number = 36;	// 需要跑马灯
+		public static OPRATE_TYPE_GROUP			:number = 37;	// 组队相关的
+		public static OPRATE_TYPE_GIFTCODE			:number = 38;	// 兑换码相关的
 		// 登录相关操作返回
 		public static OPRATE_RESULT_SUCCESS			:number = 1;	// 成功
 		public static OPRATE_RESULT_NAME_REPEAT			:number = 2;	// 名称重复
@@ -189,6 +191,8 @@ class OprateResult
 		public static RECEIVE_GIFT_PACKS_RECEIVED			:number = 4;	// 该礼包你已经领取过了
 		public static RECEIVE_GIFT_PACKS_ONLINE_AWARD			:number = 5;	// 在线礼包奖励
 		public static RECEIVE_GIFT_PACKS_ONLINE_XIANSHI			:number = 6;	// 在线礼包显示用
+		public static RECEIVE_GIFT_PACKS_FIRST_RECHARGE_GIFT			:number = 7;	// 首充礼包显示用
+		public static RECEIVE_GIFT_PACKS_DAY_RECHARGE_GIFT			:number = 8;	// 每日充礼包显示用
 		// 任务相关枚举
 		public static INVALIDREASON_QUEST_FAILED_LOW_LEVEL			:number = 1;	//  等级太低 You are not high enough level for that quest.
 		public static INVALIDREASON_QUEST_FAILED_WRONG_RACE			:number = 2;	//  这个任务对于你的角色类别是无效的 That quest is not available to your race.
@@ -375,6 +379,15 @@ class OprateResult
 		public static OPERTE_TYPE_FACTION_GIFT_NOTICE			:number = 65;	// 礼物广播
 		public static OPERTE_TYPE_FACTION_BOSSDEFENSE_TIME_ERROR			:number = 66;	// 非法时间 无法挑战boss
 		public static OPERTE_TYPE_FACTION_NAME_NOT_CHINESE			:number = 67;	// 包含中文以外字符
+		public static OPERTE_TYPE_FACTION_MATCH_DECIDE_FIRST			:number = 68;	// 家族战第一轮对阵表已产生
+		public static OPERTE_TYPE_FACTION_MATCH_OPEN_FIRST			:number = 69;	// 家族战第一轮比赛开放进入,参赛家族成员请及时进入战场
+		public static OPERTE_TYPE_FACTION_MATCH_START_FIRST			:number = 70;	// 家族战第一轮比赛正式开战
+		public static OPERTE_TYPE_FACTION_MATCH_DECIDE_SECOND			:number = 71;	// 家族战第二轮对阵表已产生
+		public static OPERTE_TYPE_FACTION_MATCH_OPEN_SECOND			:number = 72;	// 家族战第二轮比赛开放进入,参赛家族成员请及时进入战场
+		public static OPERTE_TYPE_FACTION_MATCH_START_SECOND			:number = 73;	// 家族战第二轮比赛正式开战
+		public static OPERTE_TYPE_FACTION_MATCH_FINISH			:number = 74;	// 恭喜家族 {1} 成为家族战盟主
+		public static OPERTE_TYPE_FACTION_MATCH_CANNOT_JOIN			:number = 75;	// 不能加入家族
+		public static OPERTE_TYPE_FACTION_STORE_IS_FULL			:number = 76;	// 家族商店已满
 		public static OPERTE_TYPE_SOCIAL_HAS_SEND			:number = 1;	// 好友请求信息已发送
 		public static OPERTE_TYPE_SOCIAL_NOT_FIND			:number = 2;	// 角色不存在或者角色不在线
 		public static OPERTE_TYPE_SOCIAL_SELF_FULL			:number = 3;	// 自己好友列表已满
@@ -533,5 +546,27 @@ class OprateResult
 		public static NEED_NOTICE_TYPE_PAIWEI_RANKUP			:number = 8;	// 排位赛
 		public static NEED_NOTICE_TYPE_ADVENTURE_ROB			:number = 9;	// 野外资源抢夺
 		public static NEED_NOTICE_TYPE_ADVENTURE_ROBED			:number = 10;	// 野外资源被抢夺
+		public static NEED_NOTICE_TYPE_REFINE_LVUP			:number = 11;	// 精炼达到X级
+		public static NEED_NOTICE_TYPE_GEM_LVUP			:number = 12;	// 宝石达到X级
+		public static NEED_NOTICE_TYPE_3V3_RANKUP			:number = 13;	// 3v3排行达到1~10
+		public static NEED_NOTICE_TYPE_RECHARGE_LOTTERY			:number = 14;	// {1}投资{2}元宝获得{3}绑定元宝
+		public static GROUP_NOTICE_TYPE_MEMBER_IN_INSTANCE			:number = 1;	// {1}正在副本中
+		public static GROUP_NOTICE_TYPE_MEMBER_DECLINE			:number = 2;	// {1}拒绝加入
+		public static GROUP_NOTICE_TYPE_MEMBER_NO_TIMES			:number = 3;	// {1}次数不足
+		public static GROUP_NOTICE_TYPE_MEMBER_IS_OFFLINE			:number = 4;	// {1}已经下线
+		public static GROUP_NOTICE_TYPE_PLAYER_IS_OFFLINE			:number = 5;	// 提示处于离线无法加入
+		public static GROUP_NOTICE_TYPE_DENIED_JOIN_REQUEST			:number = 6;	// {1}拒绝申请消息
+		public static GROUP_NOTICE_TYPE_KICKED			:number = 7;	// 被{1}踢消息
+		public static GROUP_NOTICE_TYPE_BECOME_CAPTAIN			:number = 8;	// 成为队长消息
+		public static GROUP_NOTICE_TYPE_DENIED_INVITE			:number = 9;	// {1}拒绝邀请消息
+		public static GROUP_NOTICE_TYPE_MEMBER_FULL			:number = 10;	// {1}队伍已满
+		public static GROUP_NOTICE_TYPE_ALREADY_HAVE_GROUP			:number = 11;	// {1}对方处于组队状态
+		public static GROUP_NOTICE_TYPE_JOIN_SUCCESS			:number = 12;	// {1}加入成功
+		public static GROUP_NOTICE_TYPE_JOIN_REQUEST			:number = 13;	// {1}请求已发送
+		public static GROUP_NOTICE_TYPE_GROUP_NOT_EXIST			:number = 14;	// {1}请求已发送
+		public static GIFTCODE_NOTICE_TYPE_INVALID			:number = 1;	// 无效兑换码
+		public static GIFTCODE_NOTICE_TYPE_USED			:number = 2;	// 该兑换码已经被使用过了
+		public static GIFTCODE_NOTICE_TYPE_ALREADY_GET			:number = 3;	// 已兑换过该类型礼包
+		public static GIFTCODE_NOTICE_TYPE_SUCCESS			:number = 4;	// 兑换成功
 		// _OPRATE_RESULT_H
 	}

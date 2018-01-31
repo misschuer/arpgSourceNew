@@ -227,8 +227,9 @@ function GiftPacksInfo:pickMail(playerInfo, indx)
 	
 	
 	local itemInfoTable = string.split(items, ",")
-	local size = #itemInfoTable / 2
-	
+	if #itemInfoTable % 2 == 1 then
+		itemInfoTable[#itemInfoTable] = nil
+	end
 	-- 按所属背包分类
 	local bagContains = {}
 	
@@ -262,7 +263,7 @@ function GiftPacksInfo:pickMail(playerInfo, indx)
 	self:SetByte(intIndex + GIFTPACKS_INFO_INT_BYTE, 1, 1)
 	self:SetByte(intIndex + GIFTPACKS_INFO_INT_BYTE, 2, 1)
 	self:SetUInt32(intIndex + GIFTPACKS_INFO_INT_END_TIME, os.time() + 3 * 24 * 3600)
-	self:SetGiftPacksItem("", indx)
+	--self:SetGiftPacksItem("", indx)
 	
 	playerInfo:AppdAddItems(rewardDict, MONEY_CHANGE_GIFT_PACKET, LOG_ITEM_OPER_TYPE_GIFT_PACKS, 1, 0, 0, 2)
 end
@@ -286,17 +287,18 @@ function GiftPacksInfo:removeMail(indx)
 	local intIndex = GIFTPACKS_INT_FIELD_BEGIN + indx * MAX_GIFTPACKS_INFO_INT
 	
 	-- 已经删除的判断
-	if self:GetByte(intIndex + GIFTPACKS_INFO_INT_BYTE,3) > 0  then
+	if self:GetByte(intIndex + GIFTPACKS_INFO_INT_BYTE,3) > 0 then
 		return
 	end
 	
 	-- 没有读过不让删
-	if self:GetByte(intIndex + GIFTPACKS_INFO_INT_BYTE, 2) == 0  then
+	if self:GetByte(intIndex + GIFTPACKS_INFO_INT_BYTE, 2) == 0 then
 		return
 	end
 	
-	-- 有附件的不让删除
-	if self:GetGiftPacksItem(indx) ~= "" then
+	local items = self:GetGiftPacksItem(indx)
+	-- 没领附件的不让删除
+	if self:GetByte(intIndex + GIFTPACKS_INFO_INT_BYTE, 1) == 0 and string.len(items) ~= 0 then
 		return
 	end
 	

@@ -252,9 +252,9 @@ function PlayerInfo:ItemUnlockTitle(id)
 		return
 	end
 	
-	if self:useAllItems(MONEY_CHANGE_UNLOCKTITLE,config.unlock_cost) then
+	if self:useAllItems(MONEY_CHANGE_UNLOCKTITLE, LOG_ITEM_OPER_TYPE_UNLOCK_TITLE, config.unlock_cost) then
 		self:AddTitle(id)
 		
-		outFmtInfo("ItemUnlockTitle title unlock success")
+		outFmtDebug("ItemUnlockTitle title unlock success")
 	end
 end

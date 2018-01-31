@@ -19,6 +19,9 @@ TEA_SVRCORE_SPEC extern MemoryDB< quest_loot_item >  quest_loot_item_db;
 TEA_SVRCORE_SPEC extern MemoryDB< goods >  goods_db;
 TEA_SVRCORE_SPEC extern MemoryDB< creature_template >  creature_template_db;
 TEA_SVRCORE_SPEC extern MemoryDB< grade_up >  grade_up_db;
+TEA_SVRCORE_SPEC extern MemoryDB< recharge_info >  recharge_info_db;
+TEA_SVRCORE_SPEC extern MemoryDB< giftcode_info >  giftcode_info_db;
+
 
 
 TEA_SVRCORE_SPEC bool Load_buff_template (lua_State *L);

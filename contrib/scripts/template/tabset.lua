@@ -37,7 +37,7 @@ for id,config in ipairs(tb_achieve_base) do
 	table.insert(tb_achieve_type_list[achtype],config.id)
 end
 
-tb_quest_daily_list = {}
+--[[tb_quest_daily_list = {}
 for id, config in ipairs(tb_char_level) do
 	local elements = {}
 	for _, val in ipairs(config.dailyQuests) do
@@ -52,7 +52,7 @@ for id, config in ipairs(tb_char_level) do
 	end
 	
 	tb_quest_daily_list[id] = elements
-end
+end--]]
 
 --print(#tb_faction_shop_list)
 tb_system_base_task_list = {}

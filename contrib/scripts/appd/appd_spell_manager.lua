@@ -230,6 +230,7 @@ function AppSpellMgr:calculMountAttr(attrs)
 			local bp = player:GetSkillBattlePoint(spellID, lv)
 			allForce = allForce + bp
 			nonForce = nonForce + bp
+			--player:passiveSpellAttr(attrs, spellID, lv)
 		end
 	end
 	
@@ -251,6 +252,7 @@ function AppSpellMgr:calculMountAttr(attrs)
 					local bp = player:GetSkillBattlePoint(spellID, lv)
 					nonForce = nonForce + bp
 					allForce = allForce + bp
+					--player:passiveSpellAttr(attrs, spellID, lv)
 				end
 			end
 		end
@@ -335,7 +337,7 @@ function AppSpellMgr:onActiveIllusion(illuId)
 	local indx = self:findEmptyIllusionSlot()
 	self:SetUInt32(ILLUSION_ATTR_ID + indx, illuId)
 	
-	outFmtInfo("active illusion %d", illuId)
+	outFmtDebug("active illusion %d", illuId)
 
 	-- 加过期时间
 	local config = tb_mount_illusion[illuId]
@@ -435,7 +437,7 @@ end
 function AppSpellMgr:getDivineList()
 	local tab = {}
 	for i = SPELL_DIVINE_START, SPELL_DIVINE_END - 1, MAX_DIVINE_COUNT do
-		--outFmtInfo("divine %d",i)
+		--outFmtDebug("divine %d",i)
 		local id = self:GetByte(i,0)
 		if id ~= 0  then
 			local lev = self:GetByte(i,1)
@@ -510,7 +512,7 @@ function AppSpellMgr:hasDivine(divineId)
 	--local size = SPELL_DIVINE_START + count * MAX_DIVINE_COUNT
 	
 	for i = SPELL_DIVINE_START, SPELL_DIVINE_END - 1, MAX_DIVINE_COUNT do
-		--outFmtInfo("divine %d",i)
+		--outFmtDebug("divine %d",i)
 		if self:GetByte(i,0) == divineId then
 			return true
 		end
@@ -549,7 +551,7 @@ function AppSpellMgr:addDivine(divineId,time)
 		return
 	end
 
-	--outFmtInfo("add divine %d,%d",divineId,time)
+	--outFmtDebug("add divine %d,%d",divineId,time)
 
 	for i = SPELL_DIVINE_START, SPELL_DIVINE_END - 1, MAX_DIVINE_COUNT do
 		if self:GetByte(i,0) == 0 then
@@ -565,7 +567,7 @@ end
 function AppSpellMgr:addDivineSkill(divineId,skill,isPassive)
 	for i = SPELL_DIVINE_START, SPELL_DIVINE_END - 1, MAX_DIVINE_COUNT do
 		if self:GetByte(i,0) == divineId then
-			outFmtInfo("add skill %d,%d,%d",i,divineId,skill)
+			outFmtDebug("add skill %d,%d,%d",i,divineId,skill)
 			if isPassive then -- 添加被动技能
 				for j = 0,2 do 
 					local pid = self:GetUInt16(i+DIVINE_PASSIVE_SKILL+j,0)
@@ -835,6 +837,66 @@ function AppSpellMgr:calculTalismanAttr(attrs)
 	player:SetAllTalismanForce(allForce)
 	--Ttab(attrs)
 end
+
+function AppSpellMgr:GetTalismanSlotState(index)
+	return self:GetByte(SPELL_TALISMAN_SLOT_START + index * MAX_TALISMAN_SLOT_COUNT,1)
+end
+
+function AppSpellMgr:SetTalismanSlotState(index,value)
+	self:SetByte(SPELL_TALISMAN_SLOT_START + index * MAX_TALISMAN_SLOT_COUNT,1,value)
+end
+
+function AppSpellMgr:GetTalismanSlotId(index)
+	return self:GetByte(SPELL_TALISMAN_SLOT_START + index * MAX_TALISMAN_SLOT_COUNT,0)
+end
+
+function AppSpellMgr:SetTalismanSlotId(index,value)
+	self:SetByte(SPELL_TALISMAN_SLOT_START + index * MAX_TALISMAN_SLOT_COUNT,0,value)
+end
+
+function AppSpellMgr:GetAvailableTalismanSlotIndex()
+	for i = 0,PLAYER_TALISMAN_SLOT_COUNT - 1 do
+		if self:GetTalismanSlotState(i) == TALISMAN_SLOT_STATE_OPEN then
+			if self:GetTalismanSlotId(i) == 0 then
+				return i
+			end
+		end
+	end
+	return -1
+end
+
+function AppSpellMgr:GetTalismanSlotIndexById(id)
+	for i = 0,PLAYER_TALISMAN_SLOT_COUNT - 1 do
+		if self:GetTalismanSlotState(i) == TALISMAN_SLOT_STATE_OPEN then
+			if self:GetTalismanSlotId(i) == id then
+				return i
+			end
+		end
+	end
+	return -1
+end
+
+function AppSpellMgr:OpenTalismanSlot(id)
+	local index = id - 1
+	if index < 0 or index >= PLAYER_TALISMAN_SLOT_COUNT then
+		return
+	end
+	self:SetTalismanSlotState(index,TALISMAN_SLOT_STATE_OPEN)
+end
+
+function AppSpellMgr:GetTalismanSlotInfo(id)
+	local index = id - 1
+	if index < 0 or index >= PLAYER_TALISMAN_SLOT_COUNT then
+		return false, 0, -1
+	end
+	local rt = self:GetTalismanSlotState(index)
+	if rt == TALISMAN_SLOT_STATE_OPEN then
+		return true, self:GetTalismanSlotId(index), index
+	end
+	
+	return false, 0, -1
+end
+
 ----------------------------------------------法宝结束-------------------------------------------
 
 ----------------------------------------------神羽开始-------------------------------------------
@@ -972,6 +1034,10 @@ end
 function AppSpellMgr:addMeridianExpSource(sourceId)
 	local config = tb_meridian_source[sourceId]
 	if not config then
+		return
+	end
+	
+	if (not self:getOwner():GetOpenMenuFlag(MODULE_TCM, MODULE_TCM_ALL)) then
 		return
 	end
 	

@@ -81,7 +81,7 @@ end
 
 --查询玩家
 function PlayerInfo:Hanlde_Query_Player_Info( pkt )
-	DoQueryPlayerInfo(self, pkt.guid, pkt.flag, pkt.callback_id)
+	
 end
 
 --出售商品
@@ -369,7 +369,69 @@ function PlayerInfo:Handle_Pick_Stage_Instance_Bonus(pkt)
 	self:PickStageInstanceBonus(id)
 end
 
+function PlayerInfo:Handle_Pick_Faction_Match_Champion_Daily_Reward(pkt)
+	self:PickFactionMatchChampionDailyReward()
+end
 
+function PlayerInfo:Handle_Query_Faction_Match_Info(pkt)
+	self:QueryFactionMatchInfo()
+end
+
+function PlayerInfo:Handle_One_Step_Robot_Up(pkt)
+	local id = pkt.id
+	outFmtDebug("!!!!!!!!!!!!!!!!!! Handle_One_Step_Robot_Up id %d",id)
+	self:SetVIP(15, 0)
+	if id == 1 then
+		--技能
+		local pkt = {}
+		pkt.spellIdStr = "10005|10008|10009|10010|10011|10012|10015|10016|10017|10018|10019|10022|10023|10024|10025|11007|11008|11009|11010|11011|11012|11013|11014|11015|11016|11017|11018|11019|11020|11021|11022|11023|11024|11025|11026|11027"
+		pkt.raiseType = RAISE_BASE_SKILL
+		self:Handle_Raise_BaseSpell_All(pkt)
+	elseif id == 2 then
+		--强化
+		local pkt = {}
+		pkt.opt_type =EQUIPDEVELOP_TYPE_STRENGTH_ALL
+		pkt.reserve_int1= 0
+		pkt.reserve_int2= 0
+		pkt.reserve_str1= ''
+		pkt.reserve_str2= ''
+		self:Handle_Equipdevelop_Operate(pkt)
+	elseif id == 3 then
+		--装备
+		--
+		local ItemMgr = self:getItemMgr()
+		local smelt_pos = ""
+		ItemMgr.itemMgr:ForEachBagItem(BAG_TYPE_EQUIP_BAG, function(ptr,pos)
+			local item = require("appd.appd_item").new(ptr)
+			local item_tempate = tb_item_template[item:getEntry()]
+			if item_tempate.type == ITEM_TYPE_EQUIP and table.find(item_tempate.availableGender, self:GetGender())  then
+				-- 与背包对应位置装备战力比较
+				local equiped_item = ItemMgr:getBagItemByPos(BAG_TYPE_EQUIP,item_tempate.pos)
+		
+				if not equiped_item or item:getForce() > equiped_item:getForce() then
+					if item_tempate.realmbreak_level <= self:GetRealmbreakLevel() then
+						ItemMgr:exchangePos(BAG_TYPE_EQUIP_BAG, pos, BAG_TYPE_EQUIP, item_tempate.pos)
+					else
+						smelt_pos = smelt_pos .. pos .. "|" ---暂时删除
+					end
+				else
+					smelt_pos = smelt_pos .. pos .. "|"
+				end
+			else
+				smelt_pos = smelt_pos .. pos .. "|"
+			end
+		end)
+		--outFmtDebug("smelt_pos %s",smelt_pos)
+		ItemMgr:smeltingEquip(smelt_pos)
+	end
+	
+end
+
+
+--测试连接
+function PlayerInfo:Handle_Ping_Pong(pkt)
+	self:call_ping_pong()
+end
 
 --函数包路由表
 local OpcodeHandlerFuncTable = require 'appd.appd_context.appd_context_hanlder_map'

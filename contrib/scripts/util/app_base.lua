@@ -19,7 +19,7 @@ function AppBase:openMongoDB( ip,port,user,pwd,db_name,db_prefix,server_name )
 	--	outFmtError('open_mongodb failed,ip:%s, port:%d, user:%s, pwd:%s, db_name:%s!',ip or 'nil', port or 0, user or 'nil', pwd or 'nil', db_name or 'nil')
 	--	return -1
 	--end
-	--outFmtInfo('open_mongodb ip:%s port:%d ok!', ip, port)
+	--outFmtDebug('open_mongodb ip:%s port:%d ok!', ip, port)
 	
 	--self.dbAccess = {}
 	----如果有子类接口

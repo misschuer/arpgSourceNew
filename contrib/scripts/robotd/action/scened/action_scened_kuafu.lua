@@ -15,10 +15,6 @@ function ActionScenedKuafu:Initialize(...)
 	self.is_goto = false
 	self.enemy_list = {}
 	self.last_update_enemy_time = 0
-	
-	local skillIdInfo, skillLevelInfo = self.player:GetSkillInfo()
-	self.normalAttackInfo = skillIdInfo[ 1 ]
-	self.skillLevel = skillLevelInfo[ 1 ]
 end
 
 --获取类型名
@@ -76,8 +72,8 @@ function ActionScenedKuafu:Update(diff)
 		local caster = self.player.my_unit:GetUIntGuid()
 		local target = targetUnit:GetUIntGuid()
 		
-		local skillId = self.normalAttackInfo[ 1 ]
-		local skillLevelIndx = tb_skill_base[skillId].uplevel_id[ 1 ] + self.skillLevel - 1
+		local skillId, skillLevel = self.player:GetCastSkillInfo()
+		local skillLevelIndx = tb_skill_base[skillId].uplevel_id[ 1 ] + skillLevel - 1
 		local range = tb_skill_uplevel[skillLevelIndx].distance
 		--已经到攻击范围内，攻击
 		--if(self.player.my_unit:GetDistance(targetUnit) <= range)then
@@ -86,10 +82,6 @@ function ActionScenedKuafu:Update(diff)
 			if p > 20 then
 				self.is_goto = false
 				self.Kuafu_3v3_Status = ACTION_SCENE_KUAfU_3v3_STATUS_NONE
-				
-				local skillId = self.normalAttackInfo[ 1 ]
-				table.remove(self.normalAttackInfo, 1)
-				table.insert(self.normalAttackInfo, skillId)
 				self.player:CastSpell(tb_skill_base[skillId].skill_slot, to_x, to_y, caster, target)
 				self:SetWaitTimeInterval(900)
 				return true

@@ -7,6 +7,7 @@ InstanceResGem.GEM_NAME = "GEM11:11"
 
 -- 仇恨度
 InstanceResGem.THREAT_V = 100
+InstanceResGem.broadcast_nogrid = 1
 
 function InstanceResGem:ctor(  )
 	
@@ -47,17 +48,10 @@ function InstanceResGem:OnAfterJoinPlayer(player)
 end
 
 --刷怪
-function InstanceResGem:OnRefreshMonster(player)
+function InstanceResGem:OnRefreshMonster()
 	
-	-- 由于是进副本就刷的, 判断如果进入时间比开始时间开始时间超过2秒以上则不刷了
-	-- 主要为了解决离线重连的问题
-	local time = os.time()
-	local startTime = self:GetMapCreateTime()
-	if time - startTime > 2 then
-		return
-	end
 	
-	self:RefreshMonsterBatch(player)
+	self:RefreshMonsterBatch()
 
 end
 
@@ -81,12 +75,13 @@ function InstanceResGem:OnTimerRefreshGemHp()
 	return true
 end
 
-function InstanceResGem:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceResGem:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("gem ************")
 
 	local id = self:GetIndex()
 	local config = tb_instance_res[ id ]
-	local prev = player:GetLevel()
+	--local prev = player:GetLevel()
+	local prev = config.level
 	local cnt = config.monsternum
 	local entry = config.monster[1]
 	local monsterposlist = config.monsterInfo
@@ -166,7 +161,8 @@ end
 --刷新boss
 function InstanceResGem:RefreshBoss(playerInfo)
 	local id = self:GetIndex()
-	local prev = playerInfo:GetLevel()
+	--local prev = playerInfo:GetLevel()
+	local prev = tb_instance_res[id].level
 	
 	mapLib.AddTimer(self.ptr, 'OnTimerRefreshBoss', 5000, id, prev)
 end
@@ -179,7 +175,7 @@ function InstanceResGem:OnTimerRefreshBoss(id, level)
 	local bornPos = config.bosspos
 	
 	local creature = mapLib.AddCreature(self.ptr, {templateid = entry, x = bornPos[1], y = bornPos[2], level=level, 
-		active_grid = true, alias_name = config.name, ainame = "AI_resBoss", npcflag = {}})
+		active_grid = true, alias_name = config.name, ainame = "AI_resBoss", npcflag = {}, attackType = REACT_AGGRESSIVE})
 	
 	-- 设置仇恨度
 	local GEM_NPC = mapLib.AliasCreature(self.ptr, InstanceResGem.GEM_NAME)

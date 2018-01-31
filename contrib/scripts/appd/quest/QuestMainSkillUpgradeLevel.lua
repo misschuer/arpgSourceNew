@@ -7,8 +7,8 @@ function QuestMainSkillUpgradeLevel:ctor()
 end
 
 function QuestMainSkillUpgradeLevel:OnInit(playerInfo, start, offset)
-	local cnt = self:GetProcessValue(playerInfo, start, offset)
-	self:OnUpdate(playerInfo, start, offset, {cnt})
+	--local cnt = self:GetProcessValue(playerInfo, start, offset)
+	self:OnUpdate(playerInfo, start, offset, {})
 end
 
 function QuestMainSkillUpgradeLevel:GetProcessValue(playerInfo, start, offset)

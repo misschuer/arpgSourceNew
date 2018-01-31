@@ -116,9 +116,7 @@ function DOComputeBuffAttr(unit,buff_id,buffEffectId)
 	-- 改变属性的
 	if #config.attr_id > 0 then
 		for _, attrId in ipairs(config.attr_id) do
-			local binlogIndx = GetAttrUnitBinlogIndex(attrId)
-			local curr = binLogLib.GetUInt32(unit, binlogIndx)
-			binLogLib.SetUInt32(unit, binlogIndx, math.floor(curr * (100 + value) / 100))
+			unitInfo:addOneAttr(attrId, value)
 		end
 	elseif buff_id == BUFF_ALLATTR then
 		unitInfo:addAllAttrRate(value)
@@ -145,27 +143,25 @@ function SpelladdBuff(unit, buff_id, buff_giver, buffEffectId, bonus_time, reser
 		return
 	end
 	
-	if buff_id == BUFF_ONEPOINTFIVE_JINGYAN or buff_id == BUFF_TOW_JINGYAN or buff_id == BUFF_THREE_JINGYAN or buff_id == BUFF_FIVE_JINGYAN then
-		--经验丹		
+	if buff_id == tb_buff_base[ 1 ].exp then
+		--经验丹
 		if unitLib.HasBuff(unit, buff_id) then
-			--已经有这个buff了就处理叠加
-			local duration = unitLib.GetBuffDuration(unit, buff_id)
-			if duration + bonus_time >= 65535 then
-				duration = 65534
-			else
-				duration = duration + bonus_time
-			end
-			unitLib.SetBuffDuration(unit, buff_id, duration)
-		else
-			--添加buff
-			unitLib.AddBuff(unit, buff_id, buff_giver, buffEffectId, bonus_time)
-			--添加了buff的同时移除其他经验buff
-			local jingyan = {BUFF_ONEPOINTFIVE_JINGYAN, BUFF_TOW_JINGYAN, BUFF_THREE_JINGYAN, BUFF_FIVE_JINGYAN}
-			for _, id in ipairs(jingyan) do
-				if id ~= buff_id and unitLib.HasBuff(unit, id) then
-					unitLib.RemoveBuff(unit, id)
+			local effId = unitLib.GetBuffLevel(unit, buff_id)
+			if buffEffectId == effId then
+				--已经有这个buff了就处理叠加
+				local duration = unitLib.GetBuffDuration(unit, buff_id)
+				if duration + bonus_time >= 65535 then
+					duration = 65534
+				else
+					duration = duration + bonus_time
 				end
+				unitLib.SetBuffDuration(unit, buff_id, duration)
+			else
+				unitLib.RemoveBuff(unit, buff_id)
+				unitLib.AddBuff(unit, buff_id, buff_giver, buffEffectId, bonus_time)
 			end
+		else
+			unitLib.AddBuff(unit, buff_id, buff_giver, buffEffectId, bonus_time)
 		end
 
 	elseif buff_id == BUFF_GANGCI then				--钢刺

@@ -131,16 +131,17 @@ int AppdApp::on_del_char(tcp_connection *,server_packet *pkt)
 int AppdApp::on_scened_player_addmoney(tcp_connection* coon, server_packet* pkt)
 {
 	string player_id;
-	uint8 money_type, opt_type, p4, p5;;
+	uint8 money_type, opt_type;
 	double val;
-	string p1;
-	int32 p2, p3;
-	*pkt >> player_id >> money_type >> opt_type>> val >>p1 >> p2 >> p3 >> p4 >> p5;
+	string relateItemIds, relateItemNums;
+
+	*pkt >> player_id >> money_type >> opt_type>> val >> relateItemIds >> relateItemNums;
 	AppdContext *player = AppdContext::FindPlayer(player_id);
 	if(player)
 	{
-		player->addMoney(money_type, opt_type, val, p1, p2, p3, p4, p5);
+		player->addMoney(money_type, opt_type, val, relateItemIds, relateItemNums);
 	}
+
 	return 0;
 }
 
@@ -148,15 +149,15 @@ int AppdApp::on_scened_player_addmoney(tcp_connection* coon, server_packet* pkt)
 int AppdApp::on_scened_player_submoney(tcp_connection* coon, server_packet* pkt)
 {
 	string player_id;
-	uint8 money_type, opt_type, p4, p5;;
+	uint8 money_type, opt_type;
 	double val;
-	string p1;
-	int32 p2, p3;
-	*pkt >> player_id >> money_type >> opt_type>> val >>p1 >> p2 >> p3 >> p4 >> p5;
+	string relateItemIds, relateItemNums;
+
+	*pkt >> player_id >> money_type >> opt_type>> val >> relateItemIds >> relateItemNums;
 	AppdContext *player = AppdContext::FindPlayer(player_id);
 	if(player)
 	{
-		player->subMoney(money_type, opt_type, val, p1, p2, p3, p4, p5);
+		player->subMoney(money_type, opt_type, val, relateItemIds, relateItemNums);
 	}
 	return 0;
 }

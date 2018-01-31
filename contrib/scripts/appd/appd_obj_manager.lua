@@ -67,31 +67,40 @@ end
 
 --遍历所有帮派
 function AppObjectManager:foreachAllFaction(func)
-	objects.foreach("^L[[:digit:]]", function ( g )
-		local faction = self:getObj(g)
+	objects.foreach("^L[[:digit:]]", function ( g, o )
+		local faction = self:fromPtr(o)
 		if faction then return func(faction) end
 	end)
 end
 
 --遍历所有队伍
 function AppObjectManager:foreachAllGroup(func)
-	objects.foreach("^T[[:digit:]]", function ( g )
-		local faction = self:getObj(g)
-		if faction then return func(faction) end
+	objects.foreach("^T[[:digit:]]", function ( g, o )
+		local groupInfo = self:fromPtr(o)
+		if groupInfo then return func(groupInfo) end
 	end)
 end
 
 -- 判断GUID是否是帮派的guid
 function AppObjectManager:IsFactionGuid(guid)
+	if string.len(guid) == 0 then
+		return false
+	end
 	return string.sub(guid, 1, 1) == guidMgr.ObjectTypeFaction
 end
 
 -- 判断GUID是否是帮派的guid
 function AppObjectManager:IsPlayerGuid(guid)
+	if string.len(guid) == 0 then
+		return false
+	end
 	return string.sub(guid, 1, 1) == guidMgr.ObjectTypePlayer
 end
 
 function AppObjectManager:IsGroupGuid(guid)
+	if string.len(guid) == 0 then
+		return false
+	end
 	return string.sub(guid, 1, 1) == guidMgr.ObjectTypeGroup
 end
 

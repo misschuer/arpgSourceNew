@@ -181,6 +181,11 @@ void Player::OnAfterPlayerDataUpdate(SyncEventRecorder *data,int flags,UpdateMas
 		if (str_mask.GetBit(PLAYER_STRING_FIELD_FACTION_GUID) || is_new)
 			SET_STRING(this, UNIT_STRING_FIELD_FACTION_GUID, self->GetStr(PLAYER_STRING_FIELD_FACTION_GUID));
 
+		if (str_mask.GetBit(PLAYER_STRING_FIELD_FACTION_NAME) || is_new)
+			SET_STRING(this, UNIT_STRING_FIELD_FACTION_NAME, self->GetStr(PLAYER_STRING_FIELD_FACTION_NAME));
+
+		
+
 		if (str_mask.GetBit(PLAYER_STRING_FIELD_GROUP_PEACE_ID) || is_new)
 			SET_STRING(this, UNIT_STRING_FIELD_GROUP_PEACE_ID, self->GetStr(PLAYER_STRING_FIELD_GROUP_PEACE_ID));
 
@@ -198,6 +203,11 @@ void Player::OnAfterPlayerDataUpdate(SyncEventRecorder *data,int flags,UpdateMas
 
 		if (mask.GetBit(PLAYER_INT_FIELD_MOUNT_LEVEL) || is_new)
 			SET_VALUE(this, UNIT_FIELD_MOUNT_LEVEL, self->GetUInt32(PLAYER_INT_FIELD_MOUNT_LEVEL));
+		// 骑乘状态
+		if (is_new) {
+			SET_VALUE(this, UNIT_INT_FIELD_MOUNT_RIDE, self->GetUInt32(PLAYER_INT_FIELD_MOUNT_RIDE));
+			tea_pdebug("=== p => u sync ridable state %u", this->GetUInt32(UNIT_INT_FIELD_MOUNT_RIDE));
+		}
 
 		if (mask.GetBit(PLAYER_INT_FIELD_APPEARANCE) || is_new) {
 			SET_VALUE(this, UNIT_FIELD_DIVINE_ID, self->GetUInt16(PLAYER_INT_FIELD_APPEARANCE, 0));
@@ -213,9 +223,16 @@ void Player::OnAfterPlayerDataUpdate(SyncEventRecorder *data,int flags,UpdateMas
 		uint32 pIndex = PLAYER_FIELD_MAX_HEALTH;
 		for (uint32 attrIndex = UNIT_FIELD_MAX_HEALTH_BASE, indx = 0; attrIndex < UNIT_FIELD_ATTRIBUTE_BASE_END; ++ attrIndex, ++ indx) {
 			if (mask.GetBit(pIndex) || mask.GetBit(pIndex+1) || is_new) {
+				// 速度只有创建的时候同步
+				if (attrIndex == UNIT_FIELD_MOVE_SPEED_BASE && !is_new) {
+					continue;
+				}
 				SET_VALUE(this, attrIndex, (uint32)self->GetDouble(pIndex));
 				recal = true;
 				SET_VALUE(this, indx + UNIT_FIELD_MAX_HEALTH, this->GetUInt32(indx + UNIT_FIELD_MAX_HEALTH_BASE));
+				if (attrIndex == UNIT_FIELD_MOVE_SPEED_BASE) {
+					tea_pdebug("##########p => u sync player move speed %d\n", this->GetUInt32(attrIndex));
+				}
 				if (indx == 0) {
 					tea_pdebug("##########p => u sync player maxhealth %d\n", this->GetUInt32(indx + UNIT_FIELD_MAX_HEALTH_BASE));
 				}
@@ -289,6 +306,21 @@ void Player::OnAfterPlayerDataUpdate(SyncEventRecorder *data,int flags,UpdateMas
 
 				this->m_passive_spell_level[spellId] = (uint8)spelllv;
 				*/
+			}
+		}
+		// CD先来
+		for (uint32 i = PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_CD_START, j = UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_CD_START; 
+			i < PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_CD_END; ++ i, ++ j) {
+				if (mask.GetBit(i) || is_new) {
+					SET_VALUE(this, j, (uint32)self->GetUInt32(i));
+				}
+		}
+
+		for (uint32 i = PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_START, j = UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_START; 
+			i < PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_END; ++ i, ++ j) {
+			if (mask.GetBit(i) || is_new) {
+				SET_VALUE(this, j, (uint32)self->GetUInt32(i));
+
 			}
 		}
 
@@ -400,7 +432,7 @@ void Player::SyncUnitToPlayerData()
 	UnitByteToPlayerDouble(UNIT_FIELD_BYTE_0, 2, PLAYER_FIELD_MOVESPEED);
 
 	//属性
-	UnitToPlayerDouble(UNIT_FIELD_FORCE, PLAYER_FIELD_FORCE);
+	//UnitToPlayerDouble(UNIT_FIELD_FORCE, PLAYER_FIELD_FORCE);
 	/*
 	UnitUInt32ToPlayerDouble(UNIT_FIELD_HEALTH, PLAYER_FIELD_HEALTH);
 	UnitUInt32ToPlayerDouble(UNIT_FIELD_MAXHEALTH, PLAYER_FIELD_MAXHEALTH);

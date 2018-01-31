@@ -46,7 +46,7 @@ function ActionScenedUseGameObject:Update(diff)
 			self.is_goto = true
 			return true
 		end
-
+--[[
 		if(self.to_mapid > 0)then
 			--访问GO随机点计算
 			local pos_tab = mapLib.RandomPos(self.to_mapid,1,self.to_x, self.to_y,3)
@@ -56,7 +56,7 @@ function ActionScenedUseGameObject:Update(diff)
 				self.to_y = pos_tab[1].y
 			end
 		end
-
+--]]
 		if(mapid == self.to_mapid)then
 			self:PushAction('robotd.action.scened.action_scened_goto', self.to_mapid, self.to_x, self.to_y)
 		else

@@ -7,7 +7,8 @@ function AppItem:ctor( item )
 	else
 		self.item = Item()
 	end
-	
+	--local mt = getmetatable(self.item)
+	--outFmtDebug("AppItem:ctor ptr = %s \n mt = \n%s", self.item, table.dump(mt))
 end
 
 --通过字符串初始化物品
@@ -140,6 +141,8 @@ function AppItem:setBaseAttr(pos,key,val,qua)
 end
 --添加基础属性
 function AppItem:addBaseAttr(key,val,qua)
+	--local mt = getmetatable(self.item)
+	--outFmtDebug("AppItem:addBaseAttr ptr = %s \n mt = \n%s", self.item, table.dump(mt))
 	self.item:AddBaseAttr(key,val,qua)
 end
 --清空基础属性

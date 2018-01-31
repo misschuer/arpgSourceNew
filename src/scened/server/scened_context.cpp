@@ -218,9 +218,9 @@ void ScenedContext::Handle_Loot_Select(packet& pkt)
 				moneyHash[money_type] = count;
 			}
 		}
-		string p1 = "";
+		string p1 = "", p2 = "";
 		for (auto it : moneyHash) {
-			ScenedApp::g_app->call_player_addmoney(this->GetGuid(),it.first, MONEY_CHANGE_SELECT_LOOT, it.second, p1, 0, 0, 0, 0);
+			ScenedApp::g_app->call_player_addmoney(this->GetGuid(),it.first, MONEY_CHANGE_SELECT_LOOT, it.second, p1, p2);
 		}
 	}
 	else
@@ -249,8 +249,8 @@ void ScenedContext::Handle_Loot_Select(packet& pkt)
 			//如果是资源
 			if(ret && count > 0)
 			{
-				string p1 = "";
-				ScenedApp::g_app->call_player_addmoney(this->GetGuid(),money_type, MONEY_CHANGE_SELECT_LOOT, count, p1, 0, 0, 0, 0);	
+				string p1 = "", p2 = "";
+				ScenedApp::g_app->call_player_addmoney(this->GetGuid(),money_type, MONEY_CHANGE_SELECT_LOOT, count, p1, p2);	
 			}
 		}
 	}

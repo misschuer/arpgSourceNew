@@ -96,8 +96,8 @@ function InstancePrivateBoss:onRefreshBoss()
 		
 		if creature then
 			local debuffeffect_id = self:GetBuffeffectId()
-			local debuff_id = tb_buff_effect[debuffeffect_id].buff_id
 			if debuffeffect_id ~= 0 then
+				local debuff_id = tb_buff_effect[debuffeffect_id].buff_id
 				SpelladdBuff(creature, debuff_id, creature, debuffeffect_id, 200)
 			end
 			local creatureInfo = UnitInfo:new{ptr = creature}

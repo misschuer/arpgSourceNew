@@ -9,8 +9,8 @@ tb_activity_reward = {
 	--  reward:array 奖励
 	--  vipreward:array vip奖励
 	[1] = {id = 1, active = 20, reward = {{3,10000}}, vipreward = {}},
-	[2] = {id = 2, active = 40, reward = {{224,20}}, vipreward = {}},
-	[3] = {id = 3, active = 60, reward = {{233,10}}, vipreward = {}},
-	[4] = {id = 4, active = 80, reward = {{1505,1}}, vipreward = {{225,10}}},
-	[5] = {id = 5, active = 100, reward = {{2,100}}, vipreward = {{233,50}}},
+	[2] = {id = 2, active = 40, reward = {{224,200}}, vipreward = {}},
+	[3] = {id = 3, active = 60, reward = {{242,1}}, vipreward = {}},
+	[4] = {id = 4, active = 80, reward = {{225,10}}, vipreward = {}},
+	[5] = {id = 5, active = 100, reward = {{2,100}}, vipreward = {}},
 }

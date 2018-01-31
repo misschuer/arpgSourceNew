@@ -2901,7 +2901,7 @@ class s2c_combat_state_update
 class s2c_exp_update
 {				
 	public optcode:number = 0;
-	public static param_count:number = 3;
+	public static param_count:number = 2;
 	public static optname:string = "onExp_update"; 
 	private static input:ByteArray;		
 	
@@ -2910,13 +2910,9 @@ class s2c_exp_update
 	 */
 	public exp :number ;	//int32		
 	/**
-	 * 获得经验的类型
+	 * 加成
 	 */
-	public type :number ;	//uint8		
-	/**
-	 * VIP的经验显示
-	 */
-	public vip_exp :number ;	//int32		
+	public added :number ;	//uint8		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -2932,11 +2928,8 @@ class s2c_exp_update
 		//改变的经验
 		self.exp = this.input. readInt32 ();		
 		
-		//获得经验的类型
-		self.type = this.input. readUint8 ();		
-		
-		//VIP的经验显示
-		self.vip_exp = this.input. readInt32 ();		
+		//加成
+		self.added = this.input. readUint8 ();		
 		
 	}
 }
@@ -5794,10 +5787,14 @@ class c2s_illusion_mount
 class c2s_ride_mount
 {				
 	public optcode:number = 0;
-	public static param_count:number = 0;
+	public static param_count:number = 1;
 	public static optname:string = "onRide_mount"; 
 	private static input:ByteArray;		
 	
+	/**
+	 * 1:上&0:下
+	 */
+	public oper :number ;	//uint8		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -5810,6 +5807,9 @@ class c2s_ride_mount
 		
 		//var parmLen:uint;
 		//var i:int;
+		//1:上&0:下
+		self.oper = this.input. readUint8 ();		
+		
 	}
 }
 
@@ -10430,7 +10430,7 @@ class c2s_pick_offline_reward
 class s2c_offline_reward_result
 {				
 	public optcode:number = 0;
-	public static param_count:number = 5;
+	public static param_count:number = 6;
 	public static optname:string = "onOffline_reward_result"; 
 	private static input:ByteArray;		
 	
@@ -10450,6 +10450,10 @@ class s2c_offline_reward_result
 	 * 备用4
 	 */
 	public reserve4 :number ;	//uint32		
+	/**
+	 * 备用5
+	 */
+	public reserve5 :number ;	//uint32		
 	/**
 	 * 
 	 */
@@ -10477,6 +10481,9 @@ class s2c_offline_reward_result
 		
 		//备用4
 		self.reserve4 = this.input. readUint32 ();		
+		
+		//备用5
+		self.reserve5 = this.input. readUint32 ();		
 		
 		//
 		if( self.list .length ) 
@@ -11349,7 +11356,7 @@ class c2s_buy_mass_boss_times
 class c2s_group_instance_match
 {				
 	public optcode:number = 0;
-	public static param_count:number = 1;
+	public static param_count:number = 2;
 	public static optname:string = "onGroup_instance_match"; 
 	private static input:ByteArray;		
 	
@@ -11357,6 +11364,10 @@ class c2s_group_instance_match
 	 * 组队副本类型
 	 */
 	public indx :number ;	//uint8		
+	/**
+	 * 是否组队进入
+	 */
+	public isGroup :number ;	//uint8		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -11371,6 +11382,9 @@ class c2s_group_instance_match
 		//var i:int;
 		//组队副本类型
 		self.indx = this.input. readUint8 ();		
+		
+		//是否组队进入
+		self.isGroup = this.input. readUint8 ();		
 		
 	}
 }
@@ -13276,10 +13290,26 @@ class c2s_pick_realmbreak_daily_reward
 class c2s_group_create
 {				
 	public optcode:number = 0;
-	public static param_count:number = 0;
+	public static param_count:number = 4;
 	public static optname:string = "onGroup_create"; 
 	private static input:ByteArray;		
 	
+	/**
+	 * 队伍类型
+	 */
+	public type :number ;	//uint32		
+	/**
+	 * 队伍最低等级
+	 */
+	public min_lev :number ;	//uint32		
+	/**
+	 * 队伍最大等级
+	 */
+	public max_lev :number ;	//uint32		
+	/**
+	 * 队伍自动接受申请 0 关闭 1 打开
+	 */
+	public auto_flag :number ;	//uint32		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -13292,6 +13322,18 @@ class c2s_group_create
 		
 		//var parmLen:uint;
 		//var i:int;
+		//队伍类型
+		self.type = this.input. readUint32 ();		
+		
+		//队伍最低等级
+		self.min_lev = this.input. readUint32 ();		
+		
+		//队伍最大等级
+		self.max_lev = this.input. readUint32 ();		
+		
+		//队伍自动接受申请 0 关闭 1 打开
+		self.auto_flag = this.input. readUint32 ();		
+		
 	}
 }
 
@@ -13399,9 +13441,9 @@ class c2s_group_give_captain
 	private static input:ByteArray;		
 	
 	/**
-	 * 玩家guid
+	 * 玩家index
 	 */
-	public guid :string ;	//String		
+	public index :number ;	//uint32		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -13414,8 +13456,8 @@ class c2s_group_give_captain
 		
 		//var parmLen:uint;
 		//var i:int;
-		//玩家guid
-		self.guid = this.input. readString ();		
+		//玩家index
+		self.index = this.input. readUint32 ();		
 		
 	}
 }
@@ -13432,9 +13474,9 @@ class c2s_group_kick
 	private static input:ByteArray;		
 	
 	/**
-	 * 玩家guid
+	 * 玩家index
 	 */
-	public guid :string ;	//String		
+	public index :number ;	//uint32		
 
 	/**
 	 从输入二进制流中读取结构体
@@ -13447,8 +13489,8 @@ class c2s_group_kick
 		
 		//var parmLen:uint;
 		//var i:int;
-		//玩家guid
-		self.guid = this.input. readString ();		
+		//玩家index
+		self.index = this.input. readUint32 ();		
 		
 	}
 }
@@ -13541,6 +13583,1444 @@ class c2s_pick_stage_instance_bonus
 		//var i:int;
 		//宝箱下标
 		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_enter_group_exp
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onEnter_group_exp"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 是否组队进入
+	 */
+	public isGroup :number ;	//uint8		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_enter_group_exp, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//是否组队进入
+		self.isGroup = this.input. readUint8 ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_check_for_group_enter
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onCheck_for_group_enter"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 副本子类型
+	 */
+	public instSubType :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_check_for_group_enter, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//副本子类型
+		self.instSubType = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_select_group_enter
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onSelect_group_enter"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 结果
+	 */
+	public choise :number ;	//uint8		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_select_group_enter, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//结果
+		self.choise = this.input. readUint8 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_buy_group_exp_times
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onBuy_group_exp_times"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 数量
+	 */
+	public count :number ;	//uint8		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_buy_group_exp_times, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//数量
+		self.count = this.input. readUint8 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_buy_inspiration
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onBuy_inspiration"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 购买类型
+	 */
+	public category :number ;	//uint8		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_buy_inspiration, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//购买类型
+		self.category = this.input. readUint8 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_enter_faction_match_map
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onEnter_faction_match_map"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_enter_faction_match_map, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_pick_faction_match_champion_daily_reward
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onPick_faction_match_champion_daily_reward"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_pick_faction_match_champion_daily_reward, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_query_faction_match_info
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onQuery_faction_match_info"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_query_faction_match_info, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class s2c_show_faction_match_info_list
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onShow_faction_match_info_list"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 排行列表
+	 */
+	public list :Array<faction_match_info > = new Array(); //faction_match_info
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_show_faction_match_info_list, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//排行列表
+		if( self.list .length ) 
+			throw Error("通讯对象池有异常");			
+		var parmLen:number = this.input.readUint16();			
+		for(var i:number=0;i<parmLen;i++){
+			var _list:faction_match_info = new faction_match_info;
+			_list .read(this.input);
+			self.list .push(_list);
+		}
+		
+	}
+}
+
+
+
+
+
+class c2s_pick_res_instance_first_reward
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onPick_res_instance_first_reward"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 副本id
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_pick_res_instance_first_reward, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//副本id
+		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_group_send_invite
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGroup_send_invite"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 玩家guid
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_send_invite, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//玩家guid
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_show_group_invite
+{				
+	public optcode:number = 0;
+	public static param_count:number = 6;
+	public static optname:string = "onShow_group_invite"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 队伍guid
+	 */
+	public guid :string ;	//String		
+	/**
+	 * 邀请者名称
+	 */
+	public name :string ;	//String		
+	/**
+	 * 队伍类型
+	 */
+	public type :number ;	//uint32		
+	/**
+	 * 邀请者等级
+	 */
+	public level :number ;	//uint32		
+	/**
+	 * 邀请者战力
+	 */
+	public force :number ;	//double		
+	/**
+	 * 邀请者guid
+	 */
+	public sender_guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_show_group_invite, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//队伍guid
+		self.guid = this.input. readString ();		
+		
+		//邀请者名称
+		self.name = this.input. readString ();		
+		
+		//队伍类型
+		self.type = this.input. readUint32 ();		
+		
+		//邀请者等级
+		self.level = this.input. readUint32 ();		
+		
+		//邀请者战力
+		self.force = this.input. readDouble ();		
+		
+		//邀请者guid
+		self.sender_guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_group_agree_invite
+{				
+	public optcode:number = 0;
+	public static param_count:number = 2;
+	public static optname:string = "onGroup_agree_invite"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 队伍guid
+	 */
+	public guid :string ;	//String		
+	/**
+	 * 邀请者guid
+	 */
+	public sendGuid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_agree_invite, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//队伍guid
+		self.guid = this.input. readString ();		
+		
+		//邀请者guid
+		self.sendGuid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_get_group_search_info_list
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGet_group_search_info_list"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 队伍类型
+	 */
+	public type :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_get_group_search_info_list, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//队伍类型
+		self.type = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_show_group_search_info_list
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onShow_group_search_info_list"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 队伍信息
+	 */
+	public list :Array<group_search_info > = new Array(); //group_search_info
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_show_group_search_info_list, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//队伍信息
+		if( self.list .length ) 
+			throw Error("通讯对象池有异常");			
+		var parmLen:number = this.input.readUint16();			
+		for(var i:number=0;i<parmLen;i++){
+			var _list:group_search_info = new group_search_info;
+			_list .read(this.input);
+			self.list .push(_list);
+		}
+		
+	}
+}
+
+
+
+
+
+class c2s_group_change_config
+{				
+	public optcode:number = 0;
+	public static param_count:number = 4;
+	public static optname:string = "onGroup_change_config"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 队伍类型
+	 */
+	public type :number ;	//uint32		
+	/**
+	 * 队伍最低等级
+	 */
+	public min_lev :number ;	//uint32		
+	/**
+	 * 队伍最大等级
+	 */
+	public max_lev :number ;	//uint32		
+	/**
+	 * 队伍自动接受申请 0 关闭 1 打开
+	 */
+	public auto_flag :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_change_config, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//队伍类型
+		self.type = this.input. readUint32 ();		
+		
+		//队伍最低等级
+		self.min_lev = this.input. readUint32 ();		
+		
+		//队伍最大等级
+		self.max_lev = this.input. readUint32 ();		
+		
+		//队伍自动接受申请 0 关闭 1 打开
+		self.auto_flag = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_show_group_join_request
+{				
+	public optcode:number = 0;
+	public static param_count:number = 6;
+	public static optname:string = "onShow_group_join_request"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 玩家guid
+	 */
+	public guid :string ;	//String		
+	/**
+	 * 玩家名称
+	 */
+	public name :string ;	//String		
+	/**
+	 * 玩家职业
+	 */
+	public gender :number ;	//uint32		
+	/**
+	 * 玩家等级
+	 */
+	public level :number ;	//uint32		
+	/**
+	 * 玩家vip等级
+	 */
+	public vip :number ;	//uint32		
+	/**
+	 * 玩家战力
+	 */
+	public force :number ;	//double		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_show_group_join_request, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//玩家guid
+		self.guid = this.input. readString ();		
+		
+		//玩家名称
+		self.name = this.input. readString ();		
+		
+		//玩家职业
+		self.gender = this.input. readUint32 ();		
+		
+		//玩家等级
+		self.level = this.input. readUint32 ();		
+		
+		//玩家vip等级
+		self.vip = this.input. readUint32 ();		
+		
+		//玩家战力
+		self.force = this.input. readDouble ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_group_join_denied
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGroup_join_denied"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 玩家guid
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_join_denied, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//玩家guid
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_group_invite_denied
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGroup_invite_denied"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 队伍guid
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_group_invite_denied, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//队伍guid
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_talisman_equip
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onTalisman_equip"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 法宝id
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_talisman_equip, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//法宝id
+		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_talisman_unequip
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onTalisman_unequip"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 槽位id
+	 */
+	public slot_id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_talisman_unequip, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//槽位id
+		self.slot_id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_fullize_hp
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onFullize_hp"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 地图id
+	 */
+	public guid :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_fullize_hp, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//地图id
+		self.guid = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_auto_group_match
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onAuto_group_match"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 目标类型
+	 */
+	public targetType :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_auto_group_match, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//目标类型
+		self.targetType = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_cancel_auto_group_match
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onCancel_auto_group_match"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_cancel_auto_group_match, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_kuafu_3v3_group_match
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onKuafu_3v3_group_match"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_kuafu_3v3_group_match, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class c2s_booking_money
+{				
+	public optcode:number = 0;
+	public static param_count:number = 4;
+	public static optname:string = "onBooking_money"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 订单号
+	 */
+	public orderid :string ;	//String		
+	/**
+	 * 商品名称
+	 */
+	public goodsname :string ;	//String		
+	/**
+	 * 金额
+	 */
+	public money1 :string ;	//String		
+	/**
+	 * 元宝数量
+	 */
+	public goodsnum :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_booking_money, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//订单号
+		self.orderid = this.input. readString ();		
+		
+		//商品名称
+		self.goodsname = this.input. readString ();		
+		
+		//金额
+		self.money1 = this.input. readString ();		
+		
+		//元宝数量
+		self.goodsnum = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_booking_money_result
+{				
+	public optcode:number = 0;
+	public static param_count:number = 2;
+	public static optname:string = "onBooking_money_result"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 订单号
+	 */
+	public orderid :string ;	//String		
+	/**
+	 * 成功或者失败
+	 */
+	public result :number ;	//uint8		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_booking_money_result, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//订单号
+		self.orderid = this.input. readString ();		
+		
+		//成功或者失败
+		self.result = this.input. readUint8 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_one_step_robot_up
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onOne_step_robot_up"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 参数
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_one_step_robot_up, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//参数
+		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_get_seven_day_recharge_extra_reward
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onGet_seven_day_recharge_extra_reward"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 奖励id
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_get_seven_day_recharge_extra_reward, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//奖励id
+		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_use_giftcode
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onUse_giftcode"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 兑换码
+	 */
+	public giftcode :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_use_giftcode, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//兑换码
+		self.giftcode = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_show_giftcode_reward_list
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onShow_giftcode_reward_list"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 道具
+	 */
+	public list :Array<item_reward_info > = new Array(); //item_reward_info
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_show_giftcode_reward_list, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//道具
+		if( self.list .length ) 
+			throw Error("通讯对象池有异常");			
+		var parmLen:number = this.input.readUint16();			
+		for(var i:number=0;i<parmLen;i++){
+			var _list:item_reward_info = new item_reward_info;
+			_list .read(this.input);
+			self.list .push(_list);
+		}
+		
+	}
+}
+
+
+
+
+
+class c2s_lottery_recharge
+{				
+	public optcode:number = 0;
+	public static param_count:number = 0;
+	public static optname:string = "onLottery_recharge"; 
+	private static input:ByteArray;		
+	
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_lottery_recharge, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+	}
+}
+
+
+
+
+
+class s2c_lottery_recharge_result
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onLottery_recharge_result"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 抽奖indx
+	 */
+	public indx :number ;	//uint8		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_lottery_recharge_result, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//抽奖indx
+		self.indx = this.input. readUint8 ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_show_cast_remain_skill
+{				
+	public optcode:number = 0;
+	public static param_count:number = 1;
+	public static optname:string = "onShow_cast_remain_skill"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 技能id
+	 */
+	public id :number ;	//uint32		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_show_cast_remain_skill, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//技能id
+		self.id = this.input. readUint32 ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_after_create_role
+{				
+	public optcode:number = 0;
+	public static param_count:number = 3;
+	public static optname:string = "onAfter_create_role"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 服务器id
+	 */
+	public serverId :string ;	//String		
+	/**
+	 * 角色id
+	 */
+	public guid :string ;	//String		
+	/**
+	 * 玩家名称
+	 */
+	public nickname :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_after_create_role, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//服务器id
+		self.serverId = this.input. readString ();		
+		
+		//角色id
+		self.guid = this.input. readString ();		
+		
+		//玩家名称
+		self.nickname = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class c2s_booking_game2_money
+{				
+	public optcode:number = 0;
+	public static param_count:number = 5;
+	public static optname:string = "onBooking_game2_money"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 游戏名称
+	 */
+	public serverName :string ;	//String		
+	/**
+	 * 订单号
+	 */
+	public cpOrderId :string ;	//String		
+	/**
+	 * 商品名称
+	 */
+	public productName :string ;	//String		
+	/**
+	 * 商品id
+	 */
+	public productId :string ;	//String		
+	/**
+	 * 商品描述
+	 */
+	public productDesc :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:c2s_booking_game2_money, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//游戏名称
+		self.serverName = this.input. readString ();		
+		
+		//订单号
+		self.cpOrderId = this.input. readString ();		
+		
+		//商品名称
+		self.productName = this.input. readString ();		
+		
+		//商品id
+		self.productId = this.input. readString ();		
+		
+		//商品描述
+		self.productDesc = this.input. readString ();		
+		
+	}
+}
+
+
+
+
+
+class s2c_booking_game2_money_result
+{				
+	public optcode:number = 0;
+	public static param_count:number = 11;
+	public static optname:string = "onBooking_game2_money_result"; 
+	private static input:ByteArray;		
+	
+	/**
+	 * 成功或者失败
+	 */
+	public result :number ;	//uint8		
+	/**
+	 * 游戏id
+	 */
+	public serverId :number ;	//uint32		
+	/**
+	 * 游戏名称
+	 */
+	public serverName :string ;	//String		
+	/**
+	 * 订单号
+	 */
+	public cpOrderId :string ;	//String		
+	/**
+	 * 商品名称
+	 */
+	public productName :string ;	//String		
+	/**
+	 * 商品id
+	 */
+	public productId :string ;	//String		
+	/**
+	 * 商品描述
+	 */
+	public productDesc :string ;	//String		
+	/**
+	 * 金额
+	 */
+	public amount :string ;	//String		
+	/**
+	 * 额外描述
+	 */
+	public extend :string ;	//String		
+	/**
+	 * linux时间戳
+	 */
+	public time :string ;	//String		
+	/**
+	 * 数字签名
+	 */
+	public sign :string ;	//String		
+
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public static read(self:s2c_booking_game2_money_result, bytes:ByteArray):void
+	{		
+		if(this.input == null) 
+			this.input = new ByteArray();							
+		this.input =  bytes;
+		
+		//var parmLen:uint;
+		//var i:int;
+		//成功或者失败
+		self.result = this.input. readUint8 ();		
+		
+		//游戏id
+		self.serverId = this.input. readUint32 ();		
+		
+		//游戏名称
+		self.serverName = this.input. readString ();		
+		
+		//订单号
+		self.cpOrderId = this.input. readString ();		
+		
+		//商品名称
+		self.productName = this.input. readString ();		
+		
+		//商品id
+		self.productId = this.input. readString ();		
+		
+		//商品描述
+		self.productDesc = this.input. readString ();		
+		
+		//金额
+		self.amount = this.input. readString ();		
+		
+		//额外描述
+		self.extend = this.input. readString ();		
+		
+		//linux时间戳
+		self.time = this.input. readString ();		
+		
+		//数字签名
+		self.sign = this.input. readString ();		
 		
 	}
 }

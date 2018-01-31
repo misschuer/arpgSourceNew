@@ -94,5 +94,24 @@ bool Add_Item_Template_Index()
 	return true;
 }
 
+bool Add_RechargeInfo_Index()
+{
+	//recharge_info_db.register_compare_handle(MEMDB_CMP_PTR(recharge_info, orderid, MemDB_Compare_Handle<char *>));
+	memdb_index *index = recharge_info_db.create_index();
+	index = recharge_info_db.add_index_cell(index, MEMDB_INDX(recharge_info, orderid, MemDB_Compare_Handle<char *>));
+	//index = recharge_info_db.add_index_cell(index, MEMDB_INDX(recharge_info, account, MemDB_Compare_Handle<char *>));
+	recharge_info_db.add_index(index);
+
+	return true;
+}
+
+bool Add_GiftcodeInfo_Index()
+{
+	memdb_index *index = giftcode_info_db.create_index();
+	index = giftcode_info_db.add_index_cell(index, MEMDB_INDX(giftcode_info, giftcode, MemDB_Compare_Handle<char *>));
+	giftcode_info_db.add_index(index);
+	return true;
+}
+
 #endif
 

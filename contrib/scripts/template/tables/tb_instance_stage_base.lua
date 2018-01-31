@@ -7,5 +7,5 @@ tb_instance_stage_base = {
 	--  id:int ID
 	--  buffEffectId:int 增益buff
 	--  debuffEffectId:int 减益buff
-	[1] = {id = 1, buffEffectId = 101, debuffEffectId = 210},
+	[1] = {id = 1, buffEffectId = 0, debuffEffectId = 611},
 }

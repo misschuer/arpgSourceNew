@@ -112,30 +112,22 @@ int AppdContext::LuaModifyMoney(lua_State* scriptL)
 	uint8 _type = (uint8)LUA_TONUMBER(scriptL, 2);
 	uint8 oper_type = (uint8)LUA_TOINTEGER(scriptL, 3);
 	double val = LUA_TONUMBER(scriptL, 4);
-	string p1 = "";
+	string relateItemIds = "";
+	string relateItemNums = "";
+
 	if(n >= 5)
-		p1 = LUA_TOSTRING(scriptL, 5);
-	int32 p2 = 0;
+		relateItemIds = LUA_TOSTRING(scriptL, 5);
 	if(n >= 6)
-		p2 = (int32)LUA_TOINTEGER(scriptL, 6);
-	int32 p3 = 0;
-	if(n >= 7)
-		p3 = (int32)LUA_TOINTEGER(scriptL, 7);
-	uint8 p4 = 0;
-	if(n >= 8)
-		p4 = (int32)LUA_TOINTEGER(scriptL, 8);
-	uint8 p5 = 0;
-	if(n >= 9)
-		p5 = (int32)LUA_TOINTEGER(scriptL, 9);
+		relateItemNums = LUA_TOSTRING(scriptL, 6);
 
 	if (val > 0)
 	{
-		player->addMoney(_type, oper_type, val, p1, p2, p3, p4, p5);
+		player->addMoney(_type, oper_type, val, relateItemIds, relateItemNums);
 		lua_pushboolean(scriptL, TRUE);
 	}
 	else
 	{
-		if (player->subMoney(_type, oper_type, -1 * val, p1, p2, p3, p4, p5))
+		if (player->subMoney(_type, oper_type, -1 * val, relateItemIds, relateItemNums))
 			lua_pushboolean(scriptL, TRUE);
 		else
 			lua_pushboolean(scriptL, FALSE);
@@ -595,7 +587,7 @@ int AppdContext::luaFastGetFactionList(lua_State *scriptL)
 
 	std::vector<BinLogObject*> vec;
 	//œ»…∏—°
-	ObjMgr.ForeachIndexer(REGEX_FACRION, [limted, &vec](core_obj::GuidObject *obj){	
+	ObjMgr.ForeachIndexer(REGEX_FACTION, [limted, &vec](core_obj::GuidObject *obj){	
 		if (limted == 0){
 			vec.push_back(dynamic_cast<BinLogObject*>(obj));
 		}else if(limted > 0){

@@ -21,7 +21,7 @@ function QuestTrialTowerFloor:OnUpdate(playerInfo, start, offset, params)
 	local questId = binLogLib.GetUInt16(quest_ptr, start + QUEST_INFO_ID, 0)
 	local targetLv = tb_quest[questId].targets[offset+1][ 2 ]
 	
-	local level = playerInfo:GetUInt16(INSTANCE_INT_FIELD_TRIAL_PASSED_SHORT, 1)
+	local level = playerInfo:getInstanceMgr():GetUInt16(INSTANCE_INT_FIELD_TRIAL_PASSED_SHORT, 1)
 	
 	local process = 0
 	if level >= targetLv then

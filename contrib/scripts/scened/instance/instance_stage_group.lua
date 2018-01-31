@@ -13,7 +13,7 @@ function InstanceStageGroup:InitRes(config)
 end
 
 
-function InstanceStageGroup:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceStageGroup:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("gold shua guai ************")
 	
 	
@@ -36,9 +36,8 @@ function InstanceStageGroup:ApplyRefreshMonsterBatch(player,batchIdx)
 
 		local creature = mapLib.AddCreature(self.ptr, 
 			{templateid = entry, x = bornX, y = bornY, level=plev, active_grid = true, alias_name = config.name, 
-			ainame = "AI_stage", npcflag = {}})
+			ainame = "AI_stage", attackType = REACT_AGGRESSIVE, npcflag = {}})
 		
-		creatureLib.ModifyThreat(creature, player.ptr, self.THREAT_V)
 	end
 	
 	return true,cnt

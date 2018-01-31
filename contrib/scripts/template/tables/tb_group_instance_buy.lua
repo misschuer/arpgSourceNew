@@ -8,5 +8,5 @@ tb_group_instance_buy = {
 	--  daily_reset:int 挑战次数每日重置为
 	--  buy_type:array 消耗类型
 	--  buy_price:array 消耗价格
-	[1] = {id = 1, daily_reset = 2, buy_type = {2,2,2,2,2,2,2}, buy_price = {10,20,30,40,50,60,70}},
+	[1] = {id = 1, daily_reset = 2, buy_type = {2,2,2}, buy_price = {10,30,50}},
 }

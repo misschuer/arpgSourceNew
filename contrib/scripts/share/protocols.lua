@@ -166,7 +166,7 @@ CMSG_UPGRADE_MOUNT		= 148	-- /*申请升阶坐骑*/
 CMSG_UPGRADE_MOUNT_ONE_STEP		= 149	-- /*申请一键升阶坐骑*/	
 CMSG_ILLUSION_MOUNT_ACTIVE		= 150	-- /*申请解锁幻化坐骑*/	
 CMSG_ILLUSION_MOUNT		= 151	-- /*申请幻化坐骑*/	
-CMSG_RIDE_MOUNT		= 152	-- /*申请骑乘*/	
+CMSG_RIDE_MOUNT		= 152	-- /*坐骑骑乘操作*/	
 SMSG_GRID_UNIT_JUMP		= 153	-- /*grid中的unit跳跃*/	
 CMSG_GEM		= 154	-- /*宝石*/	
 CMSG_CHANGE_BATTLE_MODE		= 155	-- /*请求切换模式*/	
@@ -387,6 +387,43 @@ CMSG_GROUP_KICK		= 423	-- /*踢队员*/
 SMSG_SHOW_LOOT_ANIMATE		= 424	-- /*显示掉落东西*/	
 CMSG_ENTER_STAGE_INSTANCE		= 425	-- /*进入闯关副本*/	
 CMSG_PICK_STAGE_INSTANCE_BONUS		= 426	-- /*领取闯关副本奖励*/	
+CMSG_ENTER_GROUP_EXP		= 427	-- /*进入组队副本*/	
+SMSG_CHECK_FOR_GROUP_ENTER		= 428	-- /*队长通知进入某副本*/	
+CMSG_SELECT_GROUP_ENTER		= 429	-- /*队伍成员选择AorD*/	
+CMSG_BUY_GROUP_EXP_TIMES		= 430	-- /*经验副本次数购买*/	
+CMSG_BUY_INSPIRATION		= 431	-- /*购买鼓舞*/	
+CMSG_ENTER_FACTION_MATCH_MAP		= 440	-- /*家族战进入*/	
+CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD		= 441	-- /*领取家族战盟主每日奖励*/	
+CMSG_QUERY_FACTION_MATCH_INFO		= 442	-- /*请求家族战榜单*/	
+SMSG_SHOW_FACTION_MATCH_INFO_LIST		= 443	-- /*返回家族战榜单*/	
+CMSG_PICK_RES_INSTANCE_FIRST_REWARD		= 444	-- /*领取资源副本首次通关奖励*/	
+CMSG_GROUP_SEND_INVITE		= 445	-- /*发送组队邀请*/	
+SMSG_SHOW_GROUP_INVITE		= 446	-- /*显示组队邀请*/	
+CMSG_GROUP_AGREE_INVITE		= 447	-- /*同意组队邀请*/	
+CMSG_GET_GROUP_SEARCH_INFO_LIST		= 448	-- /*便捷组队队伍列表*/	
+SMSG_SHOW_GROUP_SEARCH_INFO_LIST		= 449	-- /*返回便捷组队队伍列表*/	
+CMSG_GROUP_CHANGE_CONFIG		= 450	-- /*修改组队设置*/	
+SMSG_SHOW_GROUP_JOIN_REQUEST		= 451	-- /*显示玩家入队申请*/	
+CMSG_GROUP_JOIN_DENIED		= 452	-- /*拒绝加入队伍*/	
+CMSG_GROUP_INVITE_DENIED		= 453	-- /*拒绝邀请*/	
+CMSG_TALISMAN_EQUIP		= 454	-- /*装备法宝*/	
+CMSG_TALISMAN_UNEQUIP		= 455	-- /*卸下法宝*/	
+SMSG_FULLIZE_HP		= 460	-- /*回满血*/	
+CMSG_AUTO_GROUP_MATCH		= 461	-- /*自动匹配*/	
+CMSG_CANCEL_AUTO_GROUP_MATCH		= 462	-- /*取消自动匹配*/	
+CMSG_KUAFU_3V3_GROUP_MATCH		= 463	-- /*组队3v3跨服匹配*/	
+CMSG_BOOKING_MONEY		= 470	-- /*记录购买订单*/	
+SMSG_BOOKING_MONEY_RESULT		= 471	-- /*记录购买订单成功*/	
+CMSG_ONE_STEP_ROBOT_UP		= 472	-- /*一键机器人强化*/	
+CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD		= 473	-- /*领取7日充值额外奖励*/	
+CMSG_USE_GIFTCODE		= 474	-- /*使用兑换码*/	
+SMSG_SHOW_GIFTCODE_REWARD_LIST		= 475	-- /*显示兑换结果*/	
+CMSG_LOTTERY_RECHARGE		= 480	-- /*转盘抽奖*/	
+SMSG_LOTTERY_RECHARGE_RESULT		= 481	-- /*转盘抽奖结果*/	
+SMSG_SHOW_CAST_REMAIN_SKILL		= 482	-- /*通知前端释放了持续技能*/	
+SMSG_AFTER_CREATE_ROLE		= 483	-- /*角色创建完*/	
+CMSG_BOOKING_GAME2_MONEY		= 484	-- /*记录购买订单*/	
+SMSG_BOOKING_GAME2_MONEY_RESULT		= 485	-- /*记录购买订单成功*/	
 
 
 ---------------------------------------------------------------------
@@ -1843,6 +1880,138 @@ function act_rank_info_t:write( output )
 		self.value = 0
 	end
 	output:writeU32(self.value)
+	
+	return output
+end
+
+---------------------------------------------------------------------
+--/*家族战榜单*/
+
+faction_match_info_t = class('faction_match_info_t')
+
+function faction_match_info_t:read( input )
+
+	local ret
+	ret,self.name = input:readUTFByLen(50)  --/*家族名称*/
+
+	if not ret then
+		return ret
+	end
+
+	if not ret then
+		return ret
+	end
+	ret,self.result = input:readU32() --/*比赛结果*/
+
+	if not ret then
+		return ret
+	end
+	ret,self.rank = input:readU32() --/*本届结果*/
+
+	if not ret then
+		return ret
+	end
+	ret,self.guid = input:readUTFByLen(50)  --/*家族id*/
+
+	if not ret then
+		return ret
+	end
+
+	if not ret then
+		return ret
+	end
+
+	return input
+end
+
+function faction_match_info_t:write( output )
+	if(self.name == nil)then
+		self.name = ''
+	end
+	output:writeUTFByLen(self.name , 50 ) 
+	
+	if(self.result == nil)then
+		self.result = 0
+	end
+	output:writeU32(self.result)
+	
+	if(self.rank == nil)then
+		self.rank = 0
+	end
+	output:writeU32(self.rank)
+	
+	if(self.guid == nil)then
+		self.guid = ''
+	end
+	output:writeUTFByLen(self.guid , 50 ) 
+	
+	return output
+end
+
+---------------------------------------------------------------------
+--/*队伍查询信息*/
+
+group_search_info_t = class('group_search_info_t')
+
+function group_search_info_t:read( input )
+
+	local ret
+	ret,self.guid = input:readUTFByLen(50)  --/*队伍guid*/
+
+	if not ret then
+		return ret
+	end
+
+	if not ret then
+		return ret
+	end
+	ret,self.cap_guid = input:readUTFByLen(50)  --/*队长guid*/
+
+	if not ret then
+		return ret
+	end
+
+	if not ret then
+		return ret
+	end
+	ret,self.cap_name = input:readUTFByLen(50)  --/*队长名称*/
+
+	if not ret then
+		return ret
+	end
+
+	if not ret then
+		return ret
+	end
+	ret,self.members = input:readU32() --/*家族id*/
+
+	if not ret then
+		return ret
+	end
+
+	return input
+end
+
+function group_search_info_t:write( output )
+	if(self.guid == nil)then
+		self.guid = ''
+	end
+	output:writeUTFByLen(self.guid , 50 ) 
+	
+	if(self.cap_guid == nil)then
+		self.cap_guid = ''
+	end
+	output:writeUTFByLen(self.cap_guid , 50 ) 
+	
+	if(self.cap_name == nil)then
+		self.cap_name = ''
+	end
+	output:writeUTFByLen(self.cap_name , 50 ) 
+	
+	if(self.members == nil)then
+		self.members = 0
+	end
+	output:writeU32(self.members)
 	
 	return output
 end
@@ -4403,17 +4572,16 @@ end
 
 
 -- /*经验更新*/	
-function Protocols.pack_exp_update ( exp ,type ,vip_exp)
+function Protocols.pack_exp_update ( exp ,added)
 	local output = Packet.new(SMSG_EXP_UPDATE)
 	output:writeI32(exp)
-	output:writeByte(type)
-	output:writeI32(vip_exp)
+	output:writeByte(added)
 	return output
 end
 
 -- /*经验更新*/	
-function Protocols.call_exp_update ( playerInfo, exp ,type ,vip_exp)
-	local output = Protocols.	pack_exp_update ( exp ,type ,vip_exp)
+function Protocols.call_exp_update ( playerInfo, exp ,added)
+	local output = Protocols.	pack_exp_update ( exp ,added)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -4427,14 +4595,10 @@ function Protocols.unpack_exp_update (pkt)
 	if not ret then
 		return false
 	end	
-	ret,param_table.type = input:readByte()
+	ret,param_table.added = input:readByte()
 	if not ret then
 		return false
 	end
-	ret,param_table.vip_exp = input:readI32()
-	if not ret then
-		return false
-	end	
 
 	return true,param_table	
 
@@ -6898,27 +7062,31 @@ function Protocols.unpack_illusion_mount (pkt)
 end
 
 
--- /*申请骑乘*/	
-function Protocols.pack_ride_mount (  )
+-- /*坐骑骑乘操作*/	
+function Protocols.pack_ride_mount ( oper)
 	local output = Packet.new(CMSG_RIDE_MOUNT)
+	output:writeByte(oper)
 	return output
 end
 
--- /*申请骑乘*/	
-function Protocols.call_ride_mount ( playerInfo )
-	local output = Protocols.	pack_ride_mount (  )
+-- /*坐骑骑乘操作*/	
+function Protocols.call_ride_mount ( playerInfo, oper)
+	local output = Protocols.	pack_ride_mount ( oper)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
 
--- /*申请骑乘*/	
+-- /*坐骑骑乘操作*/	
 function Protocols.unpack_ride_mount (pkt)
 	local input = Packet.new(nil, pkt)
 	local param_table = {}
 	local ret
+	ret,param_table.oper = input:readByte()
+	if not ret then
+		return false
+	end
 
-	return true,{}
-	
+	return true,param_table	
 
 end
 
@@ -11048,12 +11216,13 @@ end
 
 
 -- /*离线奖励结果*/	
-function Protocols.pack_offline_reward_result ( reserve ,reserve2 ,reserve3 ,reserve4 ,list)
+function Protocols.pack_offline_reward_result ( reserve ,reserve2 ,reserve3 ,reserve4 ,reserve5 ,list)
 	local output = Packet.new(SMSG_OFFLINE_REWARD_RESULT)
 	output:writeU32(reserve)
 	output:writeU32(reserve2)
 	output:writeU32(reserve3)
 	output:writeU32(reserve4)
+	output:writeU32(reserve5)
 	output:writeI16(#list)
 	for i = 1,#list,1
 	do
@@ -11063,8 +11232,8 @@ function Protocols.pack_offline_reward_result ( reserve ,reserve2 ,reserve3 ,res
 end
 
 -- /*离线奖励结果*/	
-function Protocols.call_offline_reward_result ( playerInfo, reserve ,reserve2 ,reserve3 ,reserve4 ,list)
-	local output = Protocols.	pack_offline_reward_result ( reserve ,reserve2 ,reserve3 ,reserve4 ,list)
+function Protocols.call_offline_reward_result ( playerInfo, reserve ,reserve2 ,reserve3 ,reserve4 ,reserve5 ,list)
+	local output = Protocols.	pack_offline_reward_result ( reserve ,reserve2 ,reserve3 ,reserve4 ,reserve5 ,list)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -11087,6 +11256,10 @@ function Protocols.unpack_offline_reward_result (pkt)
 		return false
 	end	
 	ret,param_table.reserve4 = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.reserve5 = input:readU32()
 	if not ret then
 		return false
 	end	
@@ -11875,15 +12048,16 @@ end
 
 
 -- /*组队副本跨服匹配*/	
-function Protocols.pack_group_instance_match ( indx)
+function Protocols.pack_group_instance_match ( indx ,isGroup)
 	local output = Packet.new(CMSG_GROUP_INSTANCE_MATCH)
 	output:writeByte(indx)
+	output:writeByte(isGroup)
 	return output
 end
 
 -- /*组队副本跨服匹配*/	
-function Protocols.call_group_instance_match ( playerInfo, indx)
-	local output = Protocols.	pack_group_instance_match ( indx)
+function Protocols.call_group_instance_match ( playerInfo, indx ,isGroup)
+	local output = Protocols.	pack_group_instance_match ( indx ,isGroup)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -11894,6 +12068,10 @@ function Protocols.unpack_group_instance_match (pkt)
 	local param_table = {}
 	local ret
 	ret,param_table.indx = input:readByte()
+	if not ret then
+		return false
+	end
+	ret,param_table.isGroup = input:readByte()
 	if not ret then
 		return false
 	end
@@ -13603,14 +13781,18 @@ end
 
 
 -- /*创建队伍*/	
-function Protocols.pack_group_create (  )
+function Protocols.pack_group_create ( type ,min_lev ,max_lev ,auto_flag)
 	local output = Packet.new(CMSG_GROUP_CREATE)
+	output:writeU32(type)
+	output:writeU32(min_lev)
+	output:writeU32(max_lev)
+	output:writeU32(auto_flag)
 	return output
 end
 
 -- /*创建队伍*/	
-function Protocols.call_group_create ( playerInfo )
-	local output = Protocols.	pack_group_create (  )
+function Protocols.call_group_create ( playerInfo, type ,min_lev ,max_lev ,auto_flag)
+	local output = Protocols.	pack_group_create ( type ,min_lev ,max_lev ,auto_flag)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -13620,9 +13802,24 @@ function Protocols.unpack_group_create (pkt)
 	local input = Packet.new(nil, pkt)
 	local param_table = {}
 	local ret
+	ret,param_table.type = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.min_lev = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.max_lev = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.auto_flag = input:readU32()
+	if not ret then
+		return false
+	end	
 
-	return true,{}
-	
+	return true,param_table	
 
 end
 
@@ -13711,15 +13908,15 @@ end
 
 
 -- /*移交队伍队长*/	
-function Protocols.pack_group_give_captain ( guid)
+function Protocols.pack_group_give_captain ( index)
 	local output = Packet.new(CMSG_GROUP_GIVE_CAPTAIN)
-	output:writeUTF(guid)
+	output:writeU32(index)
 	return output
 end
 
 -- /*移交队伍队长*/	
-function Protocols.call_group_give_captain ( playerInfo, guid)
-	local output = Protocols.	pack_group_give_captain ( guid)
+function Protocols.call_group_give_captain ( playerInfo, index)
+	local output = Protocols.	pack_group_give_captain ( index)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -13729,7 +13926,7 @@ function Protocols.unpack_group_give_captain (pkt)
 	local input = Packet.new(nil, pkt)
 	local param_table = {}
 	local ret
-	ret,param_table.guid = input:readUTF()
+	ret,param_table.index = input:readU32()
 	if not ret then
 		return false
 	end	
@@ -13740,15 +13937,15 @@ end
 
 
 -- /*踢队员*/	
-function Protocols.pack_group_kick ( guid)
+function Protocols.pack_group_kick ( index)
 	local output = Packet.new(CMSG_GROUP_KICK)
-	output:writeUTF(guid)
+	output:writeU32(index)
 	return output
 end
 
 -- /*踢队员*/	
-function Protocols.call_group_kick ( playerInfo, guid)
-	local output = Protocols.	pack_group_kick ( guid)
+function Protocols.call_group_kick ( playerInfo, index)
+	local output = Protocols.	pack_group_kick ( index)
 	playerInfo:SendPacket(output)
 	output:delete()
 end
@@ -13758,7 +13955,7 @@ function Protocols.unpack_group_kick (pkt)
 	local input = Packet.new(nil, pkt)
 	local param_table = {}
 	local ret
-	ret,param_table.guid = input:readUTF()
+	ret,param_table.index = input:readU32()
 	if not ret then
 		return false
 	end	
@@ -13842,6 +14039,1264 @@ function Protocols.unpack_pick_stage_instance_bonus (pkt)
 	local param_table = {}
 	local ret
 	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*进入组队副本*/	
+function Protocols.pack_enter_group_exp ( isGroup)
+	local output = Packet.new(CMSG_ENTER_GROUP_EXP)
+	output:writeByte(isGroup)
+	return output
+end
+
+-- /*进入组队副本*/	
+function Protocols.call_enter_group_exp ( playerInfo, isGroup)
+	local output = Protocols.	pack_enter_group_exp ( isGroup)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*进入组队副本*/	
+function Protocols.unpack_enter_group_exp (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.isGroup = input:readByte()
+	if not ret then
+		return false
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*队长通知进入某副本*/	
+function Protocols.pack_check_for_group_enter ( instSubType)
+	local output = Packet.new(SMSG_CHECK_FOR_GROUP_ENTER)
+	output:writeU32(instSubType)
+	return output
+end
+
+-- /*队长通知进入某副本*/	
+function Protocols.call_check_for_group_enter ( playerInfo, instSubType)
+	local output = Protocols.	pack_check_for_group_enter ( instSubType)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*队长通知进入某副本*/	
+function Protocols.unpack_check_for_group_enter (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.instSubType = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*队伍成员选择AorD*/	
+function Protocols.pack_select_group_enter ( choise)
+	local output = Packet.new(CMSG_SELECT_GROUP_ENTER)
+	output:writeByte(choise)
+	return output
+end
+
+-- /*队伍成员选择AorD*/	
+function Protocols.call_select_group_enter ( playerInfo, choise)
+	local output = Protocols.	pack_select_group_enter ( choise)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*队伍成员选择AorD*/	
+function Protocols.unpack_select_group_enter (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.choise = input:readByte()
+	if not ret then
+		return false
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*经验副本次数购买*/	
+function Protocols.pack_buy_group_exp_times ( count)
+	local output = Packet.new(CMSG_BUY_GROUP_EXP_TIMES)
+	output:writeByte(count)
+	return output
+end
+
+-- /*经验副本次数购买*/	
+function Protocols.call_buy_group_exp_times ( playerInfo, count)
+	local output = Protocols.	pack_buy_group_exp_times ( count)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*经验副本次数购买*/	
+function Protocols.unpack_buy_group_exp_times (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.count = input:readByte()
+	if not ret then
+		return false
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*购买鼓舞*/	
+function Protocols.pack_buy_inspiration ( category)
+	local output = Packet.new(CMSG_BUY_INSPIRATION)
+	output:writeByte(category)
+	return output
+end
+
+-- /*购买鼓舞*/	
+function Protocols.call_buy_inspiration ( playerInfo, category)
+	local output = Protocols.	pack_buy_inspiration ( category)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*购买鼓舞*/	
+function Protocols.unpack_buy_inspiration (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.category = input:readByte()
+	if not ret then
+		return false
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*家族战进入*/	
+function Protocols.pack_enter_faction_match_map (  )
+	local output = Packet.new(CMSG_ENTER_FACTION_MATCH_MAP)
+	return output
+end
+
+-- /*家族战进入*/	
+function Protocols.call_enter_faction_match_map ( playerInfo )
+	local output = Protocols.	pack_enter_faction_match_map (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*家族战进入*/	
+function Protocols.unpack_enter_faction_match_map (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*领取家族战盟主每日奖励*/	
+function Protocols.pack_pick_faction_match_champion_daily_reward (  )
+	local output = Packet.new(CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD)
+	return output
+end
+
+-- /*领取家族战盟主每日奖励*/	
+function Protocols.call_pick_faction_match_champion_daily_reward ( playerInfo )
+	local output = Protocols.	pack_pick_faction_match_champion_daily_reward (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*领取家族战盟主每日奖励*/	
+function Protocols.unpack_pick_faction_match_champion_daily_reward (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*请求家族战榜单*/	
+function Protocols.pack_query_faction_match_info (  )
+	local output = Packet.new(CMSG_QUERY_FACTION_MATCH_INFO)
+	return output
+end
+
+-- /*请求家族战榜单*/	
+function Protocols.call_query_faction_match_info ( playerInfo )
+	local output = Protocols.	pack_query_faction_match_info (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*请求家族战榜单*/	
+function Protocols.unpack_query_faction_match_info (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*返回家族战榜单*/	
+function Protocols.pack_show_faction_match_info_list ( list)
+	local output = Packet.new(SMSG_SHOW_FACTION_MATCH_INFO_LIST)
+	output:writeI16(#list)
+	for i = 1,#list,1
+	do
+		list[i]:write(output)
+	end
+	return output
+end
+
+-- /*返回家族战榜单*/	
+function Protocols.call_show_faction_match_info_list ( playerInfo, list)
+	local output = Protocols.	pack_show_faction_match_info_list ( list)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*返回家族战榜单*/	
+function Protocols.unpack_show_faction_match_info_list (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,len = input:readU16()
+	if not ret then
+		return false
+	end
+	param_table.list = {}
+	for i = 1,len,1
+	do
+		local stru = faction_match_info_t .new()
+		if(stru:read(input)==false)then
+			return false
+		end
+		table.insert(param_table.list,stru)
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*领取资源副本首次通关奖励*/	
+function Protocols.pack_pick_res_instance_first_reward ( id)
+	local output = Packet.new(CMSG_PICK_RES_INSTANCE_FIRST_REWARD)
+	output:writeU32(id)
+	return output
+end
+
+-- /*领取资源副本首次通关奖励*/	
+function Protocols.call_pick_res_instance_first_reward ( playerInfo, id)
+	local output = Protocols.	pack_pick_res_instance_first_reward ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*领取资源副本首次通关奖励*/	
+function Protocols.unpack_pick_res_instance_first_reward (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*发送组队邀请*/	
+function Protocols.pack_group_send_invite ( guid)
+	local output = Packet.new(CMSG_GROUP_SEND_INVITE)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*发送组队邀请*/	
+function Protocols.call_group_send_invite ( playerInfo, guid)
+	local output = Protocols.	pack_group_send_invite ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*发送组队邀请*/	
+function Protocols.unpack_group_send_invite (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*显示组队邀请*/	
+function Protocols.pack_show_group_invite ( guid ,name ,type ,level ,force ,sender_guid)
+	local output = Packet.new(SMSG_SHOW_GROUP_INVITE)
+	output:writeUTF(guid)
+	output:writeUTF(name)
+	output:writeU32(type)
+	output:writeU32(level)
+	output:writeDouble(force) 
+	output:writeUTF(sender_guid)
+	return output
+end
+
+-- /*显示组队邀请*/	
+function Protocols.call_show_group_invite ( playerInfo, guid ,name ,type ,level ,force ,sender_guid)
+	local output = Protocols.	pack_show_group_invite ( guid ,name ,type ,level ,force ,sender_guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*显示组队邀请*/	
+function Protocols.unpack_show_group_invite (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.name = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.type = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.level = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.force = input:readDouble()
+	if not ret then
+		return false
+	end	
+	ret,param_table.sender_guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*同意组队邀请*/	
+function Protocols.pack_group_agree_invite ( guid ,sendGuid)
+	local output = Packet.new(CMSG_GROUP_AGREE_INVITE)
+	output:writeUTF(guid)
+	output:writeUTF(sendGuid)
+	return output
+end
+
+-- /*同意组队邀请*/	
+function Protocols.call_group_agree_invite ( playerInfo, guid ,sendGuid)
+	local output = Protocols.	pack_group_agree_invite ( guid ,sendGuid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*同意组队邀请*/	
+function Protocols.unpack_group_agree_invite (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.sendGuid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*便捷组队队伍列表*/	
+function Protocols.pack_get_group_search_info_list ( type)
+	local output = Packet.new(CMSG_GET_GROUP_SEARCH_INFO_LIST)
+	output:writeU32(type)
+	return output
+end
+
+-- /*便捷组队队伍列表*/	
+function Protocols.call_get_group_search_info_list ( playerInfo, type)
+	local output = Protocols.	pack_get_group_search_info_list ( type)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*便捷组队队伍列表*/	
+function Protocols.unpack_get_group_search_info_list (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.type = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*返回便捷组队队伍列表*/	
+function Protocols.pack_show_group_search_info_list ( list)
+	local output = Packet.new(SMSG_SHOW_GROUP_SEARCH_INFO_LIST)
+	output:writeI16(#list)
+	for i = 1,#list,1
+	do
+		list[i]:write(output)
+	end
+	return output
+end
+
+-- /*返回便捷组队队伍列表*/	
+function Protocols.call_show_group_search_info_list ( playerInfo, list)
+	local output = Protocols.	pack_show_group_search_info_list ( list)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*返回便捷组队队伍列表*/	
+function Protocols.unpack_show_group_search_info_list (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,len = input:readU16()
+	if not ret then
+		return false
+	end
+	param_table.list = {}
+	for i = 1,len,1
+	do
+		local stru = group_search_info_t .new()
+		if(stru:read(input)==false)then
+			return false
+		end
+		table.insert(param_table.list,stru)
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*修改组队设置*/	
+function Protocols.pack_group_change_config ( type ,min_lev ,max_lev ,auto_flag)
+	local output = Packet.new(CMSG_GROUP_CHANGE_CONFIG)
+	output:writeU32(type)
+	output:writeU32(min_lev)
+	output:writeU32(max_lev)
+	output:writeU32(auto_flag)
+	return output
+end
+
+-- /*修改组队设置*/	
+function Protocols.call_group_change_config ( playerInfo, type ,min_lev ,max_lev ,auto_flag)
+	local output = Protocols.	pack_group_change_config ( type ,min_lev ,max_lev ,auto_flag)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*修改组队设置*/	
+function Protocols.unpack_group_change_config (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.type = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.min_lev = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.max_lev = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.auto_flag = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*显示玩家入队申请*/	
+function Protocols.pack_show_group_join_request ( guid ,name ,gender ,level ,vip ,force)
+	local output = Packet.new(SMSG_SHOW_GROUP_JOIN_REQUEST)
+	output:writeUTF(guid)
+	output:writeUTF(name)
+	output:writeU32(gender)
+	output:writeU32(level)
+	output:writeU32(vip)
+	output:writeDouble(force) 
+	return output
+end
+
+-- /*显示玩家入队申请*/	
+function Protocols.call_show_group_join_request ( playerInfo, guid ,name ,gender ,level ,vip ,force)
+	local output = Protocols.	pack_show_group_join_request ( guid ,name ,gender ,level ,vip ,force)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*显示玩家入队申请*/	
+function Protocols.unpack_show_group_join_request (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.name = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.gender = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.level = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.vip = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.force = input:readDouble()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*拒绝加入队伍*/	
+function Protocols.pack_group_join_denied ( guid)
+	local output = Packet.new(CMSG_GROUP_JOIN_DENIED)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*拒绝加入队伍*/	
+function Protocols.call_group_join_denied ( playerInfo, guid)
+	local output = Protocols.	pack_group_join_denied ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*拒绝加入队伍*/	
+function Protocols.unpack_group_join_denied (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*拒绝邀请*/	
+function Protocols.pack_group_invite_denied ( guid)
+	local output = Packet.new(CMSG_GROUP_INVITE_DENIED)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*拒绝邀请*/	
+function Protocols.call_group_invite_denied ( playerInfo, guid)
+	local output = Protocols.	pack_group_invite_denied ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*拒绝邀请*/	
+function Protocols.unpack_group_invite_denied (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*装备法宝*/	
+function Protocols.pack_talisman_equip ( id)
+	local output = Packet.new(CMSG_TALISMAN_EQUIP)
+	output:writeU32(id)
+	return output
+end
+
+-- /*装备法宝*/	
+function Protocols.call_talisman_equip ( playerInfo, id)
+	local output = Protocols.	pack_talisman_equip ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*装备法宝*/	
+function Protocols.unpack_talisman_equip (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*卸下法宝*/	
+function Protocols.pack_talisman_unequip ( slot_id)
+	local output = Packet.new(CMSG_TALISMAN_UNEQUIP)
+	output:writeU32(slot_id)
+	return output
+end
+
+-- /*卸下法宝*/	
+function Protocols.call_talisman_unequip ( playerInfo, slot_id)
+	local output = Protocols.	pack_talisman_unequip ( slot_id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*卸下法宝*/	
+function Protocols.unpack_talisman_unequip (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.slot_id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*回满血*/	
+function Protocols.pack_fullize_hp ( guid)
+	local output = Packet.new(SMSG_FULLIZE_HP)
+	output:writeUTF(guid)
+	return output
+end
+
+-- /*回满血*/	
+function Protocols.call_fullize_hp ( playerInfo, guid)
+	local output = Protocols.	pack_fullize_hp ( guid)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*回满血*/	
+function Protocols.unpack_fullize_hp (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*自动匹配*/	
+function Protocols.pack_auto_group_match ( targetType)
+	local output = Packet.new(CMSG_AUTO_GROUP_MATCH)
+	output:writeU32(targetType)
+	return output
+end
+
+-- /*自动匹配*/	
+function Protocols.call_auto_group_match ( playerInfo, targetType)
+	local output = Protocols.	pack_auto_group_match ( targetType)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*自动匹配*/	
+function Protocols.unpack_auto_group_match (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.targetType = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*取消自动匹配*/	
+function Protocols.pack_cancel_auto_group_match (  )
+	local output = Packet.new(CMSG_CANCEL_AUTO_GROUP_MATCH)
+	return output
+end
+
+-- /*取消自动匹配*/	
+function Protocols.call_cancel_auto_group_match ( playerInfo )
+	local output = Protocols.	pack_cancel_auto_group_match (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*取消自动匹配*/	
+function Protocols.unpack_cancel_auto_group_match (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*组队3v3跨服匹配*/	
+function Protocols.pack_kuafu_3v3_group_match (  )
+	local output = Packet.new(CMSG_KUAFU_3V3_GROUP_MATCH)
+	return output
+end
+
+-- /*组队3v3跨服匹配*/	
+function Protocols.call_kuafu_3v3_group_match ( playerInfo )
+	local output = Protocols.	pack_kuafu_3v3_group_match (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*组队3v3跨服匹配*/	
+function Protocols.unpack_kuafu_3v3_group_match (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*记录购买订单*/	
+function Protocols.pack_booking_money ( orderid ,goodsname ,money1 ,goodsnum)
+	local output = Packet.new(CMSG_BOOKING_MONEY)
+	output:writeUTF(orderid)
+	output:writeUTF(goodsname)
+	output:writeUTF(money1)
+	output:writeU32(goodsnum)
+	return output
+end
+
+-- /*记录购买订单*/	
+function Protocols.call_booking_money ( playerInfo, orderid ,goodsname ,money1 ,goodsnum)
+	local output = Protocols.	pack_booking_money ( orderid ,goodsname ,money1 ,goodsnum)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*记录购买订单*/	
+function Protocols.unpack_booking_money (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.orderid = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.goodsname = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.money1 = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.goodsnum = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*记录购买订单成功*/	
+function Protocols.pack_booking_money_result ( orderid ,result)
+	local output = Packet.new(SMSG_BOOKING_MONEY_RESULT)
+	output:writeUTF(orderid)
+	output:writeByte(result)
+	return output
+end
+
+-- /*记录购买订单成功*/	
+function Protocols.call_booking_money_result ( playerInfo, orderid ,result)
+	local output = Protocols.	pack_booking_money_result ( orderid ,result)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*记录购买订单成功*/	
+function Protocols.unpack_booking_money_result (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.orderid = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.result = input:readByte()
+	if not ret then
+		return false
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*一键机器人强化*/	
+function Protocols.pack_one_step_robot_up ( id)
+	local output = Packet.new(CMSG_ONE_STEP_ROBOT_UP)
+	output:writeU32(id)
+	return output
+end
+
+-- /*一键机器人强化*/	
+function Protocols.call_one_step_robot_up ( playerInfo, id)
+	local output = Protocols.	pack_one_step_robot_up ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*一键机器人强化*/	
+function Protocols.unpack_one_step_robot_up (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*领取7日充值额外奖励*/	
+function Protocols.pack_get_seven_day_recharge_extra_reward ( id)
+	local output = Packet.new(CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD)
+	output:writeU32(id)
+	return output
+end
+
+-- /*领取7日充值额外奖励*/	
+function Protocols.call_get_seven_day_recharge_extra_reward ( playerInfo, id)
+	local output = Protocols.	pack_get_seven_day_recharge_extra_reward ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*领取7日充值额外奖励*/	
+function Protocols.unpack_get_seven_day_recharge_extra_reward (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*使用兑换码*/	
+function Protocols.pack_use_giftcode ( giftcode)
+	local output = Packet.new(CMSG_USE_GIFTCODE)
+	output:writeUTF(giftcode)
+	return output
+end
+
+-- /*使用兑换码*/	
+function Protocols.call_use_giftcode ( playerInfo, giftcode)
+	local output = Protocols.	pack_use_giftcode ( giftcode)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*使用兑换码*/	
+function Protocols.unpack_use_giftcode (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.giftcode = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*显示兑换结果*/	
+function Protocols.pack_show_giftcode_reward_list ( list)
+	local output = Packet.new(SMSG_SHOW_GIFTCODE_REWARD_LIST)
+	output:writeI16(#list)
+	for i = 1,#list,1
+	do
+		list[i]:write(output)
+	end
+	return output
+end
+
+-- /*显示兑换结果*/	
+function Protocols.call_show_giftcode_reward_list ( playerInfo, list)
+	local output = Protocols.	pack_show_giftcode_reward_list ( list)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*显示兑换结果*/	
+function Protocols.unpack_show_giftcode_reward_list (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,len = input:readU16()
+	if not ret then
+		return false
+	end
+	param_table.list = {}
+	for i = 1,len,1
+	do
+		local stru = item_reward_info_t .new()
+		if(stru:read(input)==false)then
+			return false
+		end
+		table.insert(param_table.list,stru)
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*转盘抽奖*/	
+function Protocols.pack_lottery_recharge (  )
+	local output = Packet.new(CMSG_LOTTERY_RECHARGE)
+	return output
+end
+
+-- /*转盘抽奖*/	
+function Protocols.call_lottery_recharge ( playerInfo )
+	local output = Protocols.	pack_lottery_recharge (  )
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*转盘抽奖*/	
+function Protocols.unpack_lottery_recharge (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+
+	return true,{}
+	
+
+end
+
+
+-- /*转盘抽奖结果*/	
+function Protocols.pack_lottery_recharge_result ( indx)
+	local output = Packet.new(SMSG_LOTTERY_RECHARGE_RESULT)
+	output:writeByte(indx)
+	return output
+end
+
+-- /*转盘抽奖结果*/	
+function Protocols.call_lottery_recharge_result ( playerInfo, indx)
+	local output = Protocols.	pack_lottery_recharge_result ( indx)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*转盘抽奖结果*/	
+function Protocols.unpack_lottery_recharge_result (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.indx = input:readByte()
+	if not ret then
+		return false
+	end
+
+	return true,param_table	
+
+end
+
+
+-- /*通知前端释放了持续技能*/	
+function Protocols.pack_show_cast_remain_skill ( id)
+	local output = Packet.new(SMSG_SHOW_CAST_REMAIN_SKILL)
+	output:writeU32(id)
+	return output
+end
+
+-- /*通知前端释放了持续技能*/	
+function Protocols.call_show_cast_remain_skill ( playerInfo, id)
+	local output = Protocols.	pack_show_cast_remain_skill ( id)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*通知前端释放了持续技能*/	
+function Protocols.unpack_show_cast_remain_skill (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.id = input:readU32()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*角色创建完*/	
+function Protocols.pack_after_create_role ( serverId ,guid ,nickname)
+	local output = Packet.new(SMSG_AFTER_CREATE_ROLE)
+	output:writeUTF(serverId)
+	output:writeUTF(guid)
+	output:writeUTF(nickname)
+	return output
+end
+
+-- /*角色创建完*/	
+function Protocols.call_after_create_role ( playerInfo, serverId ,guid ,nickname)
+	local output = Protocols.	pack_after_create_role ( serverId ,guid ,nickname)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*角色创建完*/	
+function Protocols.unpack_after_create_role (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.serverId = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.guid = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.nickname = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*记录购买订单*/	
+function Protocols.pack_booking_game2_money ( serverName ,cpOrderId ,productName ,productId ,productDesc)
+	local output = Packet.new(CMSG_BOOKING_GAME2_MONEY)
+	output:writeUTF(serverName)
+	output:writeUTF(cpOrderId)
+	output:writeUTF(productName)
+	output:writeUTF(productId)
+	output:writeUTF(productDesc)
+	return output
+end
+
+-- /*记录购买订单*/	
+function Protocols.call_booking_game2_money ( playerInfo, serverName ,cpOrderId ,productName ,productId ,productDesc)
+	local output = Protocols.	pack_booking_game2_money ( serverName ,cpOrderId ,productName ,productId ,productDesc)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*记录购买订单*/	
+function Protocols.unpack_booking_game2_money (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.serverName = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.cpOrderId = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.productName = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.productId = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.productDesc = input:readUTF()
+	if not ret then
+		return false
+	end	
+
+	return true,param_table	
+
+end
+
+
+-- /*记录购买订单成功*/	
+function Protocols.pack_booking_game2_money_result ( result ,serverId ,serverName ,cpOrderId ,productName ,productId ,productDesc ,amount ,extend ,time ,sign)
+	local output = Packet.new(SMSG_BOOKING_GAME2_MONEY_RESULT)
+	output:writeByte(result)
+	output:writeU32(serverId)
+	output:writeUTF(serverName)
+	output:writeUTF(cpOrderId)
+	output:writeUTF(productName)
+	output:writeUTF(productId)
+	output:writeUTF(productDesc)
+	output:writeUTF(amount)
+	output:writeUTF(extend)
+	output:writeUTF(time)
+	output:writeUTF(sign)
+	return output
+end
+
+-- /*记录购买订单成功*/	
+function Protocols.call_booking_game2_money_result ( playerInfo, result ,serverId ,serverName ,cpOrderId ,productName ,productId ,productDesc ,amount ,extend ,time ,sign)
+	local output = Protocols.	pack_booking_game2_money_result ( result ,serverId ,serverName ,cpOrderId ,productName ,productId ,productDesc ,amount ,extend ,time ,sign)
+	playerInfo:SendPacket(output)
+	output:delete()
+end
+
+-- /*记录购买订单成功*/	
+function Protocols.unpack_booking_game2_money_result (pkt)
+	local input = Packet.new(nil, pkt)
+	local param_table = {}
+	local ret
+	ret,param_table.result = input:readByte()
+	if not ret then
+		return false
+	end
+	ret,param_table.serverId = input:readU32()
+	if not ret then
+		return false
+	end	
+	ret,param_table.serverName = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.cpOrderId = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.productName = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.productId = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.productDesc = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.amount = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.extend = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.time = input:readUTF()
+	if not ret then
+		return false
+	end	
+	ret,param_table.sign = input:readUTF()
 	if not ret then
 		return false
 	end	
@@ -14230,6 +15685,43 @@ function Protocols:extend(playerInfo)
 	playerInfo.call_show_loot_animate = self.call_show_loot_animate
 	playerInfo.call_enter_stage_instance = self.call_enter_stage_instance
 	playerInfo.call_pick_stage_instance_bonus = self.call_pick_stage_instance_bonus
+	playerInfo.call_enter_group_exp = self.call_enter_group_exp
+	playerInfo.call_check_for_group_enter = self.call_check_for_group_enter
+	playerInfo.call_select_group_enter = self.call_select_group_enter
+	playerInfo.call_buy_group_exp_times = self.call_buy_group_exp_times
+	playerInfo.call_buy_inspiration = self.call_buy_inspiration
+	playerInfo.call_enter_faction_match_map = self.call_enter_faction_match_map
+	playerInfo.call_pick_faction_match_champion_daily_reward = self.call_pick_faction_match_champion_daily_reward
+	playerInfo.call_query_faction_match_info = self.call_query_faction_match_info
+	playerInfo.call_show_faction_match_info_list = self.call_show_faction_match_info_list
+	playerInfo.call_pick_res_instance_first_reward = self.call_pick_res_instance_first_reward
+	playerInfo.call_group_send_invite = self.call_group_send_invite
+	playerInfo.call_show_group_invite = self.call_show_group_invite
+	playerInfo.call_group_agree_invite = self.call_group_agree_invite
+	playerInfo.call_get_group_search_info_list = self.call_get_group_search_info_list
+	playerInfo.call_show_group_search_info_list = self.call_show_group_search_info_list
+	playerInfo.call_group_change_config = self.call_group_change_config
+	playerInfo.call_show_group_join_request = self.call_show_group_join_request
+	playerInfo.call_group_join_denied = self.call_group_join_denied
+	playerInfo.call_group_invite_denied = self.call_group_invite_denied
+	playerInfo.call_talisman_equip = self.call_talisman_equip
+	playerInfo.call_talisman_unequip = self.call_talisman_unequip
+	playerInfo.call_fullize_hp = self.call_fullize_hp
+	playerInfo.call_auto_group_match = self.call_auto_group_match
+	playerInfo.call_cancel_auto_group_match = self.call_cancel_auto_group_match
+	playerInfo.call_kuafu_3v3_group_match = self.call_kuafu_3v3_group_match
+	playerInfo.call_booking_money = self.call_booking_money
+	playerInfo.call_booking_money_result = self.call_booking_money_result
+	playerInfo.call_one_step_robot_up = self.call_one_step_robot_up
+	playerInfo.call_get_seven_day_recharge_extra_reward = self.call_get_seven_day_recharge_extra_reward
+	playerInfo.call_use_giftcode = self.call_use_giftcode
+	playerInfo.call_show_giftcode_reward_list = self.call_show_giftcode_reward_list
+	playerInfo.call_lottery_recharge = self.call_lottery_recharge
+	playerInfo.call_lottery_recharge_result = self.call_lottery_recharge_result
+	playerInfo.call_show_cast_remain_skill = self.call_show_cast_remain_skill
+	playerInfo.call_after_create_role = self.call_after_create_role
+	playerInfo.call_booking_game2_money = self.call_booking_game2_money
+	playerInfo.call_booking_game2_money_result = self.call_booking_game2_money_result
 end
 
 local unpack_handler = {
@@ -14606,6 +16098,43 @@ local unpack_handler = {
 [SMSG_SHOW_LOOT_ANIMATE] =  Protocols.unpack_show_loot_animate,
 [CMSG_ENTER_STAGE_INSTANCE] =  Protocols.unpack_enter_stage_instance,
 [CMSG_PICK_STAGE_INSTANCE_BONUS] =  Protocols.unpack_pick_stage_instance_bonus,
+[CMSG_ENTER_GROUP_EXP] =  Protocols.unpack_enter_group_exp,
+[SMSG_CHECK_FOR_GROUP_ENTER] =  Protocols.unpack_check_for_group_enter,
+[CMSG_SELECT_GROUP_ENTER] =  Protocols.unpack_select_group_enter,
+[CMSG_BUY_GROUP_EXP_TIMES] =  Protocols.unpack_buy_group_exp_times,
+[CMSG_BUY_INSPIRATION] =  Protocols.unpack_buy_inspiration,
+[CMSG_ENTER_FACTION_MATCH_MAP] =  Protocols.unpack_enter_faction_match_map,
+[CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD] =  Protocols.unpack_pick_faction_match_champion_daily_reward,
+[CMSG_QUERY_FACTION_MATCH_INFO] =  Protocols.unpack_query_faction_match_info,
+[SMSG_SHOW_FACTION_MATCH_INFO_LIST] =  Protocols.unpack_show_faction_match_info_list,
+[CMSG_PICK_RES_INSTANCE_FIRST_REWARD] =  Protocols.unpack_pick_res_instance_first_reward,
+[CMSG_GROUP_SEND_INVITE] =  Protocols.unpack_group_send_invite,
+[SMSG_SHOW_GROUP_INVITE] =  Protocols.unpack_show_group_invite,
+[CMSG_GROUP_AGREE_INVITE] =  Protocols.unpack_group_agree_invite,
+[CMSG_GET_GROUP_SEARCH_INFO_LIST] =  Protocols.unpack_get_group_search_info_list,
+[SMSG_SHOW_GROUP_SEARCH_INFO_LIST] =  Protocols.unpack_show_group_search_info_list,
+[CMSG_GROUP_CHANGE_CONFIG] =  Protocols.unpack_group_change_config,
+[SMSG_SHOW_GROUP_JOIN_REQUEST] =  Protocols.unpack_show_group_join_request,
+[CMSG_GROUP_JOIN_DENIED] =  Protocols.unpack_group_join_denied,
+[CMSG_GROUP_INVITE_DENIED] =  Protocols.unpack_group_invite_denied,
+[CMSG_TALISMAN_EQUIP] =  Protocols.unpack_talisman_equip,
+[CMSG_TALISMAN_UNEQUIP] =  Protocols.unpack_talisman_unequip,
+[SMSG_FULLIZE_HP] =  Protocols.unpack_fullize_hp,
+[CMSG_AUTO_GROUP_MATCH] =  Protocols.unpack_auto_group_match,
+[CMSG_CANCEL_AUTO_GROUP_MATCH] =  Protocols.unpack_cancel_auto_group_match,
+[CMSG_KUAFU_3V3_GROUP_MATCH] =  Protocols.unpack_kuafu_3v3_group_match,
+[CMSG_BOOKING_MONEY] =  Protocols.unpack_booking_money,
+[SMSG_BOOKING_MONEY_RESULT] =  Protocols.unpack_booking_money_result,
+[CMSG_ONE_STEP_ROBOT_UP] =  Protocols.unpack_one_step_robot_up,
+[CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD] =  Protocols.unpack_get_seven_day_recharge_extra_reward,
+[CMSG_USE_GIFTCODE] =  Protocols.unpack_use_giftcode,
+[SMSG_SHOW_GIFTCODE_REWARD_LIST] =  Protocols.unpack_show_giftcode_reward_list,
+[CMSG_LOTTERY_RECHARGE] =  Protocols.unpack_lottery_recharge,
+[SMSG_LOTTERY_RECHARGE_RESULT] =  Protocols.unpack_lottery_recharge_result,
+[SMSG_SHOW_CAST_REMAIN_SKILL] =  Protocols.unpack_show_cast_remain_skill,
+[SMSG_AFTER_CREATE_ROLE] =  Protocols.unpack_after_create_role,
+[CMSG_BOOKING_GAME2_MONEY] =  Protocols.unpack_booking_game2_money,
+[SMSG_BOOKING_GAME2_MONEY_RESULT] =  Protocols.unpack_booking_game2_money_result,
 
 }
 

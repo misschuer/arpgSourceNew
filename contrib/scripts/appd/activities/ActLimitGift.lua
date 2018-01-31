@@ -60,7 +60,7 @@ function ActLimitGift:OnBuyLimitGift(playerInfo,actId,index)
 		return
 	end
 	
-	if playerInfo:useAllItems(MONEY_CHANGE_ACT_LIMITGIFT,config.cost) then
+	if playerInfo:useAllItems(MONEY_CHANGE_ACT_LIMITGIFT, nil, config.cost) then
 		playerInfo:AppdAddItems(config.item, MONEY_CHANGE_ACT_LIMITGIFT,LOG_ITEM_OPER_TYPE_ACT_LIMITGIFT)
 		playerInfo:SetActivityDataBit(actId,0,index - 1)
 	end

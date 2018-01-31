@@ -12,7 +12,8 @@
 #define REGEX_MAP				"^M[[:digit:]]"		//地图binlog
 #define REGEX_LIMIT				"^l[[:digit:]]"		//限时活动
 #define REGEX_WORLD				"^w"				//世界服Binlog
-#define REGEX_FACRION			"^L[[:digit:]]"		//帮派对象
+#define REGEX_FACTION			"^L[[:digit:]]"		//帮派对象
+#define REGEX_GROUP				"^T[[:digit:]]"		//组队对象
 struct lua_State;		//for script
 
 #define GET_BIT(v,i) (((v)>>(i))&0x1)

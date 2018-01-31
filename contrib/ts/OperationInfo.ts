@@ -444,6 +444,12 @@ function OperationFailedToString(type, reason, data){
 		if (reason ==OprateResult.RECEIVE_GIFT_PACKS_ONLINE_XIANSHI){
 			return " 领取补偿礼包 - 在线礼包显示用 - " + data; 
 		}
+		if (reason ==OprateResult.RECEIVE_GIFT_PACKS_FIRST_RECHARGE_GIFT){
+			return " 领取补偿礼包 - 首充礼包显示用 - " + data; 
+		}
+		if (reason ==OprateResult.RECEIVE_GIFT_PACKS_DAY_RECHARGE_GIFT){
+			return " 领取补偿礼包 - 每日充礼包显示用 - " + data; 
+		}
 		return "未知错误1  OPERTE_TYPE_RECEIVE_GIFT_PACKS " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPERTE_TYPE_QUEST){
@@ -1041,181 +1047,217 @@ function OperationFailedToString(type, reason, data){
 		return "未知错误1  OPRATE_TYPE_ACHIEVE " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPRATE_TYPE_ATHLETICS){
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_HAS_SEND){
-			return " 竞技 - 好友请求信息已发送 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_DECIDE_FIRST){
+			return " 竞技 - 家族战第一轮对阵表已产生 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_NOT_FIND){
-			return " 竞技 - 角色不存在或者角色不在线 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_OPEN_FIRST){
+			return " 竞技 - 家族战第一轮比赛开放进入,参赛家族成员请及时进入战场 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_SELF_FULL){
-			return " 竞技 - 自己好友列表已满 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_START_FIRST){
+			return " 竞技 - 家族战第一轮比赛正式开战 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_TARGET_FULL){
-			return " 竞技 - 对方好友列表已满 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_DECIDE_SECOND){
+			return " 竞技 - 家族战第二轮对阵表已产生 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ALREADY_FRIEND){
-			return " 竞技 - 对方已经是你的好友 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_OPEN_SECOND){
+			return " 竞技 - 家族战第二轮比赛开放进入,参赛家族成员请及时进入战场 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ADD_MYSELF){
-			return " 竞技 - 不能自己添加自己为好友 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_START_SECOND){
+			return " 竞技 - 家族战第二轮比赛正式开战 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_HAS_SEND_ADD){
-			return " 竞技 - 已经发送申请 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_FINISH){
+			return " 竞技 - 恭喜家族 {1} 成为家族战盟主 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_NO_MONEY){
-			return " 竞技 - 元宝或者金币不足 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_MATCH_CANNOT_JOIN){
+			return " 竞技 - 不能加入家族 - " + data; 
 		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_NOT_ENEMY){
-			return " 竞技 - 对方不是仇人 - " + data; 
-		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ENEMY_OFFLINE){
-			return " 竞技 - 对方处于离线中 - " + data; 
-		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ENEMY_NOT_IN_FIELD){
-			return " 竞技 - 对方不在野外 - " + data; 
-		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_REVENGE_TIMES_NOT_ENOUGH){
-			return " 竞技 - 复仇传送次数不足 - " + data; 
-		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_RENAME_SUCCESS){
-			return " 竞技 - 改名成功 - " + data; 
-		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_OTHNER_FACTION){
-			return " 竞技 - 对方已在帮派 - " + data; 
-		}
-		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_SAME_FACTION){
-			return " 竞技 - 对方已在同帮派 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_FACTION_STORE_IS_FULL){
+			return " 竞技 - 家族商店已满 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_ATHLETICS " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPRATE_TYPE_XIANFU){
-		if (reason ==OprateResult.HOSTING_OPERTE_IS_SELF){
-			return " 仙府夺宝 - 无法对自己操作 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_HAS_SEND){
+			return " 仙府夺宝 - 好友请求信息已发送 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_LEVEL_NOT){
-			return " 仙府夺宝 - 等级不足 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_NOT_FIND){
+			return " 仙府夺宝 - 角色不存在或者角色不在线 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_IS_HOSTING){
-			return " 仙府夺宝 - 托管中 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_SELF_FULL){
+			return " 仙府夺宝 - 自己好友列表已满 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_IS_HOSTING_APPLY){
-			return " 仙府夺宝 - 托管申请 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_TARGET_FULL){
+			return " 仙府夺宝 - 对方好友列表已满 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_NOT){
-			return " 仙府夺宝 - 好友不存在 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ALREADY_FRIEND){
+			return " 仙府夺宝 - 对方已经是你的好友 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_HAS_NOT_24H){
-			return " 仙府夺宝 - 还没到24小时 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ADD_MYSELF){
+			return " 仙府夺宝 - 不能自己添加自己为好友 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_OUTLINE){
-			return " 仙府夺宝 - 好友不在线 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_HAS_SEND_ADD){
+			return " 仙府夺宝 - 已经发送申请 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_ERR){
-			return " 仙府夺宝 - 托管好友错误 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_NO_MONEY){
+			return " 仙府夺宝 - 元宝或者金币不足 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_NOT_HOSTING){
-			return " 仙府夺宝 - 不在托管中 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_NOT_ENEMY){
+			return " 仙府夺宝 - 对方不是仇人 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_ONLINE){
-			return " 仙府夺宝 - 好友在线 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ENEMY_OFFLINE){
+			return " 仙府夺宝 - 对方处于离线中 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_LOGIN_HOSTING){
-			return " 仙府夺宝 - 托管登录中 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_ENEMY_NOT_IN_FIELD){
+			return " 仙府夺宝 - 对方不在野外 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_APPLY){
-			return " 仙府夺宝 - 申请发送 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_REVENGE_TIMES_NOT_ENOUGH){
+			return " 仙府夺宝 - 复仇传送次数不足 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_LOGIN){
-			return " 仙府夺宝 - 登录 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_RENAME_SUCCESS){
+			return " 仙府夺宝 - 改名成功 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_SUCCESS){
-			return " 仙府夺宝 - 托管申请成功 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_OTHNER_FACTION){
+			return " 仙府夺宝 - 对方已在帮派 - " + data; 
 		}
-		if (reason ==OprateResult.HOSTING_OPERTE_CANCEL){
-			return " 仙府夺宝 - 取消托管 - " + data; 
-		}
-		if (reason ==OprateResult.HOSTING_OPERTE_REFUSED){
-			return " 仙府夺宝 - 拒绝托管 - " + data; 
-		}
-		if (reason ==OprateResult.HOSTING_OPERTE_NOT_DUE_TO){
-			return " 仙府夺宝 - 托管未到期 - " + data; 
-		}
-		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_HOSTING_LOGIN){
-			return " 仙府夺宝 - 对方托管登录中，无法操作 - " + data; 
-		}
-		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_NOT_HAS_YOU){
-			return " 仙府夺宝 - 对方好友列表没有你 - " + data; 
+		if (reason ==OprateResult.OPERTE_TYPE_SOCIAL_SAME_FACTION){
+			return " 仙府夺宝 - 对方已在同帮派 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_XIANFU " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPRATE_TYPE_REWARD){
-		if (reason ==OprateResult.STRENGTH_OPERTE_FAIL){
-			return " 获得物品 - 强化失败 - " + data; 
+		if (reason ==OprateResult.HOSTING_OPERTE_IS_SELF){
+			return " 获得物品 - 无法对自己操作 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_LEVEL_NOT){
+			return " 获得物品 - 等级不足 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_IS_HOSTING){
+			return " 获得物品 - 托管中 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_IS_HOSTING_APPLY){
+			return " 获得物品 - 托管申请 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_NOT){
+			return " 获得物品 - 好友不存在 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_HAS_NOT_24H){
+			return " 获得物品 - 还没到24小时 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_OUTLINE){
+			return " 获得物品 - 好友不在线 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_ERR){
+			return " 获得物品 - 托管好友错误 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_NOT_HOSTING){
+			return " 获得物品 - 不在托管中 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_ONLINE){
+			return " 获得物品 - 好友在线 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_LOGIN_HOSTING){
+			return " 获得物品 - 托管登录中 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_APPLY){
+			return " 获得物品 - 申请发送 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_LOGIN){
+			return " 获得物品 - 登录 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_SUCCESS){
+			return " 获得物品 - 托管申请成功 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_CANCEL){
+			return " 获得物品 - 取消托管 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_REFUSED){
+			return " 获得物品 - 拒绝托管 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_NOT_DUE_TO){
+			return " 获得物品 - 托管未到期 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_HOSTING_LOGIN){
+			return " 获得物品 - 对方托管登录中，无法操作 - " + data; 
+		}
+		if (reason ==OprateResult.HOSTING_OPERTE_FRIEND_NOT_HAS_YOU){
+			return " 获得物品 - 对方好友列表没有你 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_REWARD " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPRATE_TYPE_DOUJIAN){
-		if (reason ==OprateResult.BATTLE_MODE_OPERTE_PEACE_MODE_DENY){
-			return " 斗剑台 - 战斗中不能切换和平模式 - " + data; 
-		}
-		if (reason ==OprateResult.BATTLE_MODE_OPERTE_PEACE_MODE_IN_CD){
-			return " 斗剑台 - 和平模式在CD中 - " + data; 
+		if (reason ==OprateResult.STRENGTH_OPERTE_FAIL){
+			return " 斗剑台 - 强化失败 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_DOUJIAN " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPRATE_TYPE_GEM){
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_WILL_START){
-			return " 宝石 - 野外BOSS即将在{1}分钟后开启, 请大家安排好时间 - " + data; 
+		if (reason ==OprateResult.BATTLE_MODE_OPERTE_PEACE_MODE_DENY){
+			return " 宝石 - 战斗中不能切换和平模式 - " + data; 
 		}
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_WILL_OCCUR){
-			return " 宝石 - 野外boss即将出现，请各位大侠做好准备 - " + data; 
-		}
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_OCCUR){
-			return " 宝石 - 野外boss已经在各个地图刷新，请各位大侠火速前往击杀 查看详情 - " + data; 
-		}
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_BOSS_BORN){
-			return " 宝石 - {1}已出现在{2}，请各位大侠火速前往击杀 立即前往 - " + data; 
-		}
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_BOSS_KILL){
-			return " 宝石 - {1}已被成功击杀！恭喜{2}获得{3}1分钟的优先开启权利 - " + data; 
-		}
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_PROTECT){
-			return " 宝石 - 九龙宝箱保护时间结束，静待各位大侠开启 - " + data; 
-		}
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_PICKED){
-			return " 宝石 - 恭喜{1}最终开启九龙宝箱，获得XXXX - " + data; 
-		}
-		if (reason ==OprateResult.FIELD_BOSS_OPERTE_TOO_FAR){
-			return " 宝石 - 太远了，你不可能开启这个宝箱 - " + data; 
+		if (reason ==OprateResult.BATTLE_MODE_OPERTE_PEACE_MODE_IN_CD){
+			return " 宝石 - 和平模式在CD中 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_GEM " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPRATE_TYPE_MONEYTREE){
-		if (reason ==OprateResult.WORLD_BOSS_OPERTE_NOT_ENROLL){
-			return " 摇钱树 - 本次活动您未报名，无法参加 - " + data; 
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_WILL_START){
+			return " 摇钱树 - 野外BOSS即将在{1}分钟后开启, 请大家安排好时间 - " + data; 
 		}
-		if (reason ==OprateResult.WORLD_BOSS_OPERTE_WILL_START){
-			return " 摇钱树 - 世界boss即将开启，请各位大侠做好准备 - " + data; 
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_WILL_OCCUR){
+			return " 摇钱树 - 野外boss即将出现，请各位大侠做好准备 - " + data; 
 		}
-		if (reason ==OprateResult.WORLD_BOSS_OPERTE_WILL_ROLL1){
-			return " 摇钱树 - 恭喜{1}赢得本次拼点奖励，BOSS在3秒后恢复正常 - " + data; 
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_OCCUR){
+			return " 摇钱树 - 野外boss已经在各个地图刷新，请各位大侠火速前往击杀 查看详情 - " + data; 
 		}
-		if (reason ==OprateResult.WORLD_BOSS_OPERTE_WILL_ROLL2){
-			return " 摇钱树 - 恭喜{1}赢得本次拼点奖励，现在可自由离开战场 - " + data; 
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_BOSS_BORN){
+			return " 摇钱树 - {1}已出现在{2}，请各位大侠火速前往击杀 立即前往 - " + data; 
 		}
-		if (reason ==OprateResult.WORLD_BOSS_OPERTE_ENROLL){
-			return " 摇钱树 - 世界BOSS开始报名 - " + data; 
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_BOSS_KILL){
+			return " 摇钱树 - {1}已被成功击杀！恭喜{2}获得{3}1分钟的优先开启权利 - " + data; 
+		}
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_PROTECT){
+			return " 摇钱树 - 九龙宝箱保护时间结束，静待各位大侠开启 - " + data; 
+		}
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_PICKED){
+			return " 摇钱树 - 恭喜{1}最终开启九龙宝箱，获得XXXX - " + data; 
+		}
+		if (reason ==OprateResult.FIELD_BOSS_OPERTE_TOO_FAR){
+			return " 摇钱树 - 太远了，你不可能开启这个宝箱 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_MONEYTREE " + reason + "    "  + data
 	}
 	if(type == OprateResult.OPRATE_TYPE_NEED_NOTICE){
-		if (reason ==OprateResult.MOUNT_QICHENG_FIGHT){
-			return " 需要跑马灯 - 战斗状态不能骑乘 - " + data; 
+		if (reason ==OprateResult.WORLD_BOSS_OPERTE_NOT_ENROLL){
+			return " 需要跑马灯 - 本次活动您未报名，无法参加 - " + data; 
 		}
-		if (reason ==OprateResult.MOUNT_QICHENG_JUMP){
-			return " 需要跑马灯 - 跳跃状态不能骑乘 - " + data; 
+		if (reason ==OprateResult.WORLD_BOSS_OPERTE_WILL_START){
+			return " 需要跑马灯 - 世界boss即将开启，请各位大侠做好准备 - " + data; 
+		}
+		if (reason ==OprateResult.WORLD_BOSS_OPERTE_WILL_ROLL1){
+			return " 需要跑马灯 - 恭喜{1}赢得本次拼点奖励，BOSS在3秒后恢复正常 - " + data; 
+		}
+		if (reason ==OprateResult.WORLD_BOSS_OPERTE_WILL_ROLL2){
+			return " 需要跑马灯 - 恭喜{1}赢得本次拼点奖励，现在可自由离开战场 - " + data; 
+		}
+		if (reason ==OprateResult.WORLD_BOSS_OPERTE_ENROLL){
+			return " 需要跑马灯 - 世界BOSS开始报名 - " + data; 
 		}
 		return "未知错误1  OPRATE_TYPE_NEED_NOTICE " + reason + "    "  + data
+	}
+	if(type == OprateResult.OPRATE_TYPE_GROUP){
+		if (reason ==OprateResult.MOUNT_QICHENG_FIGHT){
+			return " 组队相关的 - 战斗状态不能骑乘 - " + data; 
+		}
+		if (reason ==OprateResult.MOUNT_QICHENG_JUMP){
+			return " 组队相关的 - 跳跃状态不能骑乘 - " + data; 
+		}
+		return "未知错误1  OPRATE_TYPE_GROUP " + reason + "    "  + data
+	}
+	if(type == OprateResult.OPRATE_TYPE_GIFTCODE){
+		if (reason ==OprateResult.TELEPORT_OPRATE_PVP_STATE){
+			return " 兑换码相关的 - pvp状态不能传送 - " + data; 
+		}
+		return "未知错误1  OPRATE_TYPE_GIFTCODE " + reason + "    "  + data
 	}
 	return "未知错误2   " + type + "  " + reason + "    "  + data
 }

@@ -94,11 +94,11 @@ function ScenedUseItemResult(player_guid, item_entry, count, result)
 		if stack_count > count then
 			item:setCount(stack_count - count)
 			itemMgr.itemMgr:SavePtr(item.item)	
-			WriteItemLog(player, LOG_ITEM_OPER_TYPE_FORGE_DECOMPOSE, item_entry, count, item:isBind())
+			WriteItemLog(player, LOG_ITEM_OPER_TYPE_FORGE_DECOMPOSE, item_entry, 1, count)
 		elseif stack_count == count then
 			itemMgr:delItemObj(item)
-			WriteItemLog(player, LOG_ITEM_OPER_TYPE_FORGE_DECOMPOSE, item_entry, count, item:isBind())
-		end		
+			WriteItemLog(player, LOG_ITEM_OPER_TYPE_FORGE_DECOMPOSE, item_entry, 1, count)
+		end
 	end
 	
 	local questMgr = player:getQuestMgr()
@@ -186,36 +186,10 @@ UseItemScripts = {
 				end
 				--]]
 				local consum_config = box_config.cost
-				--先看下够不够消耗
-				for _, consum_info in pairs(consum_config) do
-					local consum_type = consum_info[ 1 ]
-					local consum_val = consum_info[ 2 ] * count
-					if consum_type == Item_Loot_Silver then		--消耗铜钱
-						if player:GetMoney(MONEY_TYPE_SILVER) < consum_val then return end
-					elseif consum_type == Item_Loot_Bind_Gold then	--消耗绑定元宝
-						if player:GetMoney(MONEY_TYPE_BIND_GOLD) < consum_val then return end
-					elseif consum_type == Item_Loot_Gold then	--消耗元宝
-						if player:GetMoney(MONEY_TYPE_GOLD_INGOT) < consum_val then return end
-					else
-						--消耗道具
-						if player:CountItem(consum_type) < consum_val then return end
-					end					
+				if not player:useAllItems(MONEY_CHANGE_USE_BOX, LOG_ITEM_OPER_TYPE_USE_BOX, consum_config, 1, ''..item_entry, ''..count) then
+					return
 				end
-				--可以处理消耗了
-				for _, consum_info in pairs(consum_config) do
-					local consum_type = consum_info[ 1 ]
-					local consum_val = consum_info[ 2 ] * count
-					if consum_type == Item_Loot_Silver then		--消耗铜钱
-						if(self:SubMoney(MONEY_TYPE_SILVER, MONEY_CHANGE_USE_BOX, consum_val) == false)then return end
-					elseif consum_type == Item_Loot_Bind_Gold then	--消耗绑定元宝
-						if(self:SubMoney(MONEY_TYPE_BIND_GOLD, MONEY_CHANGE_USE_BOX, consum_val) == false)then return end
-					elseif consum_type == Item_Loot_Gold then	--消耗元宝
-						if(self:SubMoney(MONEY_TYPE_GOLD_INGOT, MONEY_CHANGE_USE_BOX, consum_val) == false)then return end
-					else
-						--消耗道具
-						if(itemMgr:delItem(consum_type, consum_val) == SUB_ITEM_FAIL)then return end
-					end					
-				end
+				
 				--把物品先删掉
 				if not itemMgr:delItemObj(item, count) then
 					return
@@ -262,6 +236,14 @@ UseItemScripts = {
 					end
 				end
 				]]
+			elseif item_type == ITEM_TYPE_PELLET then
+				if item_entry == 242 then
+					--把物品先删掉
+					if not itemMgr:delItemObj(item, 1) then
+						return
+					end
+					player:ModifyRestOfflineMinutes(config.using_effect[ 1 ])
+				end
 			elseif item_type == ITEM_TYPE_MEDICINE or item_type == ITEM_TYPE_BUFF or item_type == ITEM_TYPE_PK_MEDICINE or item_type == ITEM_TYPE_PET_MEDICINE then
 				--药品、获得buff、pk药、宠物药发到场景服处理
 				self:Send2ScenedUseItem(player, item_entry, count)	

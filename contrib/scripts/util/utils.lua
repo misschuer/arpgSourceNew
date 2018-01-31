@@ -306,9 +306,16 @@ function ToShowName(playerName)
 	outFmtDebug("playerName=%s", playerName)
 	local A = string.byte("A")
 	local dict = string.split(playerName, ",")
-	local str = string.format("%s%s.%s", string.char((tonumber(dict[2]) - 1001) + A), dict[ 1 ], dict[ 3 ])
-	
+--	local str = string.format("%s%s.%s", string.char((tonumber(dict[2]) - 1001) + A), dict[ 1 ], dict[ 3 ])
+	local str = dict[ 3 ]
 	return str
+end
+
+-- 获得今天刚开始的时间戳
+-- x [0-6] {Sunday-Saturday}
+function IsTodayWeekX(x)
+	local date = os.date('*t', os.time())
+	return date.wday == x + 1
 end
 
 -- 获得今天刚开始的时间戳
@@ -325,6 +332,13 @@ function getTheFirstTimestampOfDay(time, days)
 	cur_date.sec = 0
 	cur_date.min = 0
 	return os.time(cur_date) + days * 86400
+end
+
+function checkSameDay(time1, time2)
+	if time1 == 0 or time2 == 0 then
+		return false
+	end
+	return getTheFirstTimestampOfDay(time1) == getTheFirstTimestampOfDay(time2)
 end
 
 --获得今日指定时分秒的时间戳
@@ -635,6 +649,10 @@ attrKeys = {
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = PLAYER_FIELD_CONTROL_RESIST_RATE,	--控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = PLAYER_FIELD_STRENGTH_ARMOR,	--强化护甲
 	[EQUIP_ATTR_DAO] = PLAYER_FIELD_DAO,						--境界
+	[EQUIP_ATTR_PVP_DAMAGE_AMPLIFY_RATE] = PLAYER_FIELD_PVP_DAMAGE_AMPLIFY_RATE,	--PVP伤害增加
+	[EQUIP_ATTR_PVP_DAMAGE_RESIST_RATE] = PLAYER_FIELD_PVP_DAMAGE_RESIST_RATE,	--减少PVP伤害
+	[EQUIP_ATTR_PVE_DAMAGE_AMPLIFY_RATE] = PLAYER_FIELD_PVE_DAMAGE_AMPLIFY_RATE,	--增加PVE伤害
+	[EQUIP_ATTR_DAMAGE_RESIST_VALUE] = PLAYER_FIELD_DAMAGE_RESIST_VALUE,	--减少伤害
 }
 
 -- 得到属性对应的区间所所表示的颜色
@@ -874,4 +892,84 @@ function getShowName(sName)
 		sName = tName[#tName]
 	end
 	return sName
+end
+
+function itemListToItemString(list)
+	local str = ""
+	if #list > 0 then
+		str = str .. tostring(list[ 1 ][1]) .. ",".. tostring(list[ 1 ][2])
+	end
+	for i = 2, #list do
+		str = str .. ", " .. tostring(list[ i ][1]) .. ",".. tostring(list[ i ][2])
+	end
+	
+	return str
+end
+
+function GetPlayerInfo (guid)
+	--
+end
+
+function isLocal3V3Open(playerInfo, show)
+	local config = tb_kuafu3v3_base[ 1 ]
+	-- 今天是否开活动了
+	local today = false
+	for _, x in ipairs(config.day) do
+		if IsTodayWeekX(x) then
+			today = true
+			break
+		end
+	end
+	if not today then
+		if show then
+			playerInfo:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_OPEN)
+		end
+		return false
+	end
+	
+	-- 是否在活动时间
+	local curtime = os.time()
+	local intime = false
+	for _,v in ipairs(config.activetime) do
+		local t1 = GetTodayHMSTimestamp(v[1],v[2],0)
+		local t2 = GetTodayHMSTimestamp(v[3],v[4],0)
+		if curtime >= t1 and curtime <= t2 then
+			intime = true
+			break
+		end
+	end
+	if not intime then
+		if show then
+			playerInfo:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_OPEN)
+		end
+		return false
+	end
+	
+	return true
+end
+
+local equip_pos_name = {"武器", "衣服", "护手", "腰带", "鞋子", "头饰", "项链", "手镯", "戒指", "腰坠"}
+function getPosName(pos)
+	if equip_pos_name[pos] then
+		return equip_pos_name[pos]
+	else
+		return ""
+	end
+	
+end
+
+
+function getUid(account)
+	local s1 = string.split(account, '_')
+	return s1[#s1]
+end
+
+function getServerId(serverInfo)
+	local s1 = string.split(serverInfo, '_')
+	return tonumber(s1[#s1])
+end
+
+function getServerInfo(serverId)
+	local platformId = globalGameConfig:GetPlatformID()
+	return platformId.."_"..serverId
 end

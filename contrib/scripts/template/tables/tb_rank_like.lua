@@ -6,5 +6,5 @@
 tb_rank_like = {
 	--  id:int ID
 	--  reward:array 奖励
-	[1] = {id = 1, reward = {{2,100}}},
+	[1] = {id = 1, reward = {{2,10}}},
 }

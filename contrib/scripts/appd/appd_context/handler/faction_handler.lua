@@ -115,7 +115,7 @@ function PlayerInfo:Handle_Faction_Create( pkt )
 	-- 玩家名字不能是空的
 	if self:GetName() == "" then
 		--self:CallOptResult(OPRATE_TYPE_FACTION, OPRATE_TYPE_FACTION_PLAYER_NAME_ERR)
-		outFmtInfo("user name null")
+		outFmtDebug("user name null")
 		return
 	end
 	
@@ -168,6 +168,7 @@ function PlayerInfo:Handle_Faction_Create( pkt )
 	end
 	
 	self:CreateFaction(server_name, faction_name, icon)
+	
 end
 
 function PlayerInfo:NewPlayerCreateFaction(name, icon)
@@ -176,7 +177,7 @@ function PlayerInfo:NewPlayerCreateFaction(name, icon)
 
 	-- 玩家名字不能是空的
 	if self:GetName() == "" then
-		outFmtInfo("user name null")
+		outFmtDebug("user name null")
 		return
 	end
 	
@@ -266,7 +267,10 @@ function PlayerInfo:CreateFaction(server_name, faction_name, icon)
 	
 	faction:SetBangZhuInfo(self)
 	faction:SetFactionCurFlagId(icon)
-
+	faction:SetFactionFlags(FACTION_FLAGS_AUTO)
+	
+	WriteUnion(self, os.time(), new_guid, faction_name, 1, "")
+	
 	if not faction:MemberAdd(self) then
 		app.objMgr:callRemoveObject(new_guid)
 		self:SetFactionId("")
@@ -291,6 +295,9 @@ function PlayerInfo:CreateFaction(server_name, faction_name, icon)
 	rankInsertTask(faction:GetGuid(), RANK_TYPE_FACTION)
 	
 	outFmtDebug("################################ 4")
+	
+	
+
 	return true
 end
 

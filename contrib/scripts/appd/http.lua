@@ -155,12 +155,15 @@ function Http:registerExtWeb( force )
 
 	--这里注意可以有两个,正式地址 /cow_config/app_addr/reg
 	local url = self:getUrl(conf_svr_url , "/cow_config/app_addr/reg")
+	outFmtInfo("== start to reg url \"%s\" to conf_svr", url)
 	self:async_post(url,string.toQueryString(data), function ( status_code )
 		--注册成功
 		if status_code == 200 then
 			self.register_state = 2
+			outFmtInfo("####### reg conf_svr success")
 		else
 			self.register_state = 0		--如果有错误则重新注册
+			outFmtInfo("@@@@@@@ reg conf_svr failed")
 		end
 	end)
 

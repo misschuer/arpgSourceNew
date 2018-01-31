@@ -10,8 +10,15 @@ tb_realmbreak_base = {
 	--  exp:int 升级需要境界经验
 	--  force:int 战力提升
 	--  props:array 总属性加成
-	[0] = {id = 0, name = "境界0", level = 0, exp = 100, force = 0, props = {}},
-	[1] = {id = 1, name = "境界1", level = 1, exp = 200, force = 10000, props = {{1,10000}}},
-	[2] = {id = 2, name = "境界2", level = 10, exp = 300, force = 20000, props = {{1,30000}}},
-	[3] = {id = 3, name = "境界3", level = 20, exp = 400, force = 30000, props = {{1,60000}}},
+	[0] = {id = 0, name = "入门", level = 1, exp = 10, force = 0, props = {}},
+	[1] = {id = 1, name = "炼气", level = 10, exp = 30, force = 5480, props = {{1,627135},{2,31356}}},
+	[2] = {id = 2, name = "筑基", level = 20, exp = 50, force = 10710, props = {{1,1224120},{2,61206}}},
+	[3] = {id = 3, name = "金丹", level = 40, exp = 120, force = 22700, props = {{1,2723877},{2,124905}}},
+	[4] = {id = 4, name = "元婴", level = 60, exp = 250, force = 30450, props = {{1,3657426},{2,167373}}},
+	[5] = {id = 5, name = "空冥", level = 80, exp = 360, force = 40600, props = {{1,4911915},{2,221876}}},
+	[6] = {id = 6, name = "渡劫", level = 100, exp = 450, force = 49360, props = {{1,5980257},{2,269399}}},
+	[7] = {id = 7, name = "天仙", level = 120, exp = 540, force = 67540, props = {{1,8305216},{2,364039}}},
+	[8] = {id = 8, name = "金仙", level = 140, exp = 630, force = 80730, props = {{1,9963678},{2,433689}}},
+	[9] = {id = 9, name = "玄仙", level = 160, exp = 720, force = 114050, props = {{1,14306931},{2,604005}}},
+	[10] = {id = 10, name = "仙君", level = 180, exp = 0, force = 141800, props = {{1,17908048},{2,746496}}},
 }

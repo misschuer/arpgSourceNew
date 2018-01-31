@@ -33,18 +33,15 @@ local writeLog = createWriteLogFunction(INTERNAL_OPT_WRITE_LOG)
 local writeTencentLog = createWriteLogFunction(INTERNAL_OPT_TENCENT_LOG)
 
 --道具所有行为
-function WriteItemLog(player,income_type,entry,count,bind)
+function WriteItemLog(player,reason,entry,isUse,count)
 	local pkt = newLogPacket(INTERNAL_OPT_WRITE_LOG, LOG_FILE_TYPE_ITEM_LOG, player:GetAccount(), player:GetGuid())
+	pkt:writeU32(os.time())
 	pkt:writeU32(entry)
-	pkt:writeU32(count)
-	pkt:writeU32(player:CountAllItem(entry,bind))
-	pkt:writeU32(income_type)	
+	pkt:writeU32(isUse)
+	pkt:writeU32(reason)
+	pkt:writeU32(count)	
 	pkt:writeU32(player:GetLevel())
-	if bind == true then bind = 1 else bind = 0 end
-	pkt:writeU32(bind)
-	pkt:writeDouble(0)
-	pkt:writeDouble(0)	
-	pkt:writeU32(player:GetMapId())	
+
 	app:sendToPoliced(pkt)
 	pkt:delete()
 end
@@ -97,4 +94,122 @@ end
 -- 记录客户端信息
 function WriteClientInfoLog(player_id, client, browser, isdebug, language, version, flash_version, x, y, oss)
 	writeLog(LOG_FILE_TYPE_CLIENT_INFO, player_id, client, browser, isdebug, language, version, flash_version, x, y, oss)
+end
+
+--[[
+	payid: string;//5玩的交易单号
+	orderid: string;//CP的订单ID，调用Pay时传入
+	
+	paytime: string;//支付时间
+	goodsname: string;//物品名称
+	money: string;//购买物品总金额（元）,保留两位小数
+	goodsnum: number;//购买物品的数量
+	
+	ext: string;//扩展字符串，支付成功后会原封不动的传递回去
+	sign: string;//签名，查看签名算法
+
+	
+	平台充值id 	payid
+	充值时间戳 	paytime
+	充值类型 	goodsname
+	充值金额	money
+	订单状态描述 desc
+
+
+--]]
+
+function WriteRechargeLog(playerInfo, payid, orderid, paytime, goodsname, money, goodsnum, real, desc)
+	local pkt = newLogPacket(INTERNAL_OPT_WRITE_LOG, LOG_FILE_TYPE_RECHARGE, playerInfo:GetAccount(), playerInfo:GetGuid())
+	
+	pkt:writeUTF(payid)
+	pkt:writeUTF(paytime)
+	pkt:writeUTF(goodsname)
+	pkt:writeUTF(money)
+	pkt:writeDouble(goodsnum)
+	pkt:writeDouble(real)
+	pkt:writeUTF(desc)
+	app:sendToPoliced(pkt)
+	pkt:delete()
+end
+
+
+--记录用户接受任务的行为
+function WriteAcceptTask(playerInfo,time_stamp,taskid,type,remain)
+	local pkt = newLogPacket(INTERNAL_OPT_WRITE_LOG, LOG_FILE_TYPE_ACCEPT_TASK, playerInfo:GetAccount(), playerInfo:GetGuid())
+	
+	pkt:writeU32(time_stamp)
+	pkt:writeU32(taskid)
+	pkt:writeU32(type)
+	pkt:writeUTF(remain)
+
+	app:sendToPoliced(pkt)
+	pkt:delete()
+end
+
+--记录用户完成任务的行为
+function WriteMainTask(playerInfo,time_stamp,taskid,type,remain)
+	local pkt = newLogPacket(INTERNAL_OPT_WRITE_LOG, LOG_FILE_TYPE_MAIN_TASK, playerInfo:GetAccount(), playerInfo:GetGuid())
+	
+	pkt:writeU32(time_stamp)
+	pkt:writeU32(taskid)
+	pkt:writeU32(type)
+	pkt:writeUTF(remain)
+
+	app:sendToPoliced(pkt)
+	pkt:delete()
+end
+
+--记录在线人数
+function WriteOnline(time_stamp, account_count, player_count, ip_count, old_player_count)
+	local pkt = newLogPacket(INTERNAL_OPT_WRITE_LOG, LOG_FILE_TYPE_ONLINE, "", "")
+	
+	pkt:writeU32(time_stamp)
+	pkt:writeU32(account_count)
+	pkt:writeU32(player_count)
+	pkt:writeU32(ip_count)
+	pkt:writeU32(old_player_count)
+
+
+	app:sendToPoliced(pkt)
+	pkt:delete()
+end
+
+--0点在线日志
+function WriteOnlineUser24th(playerInfo, name, create_time, last_login_time, from_last_time, ip, gender, level, force, active_value, map_id,main_quest_id, history_recharge, gold, bind_gold, money, bind_money)
+	local pkt = newLogPacket(INTERNAL_OPT_WRITE_LOG, LOG_FILE_TYPE_ONLINE_USER_24TH, playerInfo:GetAccount(), playerInfo:GetGuid())
+	
+	pkt:writeUTF(name)
+	pkt:writeU32(create_time)
+	pkt:writeU32(last_login_time)
+	pkt:writeU32(from_last_time)
+	pkt:writeUTF(ip)
+	pkt:writeU32(gender)
+	pkt:writeU32(level)
+	pkt:writeDouble(force)
+	pkt:writeU32(active_value)
+	pkt:writeU32(map_id)
+	pkt:writeU32(main_quest_id)
+	pkt:writeU32(history_recharge)
+	pkt:writeDouble(gold)
+	pkt:writeDouble(bind_gold)
+	pkt:writeDouble(money)
+	pkt:writeDouble(bind_money)
+
+
+	app:sendToPoliced(pkt)
+	pkt:delete()
+end
+
+--帮派日志
+function WriteUnion(playerInfo, time_stamp, faction_id, faction_name, type, remain)
+	local pkt = newLogPacket(INTERNAL_OPT_WRITE_LOG, LOG_FILE_TYPE_UNION, playerInfo:GetAccount(), playerInfo:GetGuid())
+	
+	pkt:writeU32(time_stamp)
+	pkt:writeUTF(faction_id)
+	pkt:writeUTF(faction_name)
+	pkt:writeU32(type)
+	pkt:writeUTF(remain)
+
+	app:sendToPoliced(pkt)
+	pkt:delete()
 end

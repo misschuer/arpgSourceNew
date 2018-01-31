@@ -80,6 +80,8 @@ local function on_scened_player_upgrade( pkt )
 	
 	-- 为了重算属性用的
 	player:SetLevel(player_lv)
+	DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_LEVEL,player})
+	player:UpdateGroupInfo()
 	-- 通知重算属性
 	playerLib.SendAttr(player.ptr)
 	
@@ -91,6 +93,8 @@ local function on_scened_player_upgrade( pkt )
 			player:activeBaseSpell(info[ 2 ], SPELL_ACTIVE_BY_LEVEL)
 		end
 	end
+	
+	player:AddRealmbreakExp(0)
 	
 	--[[
 	-- FIXME:解锁坐骑 先在这里处理
@@ -181,6 +185,12 @@ local function on_scened_send_to_appd_add_offline_mail(pkt)
 	local desc = mailInfo[ 3 ]
 	local giftType = tonumber(mailInfo[ 4 ])
 	AddGiftPacksData(guid,0,giftType,os.time(),os.time() + 86400*30, name, desc, rewards, SYSTEM_NAME)
+end
+
+local function on_scened_send_to_appd_force_unlock(pkt)
+	local ret, rank1, rank2 = unpack_send_to_appd_force_unlock(pkt)
+	if not ret then return end
+	globalCounter:unlock(rank1, rank2)
 end
 
 --场景服发给应用服发公告
@@ -302,7 +312,7 @@ local function on_logind_send_rename_check_result(pkt)
 	if available == 1 then
 		-- 判断扣钱逻辑
 		local costs = playerInfo:GetRenameCost()
-		if playerInfo:useAllItems(MONEY_CHANGE_RENAME, costs) then
+		if playerInfo:useAllItems(MONEY_CHANGE_RENAME, nil, costs) then
 			playerInfo:AddRenameTimes()
 			--playerInfo:SetName(realName)
 			call_opt_update_char_name(player_guid, realName)
@@ -337,6 +347,8 @@ appdInsternalHanlders[INTERNAL_OPT_FACTION_BOSSDEFENSE_WIN] = on_scened_send_fac
 appdInsternalHanlders[INTERNAL_OPT_FACTION_BOSSDEFENSE_LEAVE] = on_scened_send_faction_bossdefense_leave
 appdInsternalHanlders[INTERNAL_OPT_RENAME_CHECK_RESULT] = on_logind_send_rename_check_result
 appdInsternalHanlders[INTERNAL_OPT_SEND_TO_APPD_ADD_OFFLINE_MAIL] = on_scened_send_to_appd_add_offline_mail
+
+appdInsternalHanlders[INTERNAL_OPT_DOUJIANTAI_FORCE_UNLOCK] = on_scened_send_to_appd_force_unlock
 
 
 --网络包处理方法

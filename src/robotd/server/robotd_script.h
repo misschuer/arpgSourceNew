@@ -34,4 +34,8 @@ extern int DoRobotUpdate(uint32 diff);
 
 //»°’ª–≈œ¢
 extern int DoGetStack(const string &account,string &info);
+
+
+extern int LuaGetMsTime(lua_State *scriptL);
+
 #endif

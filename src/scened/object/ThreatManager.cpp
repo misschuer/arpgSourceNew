@@ -212,4 +212,21 @@ void ThreatManager::UpdateThreatMap()
 		//TODO:这里可能出现死循环，修改时要注意
 		if(tagert == threater) me->SetTarget(NULL);
 	}
+
+	// 仇恨列表里面没有目标
+	if (m_targetMap.size() == 0) {
+		string prev = me->GetStr(UNIT_STRING_FIELD_DROP_OWNER_GUID);
+		if (prev != "") {
+			Player* player = me->GetMap()->FindPlayer(prev.c_str());
+			if (player) {
+				player->SetUInt32(UNIT_INT_FIELD_BOSS_OWN_FLAG, 0);
+			}
+			me->SetStr(UNIT_STRING_FIELD_DROP_OWNER_GUID, "");
+			me->SetStr(UNIT_STRING_FIELD_DROP_OWNER_NAME, "");
+		}
+		creature_template *temp = creature_template_db[me->GetEntry()];
+		if (temp && !temp->recure) {
+			me->ModifyHealth(me->GetMaxHealth());
+		}
+	}
 }

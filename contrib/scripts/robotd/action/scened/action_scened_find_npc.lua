@@ -39,23 +39,23 @@ function ActionScenedFindNpc:Update(diff)
 	--先寻路
 	if(self.is_goto == false)then
 		--已经在这里了就不用再寻路了
-		if(mapid == self.to_mapid and self.player.my_unit:GetDistanceByPos(self.to_x,self.to_y)<=4)then
+		if(mapid == self.to_mapid and self.player.my_unit:GetDistanceByPos(self.to_x,self.to_y)<=1)then
 			outFmtDebug("ActionScenedFindNpc:Update is already here")
 			self.is_goto = true
 			self.isClose = true
 			return true
 		end
-
+		--[[
 		if(self.to_mapid > 0)then
 			--访问GO随机点计算
-			local pos_tab = mapLib.RandomPos(self.to_mapid,1,self.to_x, self.to_y,4)
+			local pos_tab = mapLib.RandomPos(self.to_mapid,1,self.to_x, self.to_y,1)
 			local is_canRun = mapLib.IsCanRun(self.to_mapid,pos_tab[1].x,pos_tab[1].y)
 			if(is_canRun)then
 				self.to_x = pos_tab[1].x
 				self.to_y = pos_tab[1].y
 			end
 		end
-		
+		--]]
 		-- 到达目的地的callback
 		local closeCallback = function()
 			self.isClose = true
@@ -93,7 +93,7 @@ function ActionScenedFindNpc:Update(diff)
 	else
 		-- 这里发送和npc对话
 		if self.callback then
-			self.callback()
+			self.callback(unit:GetUIntGuid())
 		end
 		--等待一秒以后退出
 		self:SetWaitTimeInterval(1000)

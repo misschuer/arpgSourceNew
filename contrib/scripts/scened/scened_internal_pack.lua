@@ -124,3 +124,13 @@ function call_scene_login_to_kuafu_back(login_fd, guid)
 	app:sendToConnection(login_fd, pkt)
 	pkt:delete()
 end
+
+
+--场景服发起传送
+function call_opt_doujiantai_force_unlock(rank1, rank2)
+	local pkt = Packet.new(INTERNAL_OPT_DOUJIANTAI_FORCE_UNLOCK)
+	pkt:writeU32(rank1)
+	pkt:writeU32(rank2)
+	app:sendToAppd(pkt)
+	pkt:delete()
+end

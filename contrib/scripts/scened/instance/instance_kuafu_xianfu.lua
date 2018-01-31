@@ -269,7 +269,7 @@ function InstanceKuafuXianfu:OnJoinPlayer(player)
 		
 		-- Í¬²½Ç®ÏÈ
 		self:OnSyncMoney(playerInfo:GetPlayerGuid(), emptyIndex)
-		playerInfo:SetToGroupMode(playerInfo:GetPlayerGuid())
+		--playerInfo:SetToGroupMode(playerInfo:GetPlayerGuid())
 	end
 end
 

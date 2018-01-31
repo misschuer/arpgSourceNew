@@ -193,10 +193,15 @@ public:
 	uint32 GetNextSpellCD() {
 		return nextSpellCD;
 	}
+
+	void SetBodyMissTime(uint32 _body_miss) {
+		this->body_miss = _body_miss;
+	}
 private:	
 	//for AI
 	ReactStates m_reactState;                       // for AI, not charmInfo
 	uint32 m_move_type;	
+	uint32 body_miss;
 	string m_script_name;							//scriptai 
 	bool evade_state ;								//лсмяв╢л╛
 	TimeTracker m_timer_say;

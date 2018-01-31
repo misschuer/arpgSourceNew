@@ -68,6 +68,7 @@ void PolicedContext::Login(uint32 fd)
 	if(!PolicedApp::g_app->IsPKServer())
 	{
 		g_LOG.SaveHTBasicInfo(this,true);
+		g_LOG.SaveHTDailyInfo(this);
 	}
 }
 
@@ -78,6 +79,7 @@ void PolicedContext::Logout()
 	if(!PolicedApp::g_app->IsPKServer())
 	{
 		g_LOG.SaveHTBasicInfo(this,false);
+		g_LOG.SaveHTDailyInfo(this);
 	}
 	PolicedApp::g_app->ChangeSessionID(this,0);
 

@@ -163,6 +163,24 @@ require("template.tables.tb_realmbreak_dailyquest_base")
 --闯关
 require("template.tables.tb_instance_stage")
 require("template.tables.tb_instance_stage_base")
+require("template.tables.tb_instance_stage_auto")
+
+require("template.tables.tb_group_exp")
+require("template.tables.tb_creature_group_exp")
+require("template.tables.tb_instance_group_exp")
+
+--家族战
+require("template.tables.tb_faction_match_base")
+require("template.tables.tb_faction_match_winstrike")
+require("template.tables.tb_faction_match_rank_reward")
+require("template.tables.tb_faction_match_champion")
+require("template.tables.tb_faction_match_phase")
+
+require("template.tables.tb_buff_base")
+require("template.tables.tb_battle_force")
+require("template.tables.tb_fabaoskill")
+
+require("template.tables.tb_mount_base")
 
 
 for _, ctInfo in pairs(tb_creature_template) do

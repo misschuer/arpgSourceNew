@@ -973,7 +973,7 @@ bool MapTemplate::LoadCreatrue(istream &_is)
 		if(!ReadValue(token[i++], monsters.alias_name))
             return false;
 
-        monsters.toward = monsters.toward * M_PI;
+        //monsters.toward = monsters.toward * M_PI;
         uint32 pos = (uint32)monsters.x + m_baseinfo.width * (uint32)monsters.y;
 
         m_monsters[pos] = monsters;

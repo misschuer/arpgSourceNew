@@ -8,6 +8,8 @@ AppdObjectManager::AppdObjectManager(SvrCoreAppImpl *app)
 {
 	//添加索引器，为了遍历比较方便
 	indexer_.CreateIndex(REGEX_PLAYER);
+	indexer_.CreateIndex(REGEX_FACTION);
+	indexer_.CreateIndex(REGEX_GROUP);
 }
 
 AppdObjectManager::~AppdObjectManager()
@@ -27,6 +29,10 @@ GuidObject *AppdObjectManager::ObjectFactor(const string &guid)
 	case ObjectTypeGiftPacks:
 		ptr = new BinLogObject;
 		ptr->SetBinlogMaxSize(core_obj::SyncEventRecorder::MAX_BINLOG_SIZE_3);
+		break;
+	case ObjectTypeItemMgr:
+		ptr = new BinLogObject;
+		ptr->SetBinlogMaxSize(core_obj::SyncEventRecorder::MAX_BINLOG_SIZE_UNLIME);
 		break;
 	case ObjectTypeFactionData:
 		ptr = new BinLogObject;

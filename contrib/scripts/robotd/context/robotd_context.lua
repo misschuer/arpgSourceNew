@@ -19,6 +19,8 @@ function PlayerInfo:ctor(account, fd, robot_ptr)
 	self:ActionInit()
 	
 	self.questStart = false
+	
+	self.skillCDInfo = {}
 end
 
 -- 重置些事情
@@ -100,6 +102,10 @@ function PlayerInfo:GetPos()
 		return 0,0
 	end
 	return self.my_unit:GetPos()
+end
+
+function PlayerInfo:IsAlive()
+	return self.my_unit:IsAlive()
 end
 
 --设置坐标
@@ -229,7 +235,7 @@ function PlayerInfo:GetSkillInfo()
 		local lv = self:GetByte(i, 2)
 		local st = self:GetByte(i, 3)
 		
-		if id > 0 and lv > 0 and st <= 5 then
+		if st > 0 and id > 0 and lv > 0 and st <= 5 then
 			if not skillIdInfo[st] then
 				skillIdInfo[st] = {}
 			end
@@ -239,6 +245,59 @@ function PlayerInfo:GetSkillInfo()
 	end
 	
 	return skillIdInfo, skillLevelInfo
+end
+
+function PlayerInfo:GetCastSkillInfo()
+	local skillIdInfo, skillLevelInfo = self:GetSkillInfo()
+	local ms = getMsTime()
+	local slot = 1
+	for indx = 5, 1, -1 do
+		if not self.skillCDInfo[indx] then
+			self.skillCDInfo[indx] = 0
+		end
+		
+		--outFmtDebug("=== ms = %d slot = %d cd = %d", ms, indx, self.skillCDInfo[indx])
+		if ms >= self.skillCDInfo[indx] and skillIdInfo[indx] then
+			slot = indx
+			break
+		end
+	end
+
+	local skillId, skillLevel = skillIdInfo[slot][ 1 ], skillLevelInfo[slot]
+	--outFmtDebug("  return %d, %d", skillId, skillLevel)
+	return skillId, skillLevel
+end
+
+function PlayerInfo:SetSkillCDInfo(skillId)
+	--self.skillCDInfo
+	local config = tb_skill_base[skillId]
+	if not config then
+		--outFmtDebug("not need to set skill %d cd ", skillId)
+		return
+	end
+	if config.is_remain == 1 then
+		--outFmtDebug("id remain skill %d ", skillId)
+		return
+	end
+	local slot = config.skill_slot
+	local ms = getMsTime() + config.singleCD
+	
+	self.skillCDInfo[slot] = ms
+	--outFmtDebug("= SetSkillCDInfo slot = %d ms = %s", slot, ms)
+end
+
+function PlayerInfo:SetReaminSkillCDInfo(skillId)
+	local config = tb_skill_base[skillId]
+	if not config then
+		--outFmtDebug("not need to set skill %d cd ", skillId)
+		return
+	end
+	
+	local slot = config.skill_slot
+	local ms = getMsTime() + config.singleCD
+	
+	self.skillCDInfo[slot] = ms
+	--outFmtDebug("= SetReaminSkillCDInfo slot = %d ms = %s", slot, ms)
 end
 
 -- 释放技能

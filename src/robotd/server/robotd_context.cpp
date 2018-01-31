@@ -133,14 +133,15 @@ void RobotdContext::Update(uint32 diff)
 	if(war_conn_)
 		war_conn_->LoginUpdate(diff);
 
+	/**
 	for (auto it:m_obj_mgr->m_all_player_unit)
 	{
 		it->UpdateLocate(diff);
 	}
-	/**
+	*/
+
 	if(unit_)
 		unit_->UpdateLocate(diff);
-	*/
 }
 
 void RobotdContext::SetMyUnit(RobotdUnit *u)
@@ -424,33 +425,54 @@ void readFightingInfoUpdateObject(RobotdUnit* unit_,PacketType &bytes)
 	{
 		return;
 	}
-	/**
-	var caster: number = bytes.readUnsignedInt();
-	var count: number = bytes.readUnsignedByte();
-	var sdAry: Array<SkillBeAttackData> = new Array;
-	for (var i: number = 0; i < count; i++) {
 
-	var sd: SkillBeAttackData = new SkillBeAttackData();
-	sd.target = bytes.readUnsignedInt();
-	sd.lastHp = bytes.readUnsignedInt();
-	sd.utype = bytes.readUnsignedByte();
-	sd.isKilled = bytes.readUnsignedByte();
-	if (sd.lastHp == 0) {
-	sd.isKilled = 1
+	uint32 caster = bytes.readUnsignedInt();
+	uint8 count = bytes.readUnsignedByte();
+
+	for (uint8 i = 0; i < count; i++) {
+		bytes.readUnsignedInt();
+		bytes.readUnsignedInt();
+		bytes.readUnsignedByte();
+		bytes.readUnsignedByte();
+		bytes.readDouble();
 	}
-	sdAry.push(sd);
+	uint32 skillid = bytes.readUnsignedInt();
+	bytes.readShort();
+	bytes.readShort();
 
+	if (caster == unit_->GetUIntGuid()) {
+		LuaStackAutoPopup autoPopup(L);
+		lua_getglobal(L, "app");
+		lua_getfield(L, -1, "SetSkillNowCD");
+		lua_remove(L, -2);
+		lua_getglobal(L, "app");
+		lua_pushstring(L, unit_->GetPlayerObject()->GetAccount().c_str());
+		lua_pushnumber(L, skillid);
+		if(LUA_PCALL(L, 3, 0, 0))
+		{
+			tea_perror("lua error:SetSkillNowCD %s skillId = %d", unit_->GetGuid().c_str(), skillid);
+		}
 	}
-	var skillid: number = bytes.readUnsignedInt();
-	var $tx: number = bytes.readShort();
-	var $ty: number = bytes.readShort();
-	*/
-
 }
 
 void RobotdContext::Handle_Fighting_Info_Update_Object(uint16 optcode, PacketType &bytes)
 {
 	readFightingInfoUpdateObject(unit_,bytes);
+}
+
+void RobotdContext::Handle_Cast_Remain_Skill(uint16 optcode, PacketType &bytes) {
+	uint32 skillid = bytes.readUnsignedInt();
+	LuaStackAutoPopup autoPopup(L);
+	lua_getglobal(L, "app");
+	lua_getfield(L, -1, "SetReaminSkillNowCD");
+	lua_remove(L, -2);
+	lua_getglobal(L, "app");
+	lua_pushstring(L, this->GetAccount().c_str());
+	lua_pushnumber(L, skillid);
+	if(LUA_PCALL(L, 3, 0, 0))
+	{
+		tea_perror("lua error:SetSkillNowCD %s skillId = %d", unit_->GetGuid().c_str(), skillid);
+	}
 }
 
 void RobotdContext::Handle_Fighting_Info_Update_Object_2(uint16 optcode, PacketType &bytes)

@@ -1,3 +1,4 @@
+#include <shared/add_memdb_index.h>
 #include "appd_app.h"
 #include "appd_context.h"
 #include "RankListManager.h"
@@ -17,6 +18,7 @@ bool AppConfig::_Load(config_loader *loader)
 
 	recharge_folder = player_data_hdd_path + "/recharge";
 	mail_folder = player_data_hdd_path + "/offlinemail";
+	memory_db_folder = player_data_hdd_path + "/memorydb";
 	return true;
 }
 
@@ -26,6 +28,7 @@ AppdApp::AppdApp(SvrCoreParams &params, SvrCoreConfig &config): base(params, con
 	,m_rank_list_mgr(nullptr),m_equip_attrs(nullptr),m_obj_mgr(nullptr)
 	,m_db_access_mgr(nullptr)
 	,m_login_mgr(nullptr)
+	,m_localdb_mgr(nullptr)
 {
 	m_netgd_request_map[INTERNAL_OPT_UD_OBJECT] = &on_centd_guid_object_table;
 	m_netgd_request_map[INTERNAL_OPT_UD_CONTROL] = &on_centd_guid_object_table;
@@ -80,6 +83,13 @@ bool AppdApp::Open()
 	m_obj_mgr = new AppdObjectManager(this);
 	//初始化登录管理器
 	m_login_mgr = new AppdLoginMgr;
+
+	m_localdb_mgr = new AppdLocaldbManager(GetConfig().memory_db_folder);
+
+	Add_RechargeInfo_Index();
+	Add_GiftcodeInfo_Index();
+	m_localdb_mgr->loadAll();
+
 	if(!base::Open())
 		return false;
 	
@@ -90,6 +100,14 @@ AppdApp::CultivationMap AppdApp::m_cultivationMap;
 std::set<string> AppdApp::enrollSet;
 vector<PvpMatchInfoVec> AppdApp::pvpMatchInfos;
 std::map<string, uint32> AppdApp::kuafuHash;
+std::set<string> AppdApp::matchSet;
+std::map<string, GroupMatchInfo> AppdApp::groupMatchHash;
+std::set<string> AppdApp::local3v3Set;
+std::map<string, uint32> AppdApp::local3V3Hash;
+std::map<string, uint32> AppdApp::instancePrepareHash;
+std::map<string, std::map<string, uint8>> AppdApp::cuInfoHash;
+std::map<string, uint32> AppdApp::cuTimestampHash;
+
 uint32 AppdApp::matchLast = 0;
 string AppdApp::XIULIAN_FILE_NAME = "xiulian.yy";
 
@@ -129,6 +147,35 @@ void AppdApp::saveXiulian() {
 	m_storage.SaveFile(AppdApp::XIULIAN_FILE_NAME, content);
 }
 
+int AppdApp::getCuInfo(lua_State *scriptL, std::map<string, uint8>& stateHash, uint32 timestamp) {
+	lua_newtable(scriptL);    /* We will pass a table */
+	uint32 i = 0;
+	for (auto it = stateHash.begin();it != stateHash.end(); ++ it) {
+
+		lua_pushnumber(scriptL, ++ i);
+
+		string guid = it->first;
+		uint8 state = it->second;
+		lua_newtable(scriptL);
+
+		lua_pushnumber(scriptL, 1);
+		lua_pushnumber(scriptL, state);
+		lua_rawset(scriptL, -3);
+
+		lua_pushnumber(scriptL, 2);
+		lua_pushstring(scriptL, guid.c_str());
+		lua_rawset(scriptL, -3);
+
+		lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+	}
+	string tt = "timestamp";
+	lua_pushstring(scriptL, tt.c_str());
+	lua_pushnumber(scriptL, timestamp);
+	lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+
+	return 1;
+} 
+
 void AppdApp::Close()
 {
 	
@@ -143,6 +190,7 @@ void AppdApp::Close()
 	safe_delete(m_obj_mgr);
 	context_map_.clear();
 	safe_delete(m_login_mgr);
+	safe_delete(m_localdb_mgr);
 	for(auto it = m_sys_notice.begin();it != m_sys_notice.end();++it)
 	{
 		free(it->second);
@@ -156,7 +204,7 @@ void AppdApp::Update(uint32 diff)
 	if(m_status == APP_STATUS_READY_OK)
 	{
 		m_login_mgr->Update(diff);
-
+		m_localdb_mgr->Update(diff);
 		auto& contexts = AppdApp::g_app->context_map_;
 		for(auto it = contexts.begin();it != contexts.end();++it)
 		{

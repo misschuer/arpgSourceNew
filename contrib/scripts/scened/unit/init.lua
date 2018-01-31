@@ -13,6 +13,7 @@ Protocols:extend(UnitInfo)
 function UnitInfo:ctor( )
 	if(GetUnitTypeID(self.ptr) == TYPEID_PLAYER)then
 		self.ptr_player_data = playerLib.GetSession(self.ptr)
+
 	end
 end
 
@@ -65,6 +66,11 @@ function UnitInfo:GetVirtualCamp()
 	return self:GetPlayerUInt32(PLAYER_INT_FIELD_VIRTUAL_CAMP)
 end
 
+function GetVirtualCamp(player_ptr)
+	local player_data_ptr = playerLib.GetSession(player_ptr)
+	return binLogLib.GetUInt32(player_data_ptr, PLAYER_INT_FIELD_VIRTUAL_CAMP)
+end
+
 -- 是否拒绝接受附近消息
 function UnitInfo:isDeclineNearMsg()
 	return self:GetPlayerByte(PLAYER_FIELD_DECLINE_CHANNEL_BYTE1, 0) > 0
@@ -88,9 +94,11 @@ function UnitInfo:AddKuafu3v3Score(val)
 	self:SetKuafu3v3Score(ret)
 	
 	-- 加总积分
+	--[[
 	local totalret = val + self:GetKuafu3v3TotalScore()
-	totalret = math.max(totalret, 0)
-	self:SetKuafu3v3TotalScore(totalret)
+		totalret = math.max(totalret, 0)
+		self:SetKuafu3v3TotalScore(totalret)
+	--]]
 end
 
 -- 获得跨服3v3总积分
@@ -165,6 +173,7 @@ end
 
 --发送技能开始给客户端
 function UnitInfo:CallCastSpellStart( caster_guid, target_guid, spellid, data, isbrodcast )
+	--[[
 	if GetUnitTypeID(self.ptr) ~= TYPEID_PLAYER 
 		--and not self:GetUnitFlags(UNIT_FIELD_FLAGS_IS_ROBOT) 
 		and not self:GetUnitFlags(UNIT_FIELD_FLAGS_IS_BOSS_CREATURE)
@@ -173,6 +182,7 @@ function UnitInfo:CallCastSpellStart( caster_guid, target_guid, spellid, data, i
 		outFmtError("UnitInfo:CallCastSpellStart not player cant send packet")
 		return
 	end
+	--]]
 	--碰上字符串数组自动拼接	
 	if type(data) == 'table' then
 		data = string.join('|', data)
@@ -184,7 +194,9 @@ function UnitInfo:CallCastSpellStart( caster_guid, target_guid, spellid, data, i
 	if isbrodcast then
 		app:Broadcast(self, pkt)
 	else
-		self:SendPacket(pkt)
+		if GetUnitTypeID(self.ptr) == TYPEID_PLAYER then
+			self:SendPacket(pkt)
+		end
 	end
 	pkt:delete()
 end
@@ -479,10 +491,22 @@ end
 
 function UnitInfo:SetPickedName(name)
 	self:SetStr(UNIT_STRING_FIELD_PICK_NAME, name)
-end	
+end
+
+function UnitInfo:passiveSpellInRange(ps, a, b)
+	for i = a, b do
+		local spellID = self:GetPlayerUInt16(i, 0)
+		local level	  = self:GetPlayerUInt16(i, 1)
+		if spellID > 0 then
+			table.insert(ps, {spellID, level})
+		end
+	end
+end
 
 function UnitInfo:GetPassivespells()
-	return {}
+	local ps = {}
+	self:passiveSpellInRange(ps, PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_START, PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_END-1)
+	return ps
 end
 
 function UnitInfo:GetSpells()
@@ -585,6 +609,11 @@ local tBaseKey = {
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = UNIT_FIELD_CONTROL_RESIST_RATE,	--控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = UNIT_FIELD_STRENGTH_ARMOR,	--强化护甲
 	[EQUIP_ATTR_DAO] = UNIT_FIELD_DAO,	--境界
+	
+	[EQUIP_ATTR_PVP_DAMAGE_AMPLIFY_RATE] = UNIT_FIELD_PVP_DAMAGE_AMPLIFY_RATE,	--PVP伤害增加
+	[EQUIP_ATTR_PVP_DAMAGE_RESIST_RATE] = UNIT_FIELD_PVP_DAMAGE_RESIST_RATE,	--减少PVP伤害
+	[EQUIP_ATTR_PVE_DAMAGE_AMPLIFY_RATE] = UNIT_FIELD_PVE_DAMAGE_AMPLIFY_RATE,	--增加PVE伤害
+	[EQUIP_ATTR_DAMAGE_RESIST_VALUE] = UNIT_FIELD_DAMAGE_RESIST_VALUE,	--减少伤害
 }
 
 function GetAttrSize()
@@ -604,11 +633,23 @@ function GetAttrUnitBinlogIndex(attrId)
 	return tBaseKey[attrId]
 end
 
-function UnitInfo:addAllAttrRate(rate)
+function UnitInfo:addOneAttr(attrId, value)
+	local binlogIndx = GetAttrUnitBinlogIndex(attrId)
+	local baseIndx = binlogIndx + #tBaseKey
+	local curr = self:GetUInt32(binlogIndx)
+	local base = self:GetUInt32(baseIndx)
+	local cc = value
+	if tb_battle_force[attrId].isValue == 1 then
+		cc = math.floor(base * value / 100)
+	end
+	self:SetUInt32(binlogIndx, cc + curr)
+end
+
+function UnitInfo:addAllAttrRate(value)
 	foreachAttr(function (attrId, binlogIndx)
-		local val = self:GetUInt32(binlogIndx)
-		val = math.floor(val * (100 + rate) / 100)
-		self:SetUInt32(binlogIndx, val)
+		if attrId ~= EQUIP_ATTR_MOVE_SPEED then
+			self:addOneAttr(attrId, value)
+		end
 	end)
 end
 
@@ -852,6 +893,20 @@ function UnitInfo:SetName(val)
 	self:SetStr(BINLOG_STRING_FIELD_NAME, val)
 end
 
+function UnitInfo:clearAllLeaveClearBuff()
+	local list = {}
+	for pos = 0, MAX_UNIT_BUFF - 1 do
+		local buffId = self:GetBuffByPos(pos)
+		if buffId > 0 and tb_buff_template[buffId].leave_clear == 1 then
+			table.insert(list, buffId)
+		end
+	end
+	
+	for _, buffId in ipairs(list) do
+		unitLib.RemoveBuff(self.ptr, buffId)
+	end
+end
+
 --获得pos槽中的buff id 
 function UnitInfo:GetBuffByPos(pos)
 	return self:GetUInt16(UNIT_FIELD_BUFF + math.floor(pos/2), math.fmod(pos,2))
@@ -1006,26 +1061,13 @@ end
 -- end
 
 --金钱增加
-function UnitInfo:AddMoney(money_type, oper_type, val, p1, p2, p3, p4, p5)
+function UnitInfo:AddMoney(money_type, oper_type, val, relateItemIds, relateItemNums)
 	if(val <= 0)then
 		return false
 	end
-	if(p1 == nil)then
-		p1 = ''
-	end
-	if(p2 == nil)then
-		p2 = 0
-	end
-	if(p3 == nil)then
-		p3 = 0
-	end
-	if(p4 == nil)then
-		p4 = 0
-	end
-	if(p5 == nil)then
-		p5 = 0
-	end
-	return playerLib.SendAddMoney(self.ptr, money_type, oper_type, val, p1, p2, p3, p4, p5)
+	relateItemIds = relateItemIds or ''
+	relateItemNums = relateItemNums or ''
+	return playerLib.SendAddMoney(self.ptr, money_type, oper_type, val, relateItemIds, relateItemNums)
 end
 
 --通过物品模板获取金钱数量
@@ -1063,7 +1105,7 @@ function UnitInfo:GetFactionId()
 end
 --获取队伍id
 function UnitInfo:GetGroupId()
-	return self:GetStr(UNIT_STRING_FIELD_GROUP)
+	return self:GetGroupModeId()
 end
 
 --获取PK值
@@ -1664,7 +1706,11 @@ end
 
 -- 骑乘状态
 function UnitInfo:rideFlag()
-	return self:GetByte(UNIT_FIELD_MOUNT_LEVEL, 2)
+	return self:GetUInt32(UNIT_INT_FIELD_MOUNT_RIDE)
+end
+
+function UnitInfo:SetRideFlag(val)
+	self:SetUInt32(UNIT_INT_FIELD_MOUNT_RIDE, val)
 end
 
 -- 幻化id
@@ -2017,6 +2063,46 @@ function UnitInfo:SetDao(val)
 	self:SetUInt32(UNIT_FIELD_DAO, val)
 end
 
+-- 获得PVP伤害增加
+function UnitInfo:GetPvpDamageAmplifyRate()
+	return self:GetUInt32(UNIT_FIELD_PVP_DAMAGE_AMPLIFY_RATE)
+end
+
+-- 获得减少PVP伤害
+function UnitInfo:GetPvpDamageResistRate()
+	return self:GetUInt32(UNIT_FIELD_PVP_DAMAGE_RESIST_RATE)
+end
+
+-- 获得增加PVE伤害
+function UnitInfo:GetPveDamageAmplifyRate()
+	return self:GetUInt32(UNIT_FIELD_PVE_DAMAGE_AMPLIFY_RATE)
+end
+
+-- 获得减少伤害
+function UnitInfo:GetDamageResistValue()
+	return self:GetUInt32(UNIT_FIELD_DAMAGE_RESIST_VALUE)
+end
+
+-- 设置PVP伤害增加
+function UnitInfo:SetPvpDamageAmplifyRate(val)
+	self:SetUInt32(UNIT_FIELD_PVP_DAMAGE_AMPLIFY_RATE, val)
+end
+
+-- 设置减少PVP伤害
+function UnitInfo:SetPvpDamageResistRate(val)
+	self:SetUInt32(UNIT_FIELD_PVP_DAMAGE_RESIST_RATE, val)
+end
+
+-- 设置增加PVE伤害
+function UnitInfo:SetPveDamageAmplifyRate(val)
+	self:SetUInt32(UNIT_FIELD_PVE_DAMAGE_AMPLIFY_RATE, val)
+end
+
+-- 设置减少伤害
+function UnitInfo:SetDamageResistValue(val)
+	self:SetUInt32(UNIT_FIELD_DAMAGE_RESIST_VALUE, val)
+end
+
 --属性重算（场景服）
 function DoRecalculationAttrs(attrBinlog, player, runtime, bRecal)
 	
@@ -2067,43 +2153,82 @@ function DOComputeExpBonusScript(player, creature, xp, fcmtime, percent)
 	if(player == nil or GetUnitTypeID(player) ~= TYPEID_PLAYER)then
 		return 0,0
 	end
+	
 	if(xp == 0)then
 		return 0,0
 	end
+	
 	local cur_time = os.time()
 	local result = xp
 	local vip_exp = 0
-	
-	--[[
-	-- 队伍加成
-	if GetGroupAddExp(player) > 0 then
-		result = result + xp*GetGroupAddExp(player)/100
-	end
-	]]
 
-	--经验丹加成
-	if unitLib.HasBuff(player, BUFF_ONEPOINTFIVE_JINGYAN) then		
-		result =  result + xp*0.5		
-	elseif unitLib.HasBuff(player, BUFF_TOW_JINGYAN) then
-		result =  result + xp*1
-	elseif unitLib.HasBuff(player, BUFF_THREE_JINGYAN) then
-		result =  result + xp*2
-	elseif unitLib.HasBuff(player, BUFF_FIVE_JINGYAN) then
-		result =  result + xp*4		
+	local playerInfo   = UnitInfo:new {ptr = player}
+	local creatureInfo = UnitInfo:new {ptr = creature}
+	local map_ptr = unitLib.GetMap(player)
+	local mapID = playerInfo:GetMapID()
+	local targetLevel = creatureInfo:GetLevel()
+	
+	local groupId = playerInfo:GetGroupId()
+	local list = {playerInfo}
+	if string.len(groupId) > 0 then
+		local groupObj = app.objMgr:getObj(groupId)
+		if groupObj then
+			list = {}
+			local playerGuidList = groupObj:GetGroupGuidList()
+			for _, pg in ipairs(playerGuidList) do
+				local player_ptr = mapLib.GetPlayerByPlayerGuid(map_ptr, pg)
+				-- 同一个地图的才能共享一个对象
+				if player_ptr then
+					playerInfo = UnitInfo:new {ptr = player_ptr}
+					if playerInfo:IsAlive() then
+						table.insert(list, playerInfo)
+					end
+				end
+			end
+		end
 	end
 	
-	--[[
-	--防沉迷部分
-	if(fcmtime ~= MAX_UINT32_NUM and fcmtime >=300) then
-		result = 0
-		vip_exp = 0
-	elseif(fcmtime ~= MAX_UINT32_NUM and fcmtime >= 180) then
-		result = result * 0.5
-		vip_exp = vip_exp * 0.5
+	local mapInfo
+	if mapID == tb_instance_group_exp[ 1 ].mapid then
+		mapInfo = Select_Instance_Script(mapID):new{ptr = map_ptr}
 	end
-	]]
 	
-	return result,vip_exp
+	local groupCnt = #list
+	-- 遍历每个玩家
+	for _, playerInfo in ipairs(list) do
+		local killerLevel = playerInfo:GetLevel()
+		-- vip 加成
+		-- TODO: VIPrate
+		local vipLevel = playerInfo:GetVIP()
+		local vipRate = tb_vip_base[vipLevel].expRate
+		
+		local itemRate = 0
+		local expBuff = tb_buff_base[1].exp
+		if unitLib.HasBuff(playerInfo.ptr, expBuff) then
+			local buffEffectId = unitLib.GetBuffLevel(playerInfo.ptr, expBuff)
+			itemRate = tb_buff_effect[buffEffectId].value
+		end
+		--[[
+		--防沉迷部分
+		if(fcmtime ~= MAX_UINT32_NUM and fcmtime >=300) then
+			result = 0
+			vip_exp = 0
+		elseif(fcmtime ~= MAX_UINT32_NUM and fcmtime >= 180) then
+			result = result * 0.5
+			vip_exp = vip_exp * 0.5
+		end
+		]]
+		result = getFinalExp(xp, targetLevel, killerLevel, vipRate, itemRate, groupCnt)
+		--outFmtDebug("------------- xp = %d result = %d killerLevel = %d targetLevel = %d groupCnt = %d", xp, result, killerLevel, targetLevel, groupCnt)
+		playerLib.AddExp(playerInfo.ptr, result)
+		local added = math.floor(tb_group_exp[ 1 ].factorA / 100 * (groupCnt - 1) + vipRate + itemRate)
+		playerInfo:call_exp_update(result, added)
+		if mapInfo then
+			mapInfo:OnPlayerAddExp(playerInfo, result)
+		end
+	end
+	-- 这里不再返回值
+	return 0, 0
 end
 
 -- 怪物初始化
@@ -2183,7 +2308,7 @@ end
 
 -- 获得avatar
 function UnitInfo:GetAvatar()
-	return self:GetUInt32(UNIT_FIELD_EQUIPMENT_COAT)
+	return self:GetUInt16(UNIT_INT_FIELD_APPEARANCE, 1)
 end
 
 -- 获得武器
@@ -2450,6 +2575,15 @@ function UnitInfo:GetRestorePotionCD()
 	return self:GetPlayerUInt32(PLAYER_INT_FIELD_RESTORE_POTION_CD)
 end
 
+function UnitInfo:GetMassBossTimes()
+	return self:GetPlayerUInt32(PLAYER_INT_FIELD_MASS_BOSS_TIMES)
+end
+
+function UnitInfo:SubMassBossTimes()
+	-- 只能去应用服同步
+	self:SubPlayerUInt32(PLAYER_INT_FIELD_MASS_BOSS_TIMES, 1)
+--	playerLib.SendToAppdDoSomething(self.ptr, SCENED_APPD_PASS_MASS_BOSS_INSTANCE, 1)
+end
 
 
 
@@ -2459,6 +2593,92 @@ end
 
 function UnitInfo:GetUnitOperateCD()
 	return self:GetUInt32(UNIT_INT_FIELD_OPERATE_CD)
+end
+
+function UnitInfo:GetDropOwner()
+	return self:GetStr(UNIT_STRING_FIELD_DROP_OWNER_GUID)
+end
+
+function UnitInfo:GetDropOwner()
+	return self:GetStr(UNIT_STRING_FIELD_DROP_OWNER_GUID)
+end
+
+function UnitInfo:clearBossDropOwner()
+	self:SetUInt32(UNIT_INT_FIELD_LAST_HURT_TIMESTAMP, 0)
+	self:SetStr(UNIT_STRING_FIELD_DROP_OWNER_GUID, '')
+	self:SetStr(UNIT_STRING_FIELD_DROP_OWNER_NAME, '')
+end
+
+function UnitInfo:onHurtByPlayer (playerInfo, id, diff)
+	local map_ptr = unitLib.GetMap(playerInfo.ptr)
+	local playerGuid = playerInfo:GetPlayerGuid()
+	local name = playerInfo:GetName()
+	local prevHitTime = self:GetUInt32(UNIT_INT_FIELD_LAST_HURT_TIMESTAMP)
+	local prevGuid = self:GetDropOwner()
+	diff = diff or 10
+	local now = os.time()
+	if string.len(prevGuid) == 0 or playerGuid == prevGuid or now > diff + prevHitTime then
+		self:SetUInt32(UNIT_INT_FIELD_LAST_HURT_TIMESTAMP, now)
+		self:SetStr(UNIT_STRING_FIELD_DROP_OWNER_GUID, playerGuid)
+		self:SetStr(UNIT_STRING_FIELD_DROP_OWNER_NAME, name)
+--		outFmtDebug("###########==== UNIT_STRING_FIELD_DROP_OWNER_NAME %s", name)
+		-- 消除以前的
+		local quest_flag = true
+		if string.len(prevGuid) > 0 then
+			local player_ptr = mapLib.GetPlayerByPlayerGuid(map_ptr, prevGuid)
+			if player_ptr then
+				local pervPlayerInfo = UnitInfo:new {ptr = player_ptr}
+				pervPlayerInfo:SetUInt32(UNIT_INT_FIELD_BOSS_OWN_FLAG, 0)
+				quest_flag = false
+			end
+		end
+		
+		-- 增加现在的
+		playerInfo:SetUInt32(UNIT_INT_FIELD_BOSS_OWN_FLAG, id)
+		if quest_flag then
+			playerLib.SendToAppdDoSomething(playerInfo.ptr, SCENED_APPD_QUEST_MASS_BOSS, 0, "")
+		end
+	end
+end
+
+function UnitInfo:CalSpeed(val)
+	local speed = GetPlayerSpeed(self:GetLevel(), self:GetMountLevel(), self:GetCurrIllusionId(), val == 1, self:GetGender())
+	self:SetMoveSpeed(speed)
+	self:SetUInt32(UNIT_FIELD_MOVE_SPEED_BASE, speed)
+	self:SetPlayerDouble(PLAYER_FIELD_MOVE_SPEED, speed)
+	self:SetRideFlag(val)
+end
+
+
+function UnitInfo:SetFabaoSpellCD(indx, now)
+	self:SetUInt32(UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_CD_START + indx, now)
+	if self:GetTypeID() == TYPEID_PLAYER then
+		self:SetUInt32(PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_CD_START + indx, now)
+	end
+end
+
+function UnitInfo:onCheckFabaoSpell(now)
+	for i = UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_START, UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_END - 1 do
+		local spellId = self:GetUInt16(i, 0)
+		if spellId > 0 then
+			local level = self:GetUInt16(i, 1)
+			local config = tb_fabaoskill[spellId]
+			if config then
+				local indx = config.indx
+				local last = self:GetUInt32(UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_CD_START + indx)
+				local uplevel_id = tb_skill_base[spellId].uplevel_id[1]
+				local levelId = uplevel_id+level-1
+				local config1 = tb_skill_uplevel[levelId]
+				if config1 then
+					if config1.dispatch_condition[ 1 ] == PASSIVE_DISPATCH_TYPE_SECONDS and 
+						now >= last + config1.dispatch_condition[ 2 ] then
+						self:SetFabaoSpellCD(indx, now)
+						PassiveRealEffect(self.ptr, nil, {spellId, level})
+					end
+				end
+			end
+		end
+	end
 end
 
 require 'scened.unit.unit_spell'

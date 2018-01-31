@@ -47,7 +47,7 @@ function ActionScenedPathfinding:Update(diff)
 			local is_canRun = mapLib.IsCanRun(self.to_mapid, self.to_x, self.to_y)
 			if(is_canRun == false)then
 				outFmtDebug("ActionScenedPathfinding:Update create pos can't run %u %u %u", self.to_mapid, self.to_x, self.to_y)
-				local pos_tab = mapLib.RandomPos(self.to_mapid,1, self.to_x, self.to_y,4)
+				local pos_tab = mapLib.RandomPos(self.to_mapid,1, self.to_x, self.to_y,0)
 				is_canRun = mapLib.IsCanRun(self.to_mapid,pos_tab[1].x,pos_tab[1].y)
 				if(is_canRun)then
 					self.to_x = pos_tab[1].x

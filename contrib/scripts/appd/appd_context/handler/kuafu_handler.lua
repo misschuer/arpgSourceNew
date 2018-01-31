@@ -1,79 +1,82 @@
 -- 3v3 匹配
 function PlayerInfo:Handle_Kuafu_3v3_Match(pkt)
-	local config = tb_kuafu3v3_base[1]
+	local config = tb_kuafu3v3_base[ 1 ]
 	
-	--local lev = self:GetLevel()
-	--outFmtDebug("Kuafu_3v3_----------------%d",lev)
 	if self:GetLevel() < config.limlev then
 		self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_LEV,config.limlev)
 		return
 	end
 	
-	if self:GetForce() < config.limforce then
-		self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_FORCE,config.limforce)
+	-- 今天是否开活动了
+	if not isLocal3V3Open(self, true) then
+		outFmtDebug("======== 3v3 not open")
+		return
+	end
+	local key = self:GetStr(PLAYER_STRING_FIELD_LOCAL_3V3_GENERALID)
+	local tf = on3v3Match(self:GetGuid(), key)
+	if tf then
+		self:call_kuafu_match_start(KUAFU_TYPE_FENGLIUZHEN)
+	end
+end
+
+-- 组队3v3 匹配
+function PlayerInfo:Handle_Kuafu_3v3_Group_Match(pkt)
+	local config = tb_kuafu3v3_base[ 1 ]
+	
+	-- 今天是否开活动了
+	if not isLocal3V3Open(self, true) then
+		--outFmtDebug("======== 3v3 not open")
 		return
 	end
 	
-	local curtime = os.time()
-	local intime = false
-	for _,v in ipairs(config.activetime) do
-		local t1 = GetTodayHMSTimestamp(v[1],v[2],0)
-		local t2 = GetTodayHMSTimestamp(v[3],v[4],0)
-		if curtime >= t1 and curtime <= t2 then
-			intime = true
-			break
-		end
-	end
-	if not intime then
-		self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_OPEN)
+	local groupId = self:GetGroupId()
+	if string.len(groupId) == 0 then
+		--outFmtDebug("======= Handle_Kuafu_3v3_Group_Match no group")
 		return
 	end
 	
-	
-	local instMgr = self:getInstanceMgr()
-	local curNum = instMgr:get3v3EnterTimes()
-	local buyNum = instMgr:get3v3BuyTimes()
-	
-	outFmtDebug("--------curNum:%d,buyNum:%d,maxnum:%d,buyNum:%d",curNum,buyNum,config.daytimes,config.daybuytimes)
-	
-	if curNum >= (buyNum + config.daytimes) then
-		
-		if buyNum < config.daybuytimes then
-			self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_TIME_BUY)
-		else
-			self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_TIME)
-		end
-	
+	local groupObj = app.objMgr:getObj(groupId)
+	if not groupObj then
+		--outFmtDebug("======= Handle_Kuafu_3v3_Group_Match no group 2")
 		return
 	end
 	
-	-- 模块没开 不让进
-	if not self:GetOpenMenuFlag(MODULE_ARENA, MODULE_ARENA_XIANMO) then
+	-- 有队伍 看看是不是队长
+	if not groupObj:IsPlayerCaptain(self:GetGuid()) then
+		--outFmtDebug("======= Handle_Kuafu_3v3_Group_Match not captain")
+		return
+	end
+	
+	-- 是否都在线
+	if not groupObj:IsFullMatch() then
+		--outFmtDebug("======= Handle_Kuafu_3v3_Group_Match not IsFullMatch")
 		return
 	end
 
-	if app:IsInKuafuTypeMatching(self:GetGuid()) then
-		self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_IN_MATCH)
-		return
+	local playerList = groupObj:GetGroupPlayerList()
+	for _, playerInfo in ipairs(playerList) do
+		if playerInfo:GetLevel() < config.limlev then
+			self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_LEV,config.limlev)
+			return
+		end
 	end
-	
-	local tf = self:OnWorld3v3Match()
-	
+	local key = self:GetStr(PLAYER_STRING_FIELD_LOCAL_3V3_GENERALID)
+	local tf = on3v3Match(groupId, key)
 	if tf then
-		self:call_kuafu_match_start(KUAFU_TYPE_FENGLIUZHEN)
-		--instMgr:add3v3EnterTimes()
+		for _, playerInfo in ipairs(playerList) do
+			playerInfo:call_kuafu_match_start(KUAFU_TYPE_FENGLIUZHEN)
+		end
 	end
-	
 end
 
 function PlayerInfo:Gm3v3EnterTimes(num)
-	outFmtDebug("Gm3v3EnterTimes %d",num)
+	--[[outFmtDebug("Gm3v3EnterTimes %d",num)
 	local instMgr = self:getInstanceMgr()	
-	instMgr:set3v3EnterTimes(num)
+	instMgr:set3v3EnterTimes(num)--]]
 end
 --3v3购买次数
 function PlayerInfo:Handle_Kuafu_3v3_BuyTimes(pkt)
-	outFmtDebug("Handle_Kuafu_3v3_BuyTimes")
+	--[[outFmtDebug("Handle_Kuafu_3v3_BuyTimes")
 	local num = pkt.num
 	
 	if num < 0 then 
@@ -95,12 +98,11 @@ function PlayerInfo:Handle_Kuafu_3v3_BuyTimes(pkt)
 		return
 	end
 	
-	instMgr:add3v3BuyTimes(num)
+	instMgr:add3v3BuyTimes(num)--]]
 	
 end
 -- 3v3 每日活跃奖励
 function PlayerInfo:Handle_Kuafu_3v3Day_Reward(pkt)
-	outFmtDebug("Handle_Kuafu_3v3Day_Reward")
 	local id = pkt.id
 	local config = tb_kuafu3v3_day_reward[id]
 	
@@ -108,25 +110,24 @@ function PlayerInfo:Handle_Kuafu_3v3Day_Reward(pkt)
 		return
 	end
 	
-	outFmtDebug("Handle_Kuafu_3v3Day_Reward2222222222")
-	
 	local instMgr = self:getInstanceMgr()
 	if instMgr:get3v3DayReward(id) == 1 then
 		self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_HAS_DAY_REWARD)
 		return
 	end
-	
-	local curNum = instMgr:get3v3EnterTimes()
+		
+	local curNum = self:GetKuafu3v3TrendInfo()
 	if curNum < config.num then
 		self:CallOptResult(OPRATE_TYPE_ATHLETICS, ATHLETICS_OPERATE_NO_DAY_REWARD,config.num)
 		return
 	end
 	
-	instMgr:set3v3DayReward(id)
+	instMgr:set3v3DayReward(id, 1)
 	
 	self:AppdAddItems(config.reward,MONEY_CHANGE_3V3KUAFU,LOG_ITEM_OPER_TYPE_3V3_KUAFU)
 	
 end
+
 --3v3排行榜
 function PlayerInfo:Handle_Kuafu_3v3_RankList(pkt)
 	local ranklist = app.kuafu_rank
@@ -168,23 +169,36 @@ function PlayerInfo:Handle_Kuafu_3v3_Match_Oper(pkt)
 	if oper ~= 0 and oper ~= 1 then
 		return
 	end
-	self:OnPrepareMatch(oper)
+	
+	onPrepareOperate(self, oper)
 end
 
 function PlayerInfo:Handle_Kuafu_3v3_Cancel_Match(pkt)
 	local type = pkt.type
 	if type == KUAFU_TYPE_FENGLIUZHEN then
-		self:OnCancelWorld3v3MatchBeforeOffline()
+		local guid = self:GetGuid()
+		local playerList = {self}
+		
+		local groupId = self:GetGroupId()
+		if string.len(groupId) > 0 then
+			local groupObj = app.objMgr:getObj(groupId)
+			if groupObj then
+				guid = groupId
+				playerList = groupObj:GetGroupPlayerList()
+			end
+		end
+		
+		for _, playerInfo in ipairs(playerList) do
+			on3v3CancelMatch(playerInfo, guid)
+		end
 	elseif type == KUAFU_TYPE_XIANFU then
 		self:OnCancelWorldXianfuMatchBeforeOffline()
 	elseif type == KUAFU_TYPE_GROUP_INSTANCE then
-		self:OnCancelGroupInstanceMatchBeforeOffline()
+		-- self:OnCancelGroupInstanceMatchBeforeOffline()
 	elseif type == MATCH_TYPE_LOCAL_SINGLE_PVP then
 		self:OnCancelLocalSinglePVPMatchBeforeOffline()
 	end
 end
-
-
 
 function PlayerInfo:Handle_Kuafu_Xianfu_Match(pkt)
 	local indx = pkt.indx
@@ -297,13 +311,13 @@ end
 function PlayerInfo:Handle_Group_Instance_Match(pkt)
 	-- 系统未激活
 	if (not self:GetOpenMenuFlag(MODULE_INSTANCE, MODULE_INSTANCE_TEAM)) then
-		outFmtInfo("==============")
+		outFmtDebug("==============")
 		return
 	end
 	local indx = pkt.indx
 	-- index是否正确
 	if not tb_group_instance_base[indx] then
-		outFmtInfo("============== 2")
+		outFmtDebug("============== 2")
 		return
 	end
 	
@@ -328,12 +342,12 @@ function PlayerInfo:Handle_Group_Instance_Match(pkt)
 		return
 	end
 	--]]
-	
+	--[[
 	local rt = self:OnGroupInstanceMatch(indx)
 	if rt then
 		-- 开始匹配
 		self:call_kuafu_match_start(KUAFU_TYPE_GROUP_INSTANCE)
-	end
+	end--]]
 end
 
 function PlayerInfo:Handle_Match_Single_PVP(pkt)

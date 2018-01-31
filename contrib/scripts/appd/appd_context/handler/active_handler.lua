@@ -69,6 +69,8 @@ function PlayerInfo:AddActiveItem(id)
 		return 
 	end
 	
+	
+	
 	local instMgr = self:getInstanceMgr()
 	local num = instMgr:getActiveNum(id)
 	
@@ -76,6 +78,38 @@ function PlayerInfo:AddActiveItem(id)
 		outFmtDebug("PlayerInfo:AddActiveItem id %d max nums",id)
 		return
 	end
+	
+	--判断星期  不填表示不限制
+	if #config.day ~= 0 then
+		local available_day = false
+		for _,i in pairs(config.day) do
+			if IsTodayWeekX(i) then
+				available_day = true
+				break
+			end
+			
+		end
+		
+		--家族战特殊
+		if config.server_open_day > 0 then
+			local startTime = getTheFirstTimestampOfDay(globalGameConfig:GetKaiFuShiJian()) + 86400 * config.server_open_day
+				
+			if os.time() < startTime then
+				outFmtDebug("PlayerInfo:AddActiveItem id %d server open day no reach",id)
+				return
+			end
+			--开服后n天强制开启
+			if os.time() < startTime + 86400 then
+				available_day = true
+			end
+		end
+	
+		if not available_day then
+			outFmtDebug("PlayerInfo:AddActiveItem id %d not available today",id)
+			return
+		end
+	end
+	
 	num = num + 1
 	instMgr:setActiveNum(id,num)
 	instMgr:addActivity(config.active)

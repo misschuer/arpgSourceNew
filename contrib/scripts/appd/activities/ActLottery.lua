@@ -41,7 +41,7 @@ function ActLottery:update(playerInfo, actId, params)
 	
 	local cnt = 1
 	-- ÅÐ¶ÏÇ®¹»²»¹»
-	if not playerInfo:useAllItems(MONEY_CHANGE_ACT_LOTTERY, {config.costs[opt]}) then
+	if not playerInfo:useAllItems(MONEY_CHANGE_ACT_LOTTERY, nil, {config.costs[opt]}) then
 		return
 	end
 	

@@ -3,7 +3,8 @@ InstanceStageQueueDouble = class("InstanceStageQueueDouble", InstanceStageBase)
 InstanceStageQueueDouble.Name = "InstanceStageQueueDouble"
 InstanceStageQueueDouble.exit_time = 10
 --Ë¢ÐÂ×ø±êÆ«ÒÆÖµ
-InstanceStageQueueDouble.RefreshOffset = 3;
+InstanceStageQueueDouble.RefreshOffset = 1;
+
 
 function InstanceStageQueueDouble:ctor(  )
 	
@@ -15,7 +16,7 @@ function InstanceStageQueueDouble:InitRes(config)
 end
 
 
-function InstanceStageQueueDouble:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceStageQueueDouble:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("zhen qi shua guai ************")
 	--local batchPos = self:GetRandomMonsterIndex(batchIdx)
 
@@ -55,31 +56,31 @@ function InstanceStageQueueDouble:ApplyRefreshMonsterBatch(player,batchIdx)
 	self:SetUInt16(REFRESH_MONSTER_FIELD_ID, 1, cnt)
 	
 	mapLib.DelTimer(self.ptr, 'OnTimer_MonsterBornOneByOne')
-	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval, player:GetPlayerGuid())
+	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval)
 	
 	return true,cnt
 end
 
-function InstanceStageQueueDouble:OnTimer_MonsterBornOneByOne(playerGuid)
+function InstanceStageQueueDouble:OnTimer_MonsterBornOneByOne()
 	local dids = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 0)
 	local need = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 1)
 	if dids >= need then
 		return false
 	end
 	
-	local player_ptr = mapLib.GetPlayerByPlayerGuid(self.ptr, playerGuid)
+
 	local indx = dids * 2 + REFRESH_MONSTER_FIELD_INFO_START
-	self:CreateMonster(player_ptr, indx)
+	self:CreateMonster( indx)
 
 	indx = indx + 2
-	self:CreateMonster(player_ptr, indx)
+	self:CreateMonster( indx)
 	
 	self:AddUInt16(REFRESH_MONSTER_FIELD_ID, 0, 2)
 	
 	return true
 end
 
-function InstanceStageQueueDouble:CreateMonster(player_ptr, indx)
+function InstanceStageQueueDouble:CreateMonster( indx)
 	local entry = self:GetUInt16(indx  , 0)
 	local level = self:GetUInt16(indx  , 1)
 	local bornX = self:GetUInt16(indx+1, 0)
@@ -89,9 +90,7 @@ function InstanceStageQueueDouble:CreateMonster(player_ptr, indx)
 			{templateid = entry, x = bornX, y = bornY, level=level, active_grid = true, 
 			ainame = "AI_stage", npcflag = {}, attackType = REACT_AGGRESSIVE})
 	
-	if player_ptr then
-		creatureLib.ModifyThreat(creature, player_ptr, self.THREAT_V)
-	end
+
 end
 
 return InstanceStageQueueDouble

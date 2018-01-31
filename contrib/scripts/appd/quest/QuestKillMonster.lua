@@ -7,7 +7,25 @@ function QuestKillMonster:ctor()
 end
 
 function QuestKillMonster:OnInit(playerInfo, start, offset)
+	local showname = ''
+	local questMgr = playerInfo:getQuestMgr()
+	local quest_ptr = questMgr.ptr
+	local questId = binLogLib.GetUInt16(quest_ptr, start + QUEST_INFO_ID, 0)
+	local mode = tb_quest[questId].targets[offset+1][ 2 ]
 	
+	if mode == 0 then
+		showname = '小怪'
+	elseif tb_creature_template[mode] then
+		showname = tb_creature_template[mode].name
+		
+		for i ,info in pairs(tb_private_boss_info) do
+			if info.bossEntry == mode then
+				if playerInfo:GetBit(PLAYER_INT_FIELD_PRIVATE_BOSS_FLAG,i) then
+					return self:OnUpdateModeObjectTimes(playerInfo, start, offset, {mode})
+				end
+			end
+		end
+	end
 end
 
 -- 获得目标值

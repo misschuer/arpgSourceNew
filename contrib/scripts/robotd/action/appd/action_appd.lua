@@ -11,7 +11,7 @@ end
 function ActionAppd:Initialize(...)
 	self:RegOpcodeHandler(SMSG_OPERATION_FAILED, self.HandlerOperationFailed)
 	
-	self:AddTimer("RobotRank", self.player.SendRobotRank, 1000, self.player)
+	self:AddTimer("RobotRank", self.player.SendRobotRank, 10000, self.player)
 --[[	self:AddTimer("RobotAppearance", self.player.SendRobotAppearance, 5000, self.player)
 	self:AddTimer("RobotRide", self.player.SendRide, 8000, self.player)--]]
 	

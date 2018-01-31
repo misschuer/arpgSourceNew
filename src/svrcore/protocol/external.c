@@ -393,6 +393,43 @@ char* OpcodeName[NUM_MSG_TYPES+1] = {
     "SMSG_SHOW_LOOT_ANIMATE",
     "CMSG_ENTER_STAGE_INSTANCE",
     "CMSG_PICK_STAGE_INSTANCE_BONUS",
+    "CMSG_ENTER_GROUP_EXP",
+    "SMSG_CHECK_FOR_GROUP_ENTER",
+    "CMSG_SELECT_GROUP_ENTER",
+    "CMSG_BUY_GROUP_EXP_TIMES",
+    "CMSG_BUY_INSPIRATION",
+    "CMSG_ENTER_FACTION_MATCH_MAP",
+    "CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD",
+    "CMSG_QUERY_FACTION_MATCH_INFO",
+    "SMSG_SHOW_FACTION_MATCH_INFO_LIST",
+    "CMSG_PICK_RES_INSTANCE_FIRST_REWARD",
+    "CMSG_GROUP_SEND_INVITE",
+    "SMSG_SHOW_GROUP_INVITE",
+    "CMSG_GROUP_AGREE_INVITE",
+    "CMSG_GET_GROUP_SEARCH_INFO_LIST",
+    "SMSG_SHOW_GROUP_SEARCH_INFO_LIST",
+    "CMSG_GROUP_CHANGE_CONFIG",
+    "SMSG_SHOW_GROUP_JOIN_REQUEST",
+    "CMSG_GROUP_JOIN_DENIED",
+    "CMSG_GROUP_INVITE_DENIED",
+    "CMSG_TALISMAN_EQUIP",
+    "CMSG_TALISMAN_UNEQUIP",
+    "SMSG_FULLIZE_HP",
+    "CMSG_AUTO_GROUP_MATCH",
+    "CMSG_CANCEL_AUTO_GROUP_MATCH",
+    "CMSG_KUAFU_3V3_GROUP_MATCH",
+    "CMSG_BOOKING_MONEY",
+    "SMSG_BOOKING_MONEY_RESULT",
+    "CMSG_ONE_STEP_ROBOT_UP",
+    "CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD",
+    "CMSG_USE_GIFTCODE",
+    "SMSG_SHOW_GIFTCODE_REWARD_LIST",
+    "CMSG_LOTTERY_RECHARGE",
+    "SMSG_LOTTERY_RECHARGE_RESULT",
+    "SMSG_SHOW_CAST_REMAIN_SKILL",
+    "SMSG_AFTER_CREATE_ROLE",
+    "CMSG_BOOKING_GAME2_MONEY",
+    "SMSG_BOOKING_GAME2_MONEY_RESULT",
 "NUM_MSG_TYPES"
 };
 
@@ -1814,25 +1851,22 @@ int   unpack_combat_state_update (packet *src ,uint8 *cur_state)
 	return ret;
 }
 /*经验更新*/
-int   pack_exp_update (packet**dst ,int32 exp,uint8 type,int32 vip_exp)
+int   pack_exp_update (packet**dst ,int32 exp,uint8 added)
 {
 	*dst = external_protocol_new_packet(SMSG_EXP_UPDATE);
 	ASSERT((*dst)->head->optcode == SMSG_EXP_UPDATE);	
 	packet_write(*dst,(char *)&exp,sizeof(int32));
-	packet_write(*dst,(char *)&type,sizeof(uint8));
-	packet_write(*dst,(char *)&vip_exp,sizeof(int32));
+	packet_write(*dst,(char *)&added,sizeof(uint8));
 		
 	update_packet_len(*dst);
 	return 0;	
 }
-int   unpack_exp_update (packet *src ,int32 *exp,uint8 *type,int32 *vip_exp)
+int   unpack_exp_update (packet *src ,int32 *exp,uint8 *added)
 {	
 	int ret=0;
 	ret = packet_read(src,(char*)(exp),sizeof(int32));
 	if(ret) return -1;
-	ret = packet_read(src,(char*)(type),sizeof(uint8));
-	if(ret) return -1;
-	ret = packet_read(src,(char*)(vip_exp),sizeof(int32));
+	ret = packet_read(src,(char*)(added),sizeof(uint8));
 	if(ret) return -1;
 	return ret;
 }
@@ -3191,14 +3225,22 @@ int   unpack_illusion_mount (packet *src ,uint16 *illuId)
 	if(ret) return -1;
 	return ret;
 }
-/*申请骑乘*/
-int   pack_ride_mount (packet**dst )
+/*坐骑骑乘操作*/
+int   pack_ride_mount (packet**dst ,uint8 oper)
 {
 	*dst = external_protocol_new_packet(CMSG_RIDE_MOUNT);
 	ASSERT((*dst)->head->optcode == CMSG_RIDE_MOUNT);	
+	packet_write(*dst,(char *)&oper,sizeof(uint8));
 		
 	update_packet_len(*dst);
 	return 0;	
+}
+int   unpack_ride_mount (packet *src ,uint8 *oper)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(oper),sizeof(uint8));
+	if(ret) return -1;
+	return ret;
 }
 /*grid中的unit跳跃*/
 int   pack_grid_unit_jump (packet**dst )
@@ -5361,7 +5403,7 @@ int   pack_pick_offline_reward (packet**dst )
 	return 0;	
 }
 /*离线奖励结果*/
-int   pack_offline_reward_result (packet**dst ,uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4, item_reward_info *list , uint16 len_5)
+int   pack_offline_reward_result (packet**dst ,uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,uint32 reserve5, item_reward_info *list , uint16 len_6)
 {
 	*dst = external_protocol_new_packet(SMSG_OFFLINE_REWARD_RESULT);
 	ASSERT((*dst)->head->optcode == SMSG_OFFLINE_REWARD_RESULT);	
@@ -5369,13 +5411,14 @@ int   pack_offline_reward_result (packet**dst ,uint32 reserve,uint32 reserve2,ui
 	packet_write(*dst,(char *)&reserve2,sizeof(uint32));
 	packet_write(*dst,(char *)&reserve3,sizeof(uint32));
 	packet_write(*dst,(char *)&reserve4,sizeof(uint32));
-	packet_write(*dst,(char *)&len_5, sizeof(uint16));
-	packet_write(*dst,(char *)list, sizeof(item_reward_info) * len_5);
+	packet_write(*dst,(char *)&reserve5,sizeof(uint32));
+	packet_write(*dst,(char *)&len_6, sizeof(uint16));
+	packet_write(*dst,(char *)list, sizeof(item_reward_info) * len_6);
 		
 	update_packet_len(*dst);
 	return 0;	
 }
-int   unpack_offline_reward_result (packet *src ,uint32 *reserve,uint32 *reserve2,uint32 *reserve3,uint32 *reserve4, item_reward_info **list , uint16 *len_5)
+int   unpack_offline_reward_result (packet *src ,uint32 *reserve,uint32 *reserve2,uint32 *reserve3,uint32 *reserve4,uint32 *reserve5, item_reward_info **list , uint16 *len_6)
 {	
 	int ret=0;
 	ret = packet_read(src,(char*)(reserve),sizeof(uint32));
@@ -5386,10 +5429,12 @@ int   unpack_offline_reward_result (packet *src ,uint32 *reserve,uint32 *reserve
 	if(ret) return -1;
 	ret = packet_read(src,(char*)(reserve4),sizeof(uint32));
 	if(ret) return -1;
-	ret = packet_read(src,(char*)len_5,sizeof(uint16));
+	ret = packet_read(src,(char*)(reserve5),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)len_6,sizeof(uint16));
 	if(ret) return -1;
 	*list = (item_reward_info *)(src->content+src->rpos);
-	src->rpos += sizeof(item_reward_info) * (*len_5);
+	src->rpos += sizeof(item_reward_info) * (*len_6);
 	if(src->rpos > src->wpos) return -1;
 	return ret;
 }
@@ -5807,19 +5852,22 @@ int   unpack_buy_mass_boss_times (packet *src ,uint8 *cnt)
 	return ret;
 }
 /*组队副本跨服匹配*/
-int   pack_group_instance_match (packet**dst ,uint8 indx)
+int   pack_group_instance_match (packet**dst ,uint8 indx,uint8 isGroup)
 {
 	*dst = external_protocol_new_packet(CMSG_GROUP_INSTANCE_MATCH);
 	ASSERT((*dst)->head->optcode == CMSG_GROUP_INSTANCE_MATCH);	
 	packet_write(*dst,(char *)&indx,sizeof(uint8));
+	packet_write(*dst,(char *)&isGroup,sizeof(uint8));
 		
 	update_packet_len(*dst);
 	return 0;	
 }
-int   unpack_group_instance_match (packet *src ,uint8 *indx)
+int   unpack_group_instance_match (packet *src ,uint8 *indx,uint8 *isGroup)
 {	
 	int ret=0;
 	ret = packet_read(src,(char*)(indx),sizeof(uint8));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(isGroup),sizeof(uint8));
 	if(ret) return -1;
 	return ret;
 }
@@ -6730,13 +6778,30 @@ int   pack_pick_realmbreak_daily_reward (packet**dst )
 	return 0;	
 }
 /*创建队伍*/
-int   pack_group_create (packet**dst )
+int   pack_group_create (packet**dst ,uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag)
 {
 	*dst = external_protocol_new_packet(CMSG_GROUP_CREATE);
 	ASSERT((*dst)->head->optcode == CMSG_GROUP_CREATE);	
+	packet_write(*dst,(char *)&type,sizeof(uint32));
+	packet_write(*dst,(char *)&min_lev,sizeof(uint32));
+	packet_write(*dst,(char *)&max_lev,sizeof(uint32));
+	packet_write(*dst,(char *)&auto_flag,sizeof(uint32));
 		
 	update_packet_len(*dst);
 	return 0;	
+}
+int   unpack_group_create (packet *src ,uint32 *type,uint32 *min_lev,uint32 *max_lev,uint32 *auto_flag)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(type),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(min_lev),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(max_lev),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(auto_flag),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
 }
 /*申请加入队伍*/
 int   pack_group_join_request (packet**dst ,char const*guid)
@@ -6782,36 +6847,36 @@ int   pack_group_quit (packet**dst )
 	return 0;	
 }
 /*移交队伍队长*/
-int   pack_group_give_captain (packet**dst ,char const*guid)
+int   pack_group_give_captain (packet**dst ,uint32 index)
 {
 	*dst = external_protocol_new_packet(CMSG_GROUP_GIVE_CAPTAIN);
 	ASSERT((*dst)->head->optcode == CMSG_GROUP_GIVE_CAPTAIN);	
-	packet_write_str(*dst,guid);		
+	packet_write(*dst,(char *)&index,sizeof(uint32));
 		
 	update_packet_len(*dst);
 	return 0;	
 }
-int   unpack_group_give_captain (packet *src ,char **guid)
+int   unpack_group_give_captain (packet *src ,uint32 *index)
 {	
 	int ret=0;
-	ret = packet_read_str(src,guid);
+	ret = packet_read(src,(char*)(index),sizeof(uint32));
 	if(ret) return -1;
 	return ret;
 }
 /*踢队员*/
-int   pack_group_kick (packet**dst ,char const*guid)
+int   pack_group_kick (packet**dst ,uint32 index)
 {
 	*dst = external_protocol_new_packet(CMSG_GROUP_KICK);
 	ASSERT((*dst)->head->optcode == CMSG_GROUP_KICK);	
-	packet_write_str(*dst,guid);		
+	packet_write(*dst,(char *)&index,sizeof(uint32));
 		
 	update_packet_len(*dst);
 	return 0;	
 }
-int   unpack_group_kick (packet *src ,char **guid)
+int   unpack_group_kick (packet *src ,uint32 *index)
 {	
 	int ret=0;
-	ret = packet_read_str(src,guid);
+	ret = packet_read(src,(char*)(index),sizeof(uint32));
 	if(ret) return -1;
 	return ret;
 }
@@ -6855,6 +6920,701 @@ int   unpack_pick_stage_instance_bonus (packet *src ,uint32 *id)
 {	
 	int ret=0;
 	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*进入组队副本*/
+int   pack_enter_group_exp (packet**dst ,uint8 isGroup)
+{
+	*dst = external_protocol_new_packet(CMSG_ENTER_GROUP_EXP);
+	ASSERT((*dst)->head->optcode == CMSG_ENTER_GROUP_EXP);	
+	packet_write(*dst,(char *)&isGroup,sizeof(uint8));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_enter_group_exp (packet *src ,uint8 *isGroup)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(isGroup),sizeof(uint8));
+	if(ret) return -1;
+	return ret;
+}
+/*队长通知进入某副本*/
+int   pack_check_for_group_enter (packet**dst ,uint32 instSubType)
+{
+	*dst = external_protocol_new_packet(SMSG_CHECK_FOR_GROUP_ENTER);
+	ASSERT((*dst)->head->optcode == SMSG_CHECK_FOR_GROUP_ENTER);	
+	packet_write(*dst,(char *)&instSubType,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_check_for_group_enter (packet *src ,uint32 *instSubType)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(instSubType),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*队伍成员选择AorD*/
+int   pack_select_group_enter (packet**dst ,uint8 choise)
+{
+	*dst = external_protocol_new_packet(CMSG_SELECT_GROUP_ENTER);
+	ASSERT((*dst)->head->optcode == CMSG_SELECT_GROUP_ENTER);	
+	packet_write(*dst,(char *)&choise,sizeof(uint8));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_select_group_enter (packet *src ,uint8 *choise)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(choise),sizeof(uint8));
+	if(ret) return -1;
+	return ret;
+}
+/*经验副本次数购买*/
+int   pack_buy_group_exp_times (packet**dst ,uint8 count)
+{
+	*dst = external_protocol_new_packet(CMSG_BUY_GROUP_EXP_TIMES);
+	ASSERT((*dst)->head->optcode == CMSG_BUY_GROUP_EXP_TIMES);	
+	packet_write(*dst,(char *)&count,sizeof(uint8));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_buy_group_exp_times (packet *src ,uint8 *count)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(count),sizeof(uint8));
+	if(ret) return -1;
+	return ret;
+}
+/*购买鼓舞*/
+int   pack_buy_inspiration (packet**dst ,uint8 category)
+{
+	*dst = external_protocol_new_packet(CMSG_BUY_INSPIRATION);
+	ASSERT((*dst)->head->optcode == CMSG_BUY_INSPIRATION);	
+	packet_write(*dst,(char *)&category,sizeof(uint8));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_buy_inspiration (packet *src ,uint8 *category)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(category),sizeof(uint8));
+	if(ret) return -1;
+	return ret;
+}
+/*家族战进入*/
+int   pack_enter_faction_match_map (packet**dst )
+{
+	*dst = external_protocol_new_packet(CMSG_ENTER_FACTION_MATCH_MAP);
+	ASSERT((*dst)->head->optcode == CMSG_ENTER_FACTION_MATCH_MAP);	
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+/*领取家族战盟主每日奖励*/
+int   pack_pick_faction_match_champion_daily_reward (packet**dst )
+{
+	*dst = external_protocol_new_packet(CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD);
+	ASSERT((*dst)->head->optcode == CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD);	
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+/*请求家族战榜单*/
+int   pack_query_faction_match_info (packet**dst )
+{
+	*dst = external_protocol_new_packet(CMSG_QUERY_FACTION_MATCH_INFO);
+	ASSERT((*dst)->head->optcode == CMSG_QUERY_FACTION_MATCH_INFO);	
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+/*返回家族战榜单*/
+int   pack_show_faction_match_info_list (packet**dst , faction_match_info *list , uint16 len_1)
+{
+	*dst = external_protocol_new_packet(SMSG_SHOW_FACTION_MATCH_INFO_LIST);
+	ASSERT((*dst)->head->optcode == SMSG_SHOW_FACTION_MATCH_INFO_LIST);	
+	packet_write(*dst,(char *)&len_1, sizeof(uint16));
+	packet_write(*dst,(char *)list, sizeof(faction_match_info) * len_1);
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_show_faction_match_info_list (packet *src , faction_match_info **list , uint16 *len_1)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)len_1,sizeof(uint16));
+	if(ret) return -1;
+	*list = (faction_match_info *)(src->content+src->rpos);
+	src->rpos += sizeof(faction_match_info) * (*len_1);
+	if(src->rpos > src->wpos) return -1;
+	return ret;
+}
+/*领取资源副本首次通关奖励*/
+int   pack_pick_res_instance_first_reward (packet**dst ,uint32 id)
+{
+	*dst = external_protocol_new_packet(CMSG_PICK_RES_INSTANCE_FIRST_REWARD);
+	ASSERT((*dst)->head->optcode == CMSG_PICK_RES_INSTANCE_FIRST_REWARD);	
+	packet_write(*dst,(char *)&id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_pick_res_instance_first_reward (packet *src ,uint32 *id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*发送组队邀请*/
+int   pack_group_send_invite (packet**dst ,char const*guid)
+{
+	*dst = external_protocol_new_packet(CMSG_GROUP_SEND_INVITE);
+	ASSERT((*dst)->head->optcode == CMSG_GROUP_SEND_INVITE);	
+	packet_write_str(*dst,guid);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_group_send_invite (packet *src ,char **guid)
+{	
+	int ret=0;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	return ret;
+}
+/*显示组队邀请*/
+int   pack_show_group_invite (packet**dst ,char const*guid,char const*name,uint32 type,uint32 level,double force,char const*sender_guid)
+{
+	*dst = external_protocol_new_packet(SMSG_SHOW_GROUP_INVITE);
+	ASSERT((*dst)->head->optcode == SMSG_SHOW_GROUP_INVITE);	
+	packet_write_str(*dst,guid);		
+	packet_write_str(*dst,name);		
+	packet_write(*dst,(char *)&type,sizeof(uint32));
+	packet_write(*dst,(char *)&level,sizeof(uint32));
+	packet_write(*dst,(char *)&force,sizeof(double));
+	packet_write_str(*dst,sender_guid);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_show_group_invite (packet *src ,char **guid,char **name,uint32 *type,uint32 *level,double *force,char **sender_guid)
+{	
+	int ret=0;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	ret = packet_read_str(src,name);
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(type),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(level),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(force),sizeof(double));
+	if(ret) return -1;
+	ret = packet_read_str(src,sender_guid);
+	if(ret) return -1;
+	return ret;
+}
+/*同意组队邀请*/
+int   pack_group_agree_invite (packet**dst ,char const*guid,char const*sendGuid)
+{
+	*dst = external_protocol_new_packet(CMSG_GROUP_AGREE_INVITE);
+	ASSERT((*dst)->head->optcode == CMSG_GROUP_AGREE_INVITE);	
+	packet_write_str(*dst,guid);		
+	packet_write_str(*dst,sendGuid);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_group_agree_invite (packet *src ,char **guid,char **sendGuid)
+{	
+	int ret=0;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	ret = packet_read_str(src,sendGuid);
+	if(ret) return -1;
+	return ret;
+}
+/*便捷组队队伍列表*/
+int   pack_get_group_search_info_list (packet**dst ,uint32 type)
+{
+	*dst = external_protocol_new_packet(CMSG_GET_GROUP_SEARCH_INFO_LIST);
+	ASSERT((*dst)->head->optcode == CMSG_GET_GROUP_SEARCH_INFO_LIST);	
+	packet_write(*dst,(char *)&type,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_get_group_search_info_list (packet *src ,uint32 *type)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(type),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*返回便捷组队队伍列表*/
+int   pack_show_group_search_info_list (packet**dst , group_search_info *list , uint16 len_1)
+{
+	*dst = external_protocol_new_packet(SMSG_SHOW_GROUP_SEARCH_INFO_LIST);
+	ASSERT((*dst)->head->optcode == SMSG_SHOW_GROUP_SEARCH_INFO_LIST);	
+	packet_write(*dst,(char *)&len_1, sizeof(uint16));
+	packet_write(*dst,(char *)list, sizeof(group_search_info) * len_1);
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_show_group_search_info_list (packet *src , group_search_info **list , uint16 *len_1)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)len_1,sizeof(uint16));
+	if(ret) return -1;
+	*list = (group_search_info *)(src->content+src->rpos);
+	src->rpos += sizeof(group_search_info) * (*len_1);
+	if(src->rpos > src->wpos) return -1;
+	return ret;
+}
+/*修改组队设置*/
+int   pack_group_change_config (packet**dst ,uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag)
+{
+	*dst = external_protocol_new_packet(CMSG_GROUP_CHANGE_CONFIG);
+	ASSERT((*dst)->head->optcode == CMSG_GROUP_CHANGE_CONFIG);	
+	packet_write(*dst,(char *)&type,sizeof(uint32));
+	packet_write(*dst,(char *)&min_lev,sizeof(uint32));
+	packet_write(*dst,(char *)&max_lev,sizeof(uint32));
+	packet_write(*dst,(char *)&auto_flag,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_group_change_config (packet *src ,uint32 *type,uint32 *min_lev,uint32 *max_lev,uint32 *auto_flag)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(type),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(min_lev),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(max_lev),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(auto_flag),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*显示玩家入队申请*/
+int   pack_show_group_join_request (packet**dst ,char const*guid,char const*name,uint32 gender,uint32 level,uint32 vip,double force)
+{
+	*dst = external_protocol_new_packet(SMSG_SHOW_GROUP_JOIN_REQUEST);
+	ASSERT((*dst)->head->optcode == SMSG_SHOW_GROUP_JOIN_REQUEST);	
+	packet_write_str(*dst,guid);		
+	packet_write_str(*dst,name);		
+	packet_write(*dst,(char *)&gender,sizeof(uint32));
+	packet_write(*dst,(char *)&level,sizeof(uint32));
+	packet_write(*dst,(char *)&vip,sizeof(uint32));
+	packet_write(*dst,(char *)&force,sizeof(double));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_show_group_join_request (packet *src ,char **guid,char **name,uint32 *gender,uint32 *level,uint32 *vip,double *force)
+{	
+	int ret=0;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	ret = packet_read_str(src,name);
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(gender),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(level),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(vip),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(force),sizeof(double));
+	if(ret) return -1;
+	return ret;
+}
+/*拒绝加入队伍*/
+int   pack_group_join_denied (packet**dst ,char const*guid)
+{
+	*dst = external_protocol_new_packet(CMSG_GROUP_JOIN_DENIED);
+	ASSERT((*dst)->head->optcode == CMSG_GROUP_JOIN_DENIED);	
+	packet_write_str(*dst,guid);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_group_join_denied (packet *src ,char **guid)
+{	
+	int ret=0;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	return ret;
+}
+/*拒绝邀请*/
+int   pack_group_invite_denied (packet**dst ,char const*guid)
+{
+	*dst = external_protocol_new_packet(CMSG_GROUP_INVITE_DENIED);
+	ASSERT((*dst)->head->optcode == CMSG_GROUP_INVITE_DENIED);	
+	packet_write_str(*dst,guid);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_group_invite_denied (packet *src ,char **guid)
+{	
+	int ret=0;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	return ret;
+}
+/*装备法宝*/
+int   pack_talisman_equip (packet**dst ,uint32 id)
+{
+	*dst = external_protocol_new_packet(CMSG_TALISMAN_EQUIP);
+	ASSERT((*dst)->head->optcode == CMSG_TALISMAN_EQUIP);	
+	packet_write(*dst,(char *)&id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_talisman_equip (packet *src ,uint32 *id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*卸下法宝*/
+int   pack_talisman_unequip (packet**dst ,uint32 slot_id)
+{
+	*dst = external_protocol_new_packet(CMSG_TALISMAN_UNEQUIP);
+	ASSERT((*dst)->head->optcode == CMSG_TALISMAN_UNEQUIP);	
+	packet_write(*dst,(char *)&slot_id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_talisman_unequip (packet *src ,uint32 *slot_id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(slot_id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*回满血*/
+int   pack_fullize_hp (packet**dst ,char const*guid)
+{
+	*dst = external_protocol_new_packet(SMSG_FULLIZE_HP);
+	ASSERT((*dst)->head->optcode == SMSG_FULLIZE_HP);	
+	packet_write_str(*dst,guid);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_fullize_hp (packet *src ,char **guid)
+{	
+	int ret=0;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	return ret;
+}
+/*自动匹配*/
+int   pack_auto_group_match (packet**dst ,uint32 targetType)
+{
+	*dst = external_protocol_new_packet(CMSG_AUTO_GROUP_MATCH);
+	ASSERT((*dst)->head->optcode == CMSG_AUTO_GROUP_MATCH);	
+	packet_write(*dst,(char *)&targetType,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_auto_group_match (packet *src ,uint32 *targetType)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(targetType),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*取消自动匹配*/
+int   pack_cancel_auto_group_match (packet**dst )
+{
+	*dst = external_protocol_new_packet(CMSG_CANCEL_AUTO_GROUP_MATCH);
+	ASSERT((*dst)->head->optcode == CMSG_CANCEL_AUTO_GROUP_MATCH);	
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+/*组队3v3跨服匹配*/
+int   pack_kuafu_3v3_group_match (packet**dst )
+{
+	*dst = external_protocol_new_packet(CMSG_KUAFU_3V3_GROUP_MATCH);
+	ASSERT((*dst)->head->optcode == CMSG_KUAFU_3V3_GROUP_MATCH);	
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+/*记录购买订单*/
+int   pack_booking_money (packet**dst ,char const*orderid,char const*goodsname,char const*money1,uint32 goodsnum)
+{
+	*dst = external_protocol_new_packet(CMSG_BOOKING_MONEY);
+	ASSERT((*dst)->head->optcode == CMSG_BOOKING_MONEY);	
+	packet_write_str(*dst,orderid);		
+	packet_write_str(*dst,goodsname);		
+	packet_write_str(*dst,money1);		
+	packet_write(*dst,(char *)&goodsnum,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_booking_money (packet *src ,char **orderid,char **goodsname,char **money1,uint32 *goodsnum)
+{	
+	int ret=0;
+	ret = packet_read_str(src,orderid);
+	if(ret) return -1;
+	ret = packet_read_str(src,goodsname);
+	if(ret) return -1;
+	ret = packet_read_str(src,money1);
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(goodsnum),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*记录购买订单成功*/
+int   pack_booking_money_result (packet**dst ,char const*orderid,uint8 result)
+{
+	*dst = external_protocol_new_packet(SMSG_BOOKING_MONEY_RESULT);
+	ASSERT((*dst)->head->optcode == SMSG_BOOKING_MONEY_RESULT);	
+	packet_write_str(*dst,orderid);		
+	packet_write(*dst,(char *)&result,sizeof(uint8));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_booking_money_result (packet *src ,char **orderid,uint8 *result)
+{	
+	int ret=0;
+	ret = packet_read_str(src,orderid);
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(result),sizeof(uint8));
+	if(ret) return -1;
+	return ret;
+}
+/*一键机器人强化*/
+int   pack_one_step_robot_up (packet**dst ,uint32 id)
+{
+	*dst = external_protocol_new_packet(CMSG_ONE_STEP_ROBOT_UP);
+	ASSERT((*dst)->head->optcode == CMSG_ONE_STEP_ROBOT_UP);	
+	packet_write(*dst,(char *)&id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_one_step_robot_up (packet *src ,uint32 *id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*领取7日充值额外奖励*/
+int   pack_get_seven_day_recharge_extra_reward (packet**dst ,uint32 id)
+{
+	*dst = external_protocol_new_packet(CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD);
+	ASSERT((*dst)->head->optcode == CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD);	
+	packet_write(*dst,(char *)&id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_get_seven_day_recharge_extra_reward (packet *src ,uint32 *id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*使用兑换码*/
+int   pack_use_giftcode (packet**dst ,char const*giftcode)
+{
+	*dst = external_protocol_new_packet(CMSG_USE_GIFTCODE);
+	ASSERT((*dst)->head->optcode == CMSG_USE_GIFTCODE);	
+	packet_write_str(*dst,giftcode);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_use_giftcode (packet *src ,char **giftcode)
+{	
+	int ret=0;
+	ret = packet_read_str(src,giftcode);
+	if(ret) return -1;
+	return ret;
+}
+/*显示兑换结果*/
+int   pack_show_giftcode_reward_list (packet**dst , item_reward_info *list , uint16 len_1)
+{
+	*dst = external_protocol_new_packet(SMSG_SHOW_GIFTCODE_REWARD_LIST);
+	ASSERT((*dst)->head->optcode == SMSG_SHOW_GIFTCODE_REWARD_LIST);	
+	packet_write(*dst,(char *)&len_1, sizeof(uint16));
+	packet_write(*dst,(char *)list, sizeof(item_reward_info) * len_1);
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_show_giftcode_reward_list (packet *src , item_reward_info **list , uint16 *len_1)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)len_1,sizeof(uint16));
+	if(ret) return -1;
+	*list = (item_reward_info *)(src->content+src->rpos);
+	src->rpos += sizeof(item_reward_info) * (*len_1);
+	if(src->rpos > src->wpos) return -1;
+	return ret;
+}
+/*转盘抽奖*/
+int   pack_lottery_recharge (packet**dst )
+{
+	*dst = external_protocol_new_packet(CMSG_LOTTERY_RECHARGE);
+	ASSERT((*dst)->head->optcode == CMSG_LOTTERY_RECHARGE);	
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+/*转盘抽奖结果*/
+int   pack_lottery_recharge_result (packet**dst ,uint8 indx)
+{
+	*dst = external_protocol_new_packet(SMSG_LOTTERY_RECHARGE_RESULT);
+	ASSERT((*dst)->head->optcode == SMSG_LOTTERY_RECHARGE_RESULT);	
+	packet_write(*dst,(char *)&indx,sizeof(uint8));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_lottery_recharge_result (packet *src ,uint8 *indx)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(indx),sizeof(uint8));
+	if(ret) return -1;
+	return ret;
+}
+/*通知前端释放了持续技能*/
+int   pack_show_cast_remain_skill (packet**dst ,uint32 id)
+{
+	*dst = external_protocol_new_packet(SMSG_SHOW_CAST_REMAIN_SKILL);
+	ASSERT((*dst)->head->optcode == SMSG_SHOW_CAST_REMAIN_SKILL);	
+	packet_write(*dst,(char *)&id,sizeof(uint32));
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_show_cast_remain_skill (packet *src ,uint32 *id)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(id),sizeof(uint32));
+	if(ret) return -1;
+	return ret;
+}
+/*角色创建完*/
+int   pack_after_create_role (packet**dst ,char const*serverId,char const*guid,char const*nickname)
+{
+	*dst = external_protocol_new_packet(SMSG_AFTER_CREATE_ROLE);
+	ASSERT((*dst)->head->optcode == SMSG_AFTER_CREATE_ROLE);	
+	packet_write_str(*dst,serverId);		
+	packet_write_str(*dst,guid);		
+	packet_write_str(*dst,nickname);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_after_create_role (packet *src ,char **serverId,char **guid,char **nickname)
+{	
+	int ret=0;
+	ret = packet_read_str(src,serverId);
+	if(ret) return -1;
+	ret = packet_read_str(src,guid);
+	if(ret) return -1;
+	ret = packet_read_str(src,nickname);
+	if(ret) return -1;
+	return ret;
+}
+/*记录购买订单*/
+int   pack_booking_game2_money (packet**dst ,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc)
+{
+	*dst = external_protocol_new_packet(CMSG_BOOKING_GAME2_MONEY);
+	ASSERT((*dst)->head->optcode == CMSG_BOOKING_GAME2_MONEY);	
+	packet_write_str(*dst,serverName);		
+	packet_write_str(*dst,cpOrderId);		
+	packet_write_str(*dst,productName);		
+	packet_write_str(*dst,productId);		
+	packet_write_str(*dst,productDesc);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_booking_game2_money (packet *src ,char **serverName,char **cpOrderId,char **productName,char **productId,char **productDesc)
+{	
+	int ret=0;
+	ret = packet_read_str(src,serverName);
+	if(ret) return -1;
+	ret = packet_read_str(src,cpOrderId);
+	if(ret) return -1;
+	ret = packet_read_str(src,productName);
+	if(ret) return -1;
+	ret = packet_read_str(src,productId);
+	if(ret) return -1;
+	ret = packet_read_str(src,productDesc);
+	if(ret) return -1;
+	return ret;
+}
+/*记录购买订单成功*/
+int   pack_booking_game2_money_result (packet**dst ,uint8 result,uint32 serverId,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc,char const*amount,char const*extend,char const*time,char const*sign)
+{
+	*dst = external_protocol_new_packet(SMSG_BOOKING_GAME2_MONEY_RESULT);
+	ASSERT((*dst)->head->optcode == SMSG_BOOKING_GAME2_MONEY_RESULT);	
+	packet_write(*dst,(char *)&result,sizeof(uint8));
+	packet_write(*dst,(char *)&serverId,sizeof(uint32));
+	packet_write_str(*dst,serverName);		
+	packet_write_str(*dst,cpOrderId);		
+	packet_write_str(*dst,productName);		
+	packet_write_str(*dst,productId);		
+	packet_write_str(*dst,productDesc);		
+	packet_write_str(*dst,amount);		
+	packet_write_str(*dst,extend);		
+	packet_write_str(*dst,time);		
+	packet_write_str(*dst,sign);		
+		
+	update_packet_len(*dst);
+	return 0;	
+}
+int   unpack_booking_game2_money_result (packet *src ,uint8 *result,uint32 *serverId,char **serverName,char **cpOrderId,char **productName,char **productId,char **productDesc,char **amount,char **extend,char **time,char **sign)
+{	
+	int ret=0;
+	ret = packet_read(src,(char*)(result),sizeof(uint8));
+	if(ret) return -1;
+	ret = packet_read(src,(char*)(serverId),sizeof(uint32));
+	if(ret) return -1;
+	ret = packet_read_str(src,serverName);
+	if(ret) return -1;
+	ret = packet_read_str(src,cpOrderId);
+	if(ret) return -1;
+	ret = packet_read_str(src,productName);
+	if(ret) return -1;
+	ret = packet_read_str(src,productId);
+	if(ret) return -1;
+	ret = packet_read_str(src,productDesc);
+	if(ret) return -1;
+	ret = packet_read_str(src,amount);
+	if(ret) return -1;
+	ret = packet_read_str(src,extend);
+	if(ret) return -1;
+	ret = packet_read_str(src,time);
+	if(ret) return -1;
+	ret = packet_read_str(src,sign);
 	if(ret) return -1;
 	return ret;
 }

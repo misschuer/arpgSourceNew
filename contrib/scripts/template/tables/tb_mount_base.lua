@@ -9,9 +9,14 @@ tb_mount_base = {
 	--  skills:array 解锁技能
 	--  trainIds:array 培养经验暴击id
 	--  speed:int 坐骑速度
-	[1] = {id = 1, mountID = 5101, skills = {11014}, trainIds = {1,2}, speed = 150},
-	[2] = {id = 2, mountID = 5102, skills = {11015}, trainIds = {1,2}, speed = 150},
-	[3] = {id = 3, mountID = 5103, skills = {11016}, trainIds = {1,2}, speed = 150},
-	[4] = {id = 4, mountID = 5104, skills = {11017}, trainIds = {1,2}, speed = 150},
-	[5] = {id = 5, mountID = 5105, skills = {11018}, trainIds = {1,2}, speed = 150},
+	[1] = {id = 1, mountID = 4101, skills = {}, trainIds = {1,2}, speed = 150},
+	[2] = {id = 2, mountID = 4102, skills = {30101}, trainIds = {1,2}, speed = 150},
+	[3] = {id = 3, mountID = 4102, skills = {}, trainIds = {1,2}, speed = 150},
+	[4] = {id = 4, mountID = 4103, skills = {30102}, trainIds = {1,2}, speed = 150},
+	[5] = {id = 5, mountID = 4103, skills = {}, trainIds = {1,2}, speed = 150},
+	[6] = {id = 6, mountID = 4103, skills = {30103}, trainIds = {1,2}, speed = 150},
+	[7] = {id = 7, mountID = 4104, skills = {}, trainIds = {1,2}, speed = 150},
+	[8] = {id = 8, mountID = 4104, skills = {30104}, trainIds = {1,2}, speed = 150},
+	[9] = {id = 9, mountID = 4104, skills = {}, trainIds = {1,2}, speed = 150},
+	[10] = {id = 10, mountID = 4105, skills = {30105}, trainIds = {1,2}, speed = 150},
 }

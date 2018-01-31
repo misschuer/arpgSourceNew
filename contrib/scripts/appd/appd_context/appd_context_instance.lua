@@ -84,8 +84,9 @@ function PlayerInfo:passTrialInstance(id)
 	end
 	-- 更新排名
 	rankInsertTask(self:GetGuid(), RANK_TYPE_TRIAL)
-	
-	self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_TRIAL_WIN,{self:GetNoticeName(),id})
+	if tb_instance_trial[id].show_notice == 1 then
+		self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_TRIAL_WIN,{self:GetNoticeName(),id})
+	end
 	self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_TRIAL_TOWER_FLOOR, {})
 end
 
@@ -114,6 +115,13 @@ function PlayerInfo:passResInstance(id)
 	
 end
 
+-- 领取首次通关关卡奖励
+function PlayerInfo:pickResInstanceFirstReward(id)
+	local instMgr = self:getInstanceMgr()
+	instMgr:onPickResInstanceFirstReward(id)
+	
+end
+
 -----------通关世界冒险-----------
 function PlayerInfo:passWorldRiskInstance(id)
 	local questMgr = self:getQuestMgr()
@@ -138,6 +146,66 @@ function PlayerInfo:sweepResInstance(id)
 	instMgr:sweepResInstance(id)
 end
 
+function makeGroupInstanceGeneralId(instSubType, param)
+	local generalId = nil
+	if instSubType == INSTANCE_SUB_TYPE_GROUP_EXP then
+		generalId = string.format("#%d#%d", param[ 1 ], os.time())
+	elseif instSubType == INSTANCE_SUB_TYPE_KUAFU_GROUP then
+		generalId = string.format("|%d|%d", param[ 1 ], os.time())
+	end
+	
+	return generalId
+end
+
+
+-- 检测能否进入组队经验副本
+function PlayerInfo:checkGroupExpMapTeleport(generalId)
+	if not self:checkGroupExpAvailable() then
+		return
+	end
+	local instMgr = self:getInstanceMgr()
+	instMgr:checkIfCanEnterGroupExp(generalId)
+end
+
+function PlayerInfo:checkGroupExpAvailable()
+	-- 系统未激活
+	if (not self:GetOpenMenuFlag(MODULE_TEAMINSTANCE, MODULE_TEAMINSTANCE_EXP)) then
+		return false
+	end
+	local instMgr = self:getInstanceMgr()
+	
+	return instMgr:GetGroupExpDailyTimes() > 0
+end
+
+function PlayerInfo:checkGroupInstanceTeleport(indx, generalId)
+	if not self:checkGroupInstanceAvailable(indx) then
+		return
+	end
+	local instMgr = self:getInstanceMgr()
+	instMgr:checkIfCanEnterGroupInstance(indx, generalId)
+end
+
+function PlayerInfo:checkGroupInstanceAvailable(indx)
+	if (not self:GetOpenMenuFlag(MODULE_INSTANCE, MODULE_INSTANCE_TEAM)) then
+		return false
+	end
+	
+	local config = tb_group_instance_base[indx]
+	local levelRange = config.limLev
+	local level = self:GetLevel()
+	if not (levelRange <= level) then
+		return false
+	end
+	
+	local instMgr = self:getInstanceMgr()
+	local count = instMgr:GetGroupInstanceChallengeCount()
+	if self:GetGroupInstanceClearFlag(indx) and count == 0 then
+		outFmtError("checkGroupInstanceAvailable ticket not enough")
+		return false
+	end
+	
+	return true
+end
 
 -----------------------------------------------------------------------------------
 --- 副本模块每日重置
@@ -256,13 +324,13 @@ function DoWorldBossTeleport(playerDict, roomInfo)
 	end
 end
 
-function PlayerInfo:checkMassBossMapTeleport(id)
+function PlayerInfo:checkMassBossMapTeleport(bossId)
 	-- 模块没开 不让进
 	if not self:GetOpenMenuFlag(MODULE_BOSS, MODULE_BOSS_RISK_BOSS) then
 		return
 	end
 	local instMgr = self:getInstanceMgr()
-	instMgr:checkIfCanEnterMassBoss(id)
+	instMgr:checkIfCanEnterMassBoss(bossId)
 end
 
 
@@ -285,6 +353,8 @@ function PlayerInfo:onPrivateBossWin(id)
 	instMgr:updatePrivateBossRecoverTime(id)
 	
 	self:AddActiveItem(VITALITY_TYPE_PRIVATE_BOSS)
+	
+	self:SetBit(PLAYER_INT_FIELD_PRIVATE_BOSS_FLAG,id)
 end
 
 
@@ -313,7 +383,7 @@ function PlayerInfo:checkStageInstanceTeleport(id)
 	
 	-- 判断等级是否足够
 	if self:GetLevel() < config.limLev then
-		outFmtError("checkStageInstanceTeleport no level to enter id = %s", id)
+		outFmtError("checkStageInstanceTeleport no level to enter id = %s  %d < %d", id , self:GetLevel(), config.limLev)
 		return
 	end
 	
@@ -353,3 +423,4 @@ function PlayerInfo:PickStageInstanceBonus(id)
 	local instMgr = self:getInstanceMgr()
 	instMgr:checkPickStageInstanceBonus(id)
 end
+

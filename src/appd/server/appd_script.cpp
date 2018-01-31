@@ -45,6 +45,7 @@ static const struct luaL_reg mylib[] = {
 	{"clearRankTask",			&LuaClearRankTask},					//清空排行榜
 	{"OnUpdateRankList",		&LuaUpdateRankList},				//更新排行榜
 	{"GetRankGuidTable",		&LuaGetRankGuidTable},				//更新排行榜
+	{"GetRankName",				&LuaGetRankName},						//更新排行榜
 	{"RankHasGuid",				&LuaRankHasGuid},					//排行榜中是否有某个GUID数据
 	{"UpdateRankLike",			&LuaUpdateRankLike},				//更新排行榜like数
 	{"mongoInsert",				&LuaMongoInsert},				//lua调用c插入数据
@@ -68,6 +69,35 @@ static const struct luaL_reg mylib[] = {
 	{"GetMatchingKuafuType",				&LuaGetMatchingKuafuType},
 	{"IsKuafuTypeMatching",					&LuaIsKuafuTypeMatching},
 	{"GetKuafuTypeMatchingArg",				&LuaGetKuafuTypeMatchingArg},
+
+	{"GroupMatchPush",						&LuaGroupMatchPush},
+	{"GroupMatchRemove",					&LuaGroupMatchRemove},
+	{"GetGroupMatchList",					&LuaGetGroupMatchList},
+
+	{"Local3v3MatchPush",					&LuaLocal3v3MatchPush},
+	{"Local3v3MatchRemove",					&LuaLocal3v3MatchRemove},
+	{"GetLocal3v3MatchList",				&LuaGetLocal3v3MatchList},
+
+	// 3v3 准备的逻辑
+	{"Local3v3PreparePush",				&LuaLocal3v3PreparePush},
+	{"Local3v3PrepareCancel",			&LuaLocal3v3PrepareCancel},
+	{"GetLocal3v3PrepareCuInfo",		&LuaGetLocal3v3PrepareCuInfo},
+	{"GetLocal3v3PrepareList",			&LuaGetLocal3v3PrepareList},
+
+	// 组队副本等待进入
+	{"InstancePreparePush",				&LuaInstancePreparePush},
+	{"InstancePrepareCancel",			&LuaInstancePrepareCancel},
+	{"GetInstancePrepareInfo",			&LuaGetInstancePrepareInfo},
+
+	{"GetPlayerGuidByOrderId",			&LuaGetPlayerGuidByOrderId},
+	{"UpdatePlayerRechargeInfo",		&LuaUpdatePlayerRechargeInfo},
+	{"GetOrderIdIsDealed",				&LuaGetOrderIdIsDealed},
+	{"GetPlayerAccountByOrderId",		&LuaGetPlayerAccountByOrderId},
+	{"CheckGiftcodeIsUsed",				&LuaCheckGiftcodeIsUsed},
+	{"AddUsedGiftcode",					&LuaAddUsedGiftcode},
+	{"ModifyGame2BookingInfo",			&LuaModifyGame2BookingInfo},
+	{"GetPlayerNameAndPayTimeByUId",	&LuaGetPlayerNameAndPayTimeByUId},
+	{"CheckUidIsDealed",				&LuaCheckUidIsDealed},
 
 	{NULL, NULL} /* sentinel */ 
 };
@@ -149,6 +179,7 @@ lua_State *__script_init(const char* path)
 	gLuaStack = new LuaStack;
 	gLuaStack->init();
 	L = gLuaStack->getLuaState();
+	//lua_checkstack(L, 1024);
 
 	//对象管理器封装接口
 	lua_open_objects_manger(L);
@@ -633,6 +664,22 @@ int LuaGetRankGuidTable(lua_State* scriptL) {
 	return 1;
 }
 
+int LuaGetRankName(lua_State* scriptL) {
+
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 2);
+	uint32 type = (uint32)LUA_TONUMBER(scriptL, 1);
+	uint32 level = (uint32)LUA_TONUMBER(scriptL, 2);
+
+	string name = RankListMgr->GetRankName((ERankTypes)type, level-1);
+	lua_pushstring(scriptL, name.c_str());
+
+	return 1;
+}
+
+
+
 //获取排行榜Guid列表
 int LuaRankHasGuid(lua_State* scriptL) {
 
@@ -992,4 +1039,390 @@ int LuaGetKuafuTypeMatchingArg(lua_State *scriptL) {
 	lua_pushnumber(scriptL, args);
 
 	return 1;
+}
+
+int LuaGroupMatchPush(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 2);
+
+	uint32 groupType = (uint32)LUA_TONUMBER(scriptL, 1);
+	string guid		 = (string)LUA_TOSTRING(scriptL, 2);
+	if (AppdApp::matchSet.find(guid) != AppdApp::matchSet.end()) {
+		return 1;
+	}
+
+	GroupMatchInfo matchInfo;
+	memset(&matchInfo, 0, sizeof(GroupMatchInfo));
+	matchInfo.timestamp = (uint32)time(NULL);
+	matchInfo.groupType = groupType;
+
+	AppdApp::matchSet.insert(guid);
+	AppdApp::groupMatchHash.insert(std::make_pair(guid, matchInfo));
+
+	return 0;
+}
+
+int LuaGroupMatchRemove(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+
+	AppdApp::matchSet.erase(guid);
+	AppdApp::groupMatchHash.erase(guid);
+
+	return 0;
+}
+
+int LuaGetGroupMatchList(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	lua_newtable(scriptL);    /* We will pass a table */
+	int i = 0;
+	for (auto it = AppdApp::matchSet.begin();it != AppdApp::matchSet.end(); ++ it) {
+		lua_pushnumber(scriptL, ++i);   /* Push the table index */
+		string guid = *it;
+		auto vv = AppdApp::groupMatchHash.find(guid);
+		if (vv != AppdApp::groupMatchHash.end()) {
+			GroupMatchInfo matchInfo = vv->second;
+			lua_newtable(scriptL);
+
+			lua_pushnumber(scriptL, 1);
+			lua_pushnumber(scriptL, matchInfo.groupType);
+			lua_rawset(scriptL, -3);
+
+			lua_pushnumber(scriptL, 2);
+			lua_pushnumber(scriptL, matchInfo.timestamp);
+			lua_rawset(scriptL, -3);
+
+			lua_pushnumber(scriptL, 3);
+			lua_pushstring(scriptL, guid.c_str());
+			lua_rawset(scriptL, -3);
+		}
+		lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+	}
+	
+	return 1;
+}
+
+
+int LuaLocal3v3MatchPush(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string guid	   = (string)LUA_TOSTRING(scriptL, 1);
+	if (AppdApp::local3v3Set.find(guid) != AppdApp::local3v3Set.end()) {
+		return 1;
+	}
+
+	AppdApp::local3v3Set.insert(guid);
+	AppdApp::local3V3Hash.insert(std::make_pair(guid, (uint32)time(NULL)));
+
+	return 0;
+}
+
+int LuaLocal3v3MatchRemove(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+
+	AppdApp::local3v3Set.erase(guid);
+	AppdApp::local3V3Hash.erase(guid);
+
+	return 0;
+}
+
+int LuaGetLocal3v3MatchList(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	lua_newtable(scriptL);    /* We will pass a table */
+	int i = 0;
+	for (auto it = AppdApp::local3v3Set.begin();it != AppdApp::local3v3Set.end(); ++ it) {
+		lua_pushnumber(scriptL, ++i);   /* Push the table index */
+		string guid = *it;
+		auto vv = AppdApp::local3V3Hash.find(guid);
+		if (vv != AppdApp::local3V3Hash.end()) {
+			uint32 timestamp = vv->second;
+			lua_newtable(scriptL);
+			
+			lua_pushnumber(scriptL, 1);
+			lua_pushnumber(scriptL, timestamp);
+			lua_rawset(scriptL, -3);
+
+			lua_pushnumber(scriptL, 2);
+			lua_pushstring(scriptL, guid.c_str());
+			lua_rawset(scriptL, -3);
+		}
+		lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+	}
+
+	return 1;
+}
+
+int LuaInstancePreparePush(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string guid			= (string)LUA_TOSTRING(scriptL, 1);
+	uint32 timestamp	= (uint32)time(NULL);
+	
+	AppdApp::instancePrepareHash.insert(std::make_pair(guid, timestamp));
+
+	return 1;
+}
+
+int LuaInstancePrepareCancel(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+
+	AppdApp::instancePrepareHash.erase(guid);
+	return 1;
+}
+
+int LuaGetInstancePrepareInfo(lua_State *scriptL) {
+
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+
+	lua_newtable(scriptL);    /* We will pass a table */
+	for (auto it = AppdApp::instancePrepareHash.begin();it != AppdApp::instancePrepareHash.end(); ++ it) {
+		string guid = it->first;
+		lua_pushstring(scriptL, guid.c_str());
+		lua_pushnumber(scriptL, it->second);
+		lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+	}
+
+	return 1;
+}
+
+
+int LuaLocal3v3PreparePush(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 3);
+
+	string key	= (string)LUA_TOSTRING(scriptL, 1);
+	string guid	= (string)LUA_TOSTRING(scriptL, 2);
+	uint8 state	= (uint8)LUA_TOINTEGER(scriptL, 3);
+	if (AppdApp::cuTimestampHash.find(key) == AppdApp::cuTimestampHash.end()) {
+		std::map<string, uint8> stateHash;
+		AppdApp::cuInfoHash.insert(std::make_pair(key, stateHash));
+		AppdApp::cuTimestampHash.insert(std::make_pair(key, (uint32)time(NULL)));
+	}
+
+	auto it = AppdApp::cuInfoHash.find(key);
+	std::map<string, uint8> &stateHash = it->second;
+	stateHash[guid] = state;
+
+	return 1;
+}
+
+int LuaLocal3v3PrepareCancel(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string key	= (string)LUA_TOSTRING(scriptL, 1);
+	AppdApp::cuInfoHash.erase(key);
+	AppdApp::cuTimestampHash.erase(key);
+
+	return 1;
+}
+
+int LuaGetLocal3v3PrepareCuInfo(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string key	= (string)LUA_TOSTRING(scriptL, 1);
+	auto cuIt = AppdApp::cuInfoHash.find(key);
+
+	if (cuIt == AppdApp::cuInfoHash.end()) {
+		return 0;
+	}
+	auto ait = AppdApp::cuTimestampHash.find(key);
+	
+	return AppdApp::getCuInfo(scriptL, cuIt->second, ait->second);
+}
+
+int LuaGetLocal3v3PrepareList(lua_State *scriptL) {
+	lua_newtable(scriptL);    /* We will pass a table */
+	for (auto it = AppdApp::cuInfoHash.begin();it != AppdApp::cuInfoHash.end(); ++ it) {
+		string key = it->first;
+		lua_pushstring(scriptL, key.c_str());
+		auto ait = AppdApp::cuTimestampHash.find(key);
+		AppdApp::getCuInfo(scriptL, it->second, ait->second);
+		lua_rawset(scriptL, -3);      /* Stores the pair in the table */
+	}
+
+	return 1;
+}
+
+int LuaGetPlayerGuidByOrderId(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string orderid	= (string)LUA_TOSTRING(scriptL, 1);
+	string guid;
+
+	LocalDBMgr.queryRechargeGuidByOrderId(orderid, guid);
+	lua_pushstring(scriptL, guid.c_str());
+	return 1;
+}
+
+int LuaUpdatePlayerRechargeInfo(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 4);
+
+	string orderid	= (string)LUA_TOSTRING(scriptL, 1);
+	string payid	= (string)LUA_TOSTRING(scriptL, 2);
+	string paytime	= (string)LUA_TOSTRING(scriptL, 3);
+	string money2	= (string)LUA_TOSTRING(scriptL, 4);
+
+	recharge_info reInfo;
+	memset(&reInfo, 0, sizeof(recharge_info));
+	strncpy(reInfo.orderid, orderid.c_str(), 49);
+	strncpy(reInfo.payid, payid.c_str(), 49);
+	strncpy(reInfo.paytime, paytime.c_str(), 49);
+	strncpy(reInfo.money2, money2.c_str(), 49);
+
+	LocalDBMgr.updateRechargeInfo(&reInfo);
+
+	return 0;
+}
+
+int LuaGetOrderIdIsDealed(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string orderid	= (string)LUA_TOSTRING(scriptL, 1);
+	
+
+	bool ret = LocalDBMgr.checkRechargeOrderIsDealed(orderid);
+	lua_pushboolean(scriptL, ret);
+	return 1;
+}
+
+int LuaCheckUidIsDealed(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string uid	= (string)LUA_TOSTRING(scriptL, 1);
+	bool ret = LocalDBMgr.checkRechargeUidIsDealed(uid);
+	lua_pushboolean(scriptL, ret);
+	return 1;
+}
+
+int LuaGetPlayerAccountByOrderId(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string orderid	= (string)LUA_TOSTRING(scriptL, 1);
+	string account;
+	string name;
+	string time;
+
+	LocalDBMgr.queryRechargeAccountByOrderId(orderid, account, name, time);
+	lua_pushstring(scriptL, account.c_str());
+	lua_pushstring(scriptL, name.c_str());
+	lua_pushstring(scriptL, time.c_str());
+	return 3;
+}
+
+int LuaCheckGiftcodeIsUsed(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+	
+	string giftcode	= (string)LUA_TOSTRING(scriptL, 1);
+
+	if ( LocalDBMgr.checkGiftcodeIsUsed(giftcode)){
+		lua_pushnumber(scriptL,1);
+	}
+	else{
+		lua_pushnumber(scriptL,0);
+	}
+
+	return 1;
+}
+
+int LuaAddUsedGiftcode(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string giftcode	= (string)LUA_TOSTRING(scriptL, 1);
+
+	giftcode_info info ;
+	memset(&info, 0, sizeof(giftcode_info));
+	strncpy(info.giftcode, giftcode.c_str(), 49);
+
+	LocalDBMgr.insertGiftcodeInfo(&info);
+
+	return 0;
+}
+
+
+int LuaModifyGame2BookingInfo(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 6);
+	
+	string guid = (string)LUA_TOSTRING(scriptL, 1);
+	string name = (string)LUA_TOSTRING(scriptL, 2);
+	string account = (string)LUA_TOSTRING(scriptL, 3);
+	string orderid = (string)LUA_TOSTRING(scriptL, 4);
+	string payid = (string)LUA_TOSTRING(scriptL, 5);
+	string paytime = (string)LUA_TOSTRING(scriptL, 6);
+
+	recharge_info reInfo;
+	memset(&reInfo, 0, sizeof(recharge_info));
+	strncpy(reInfo.guid, guid.c_str(), 49);
+	strncpy(reInfo.orderid, orderid.c_str(), 49);
+	strncpy(reInfo.account, account.c_str(), 49);
+	strncpy(reInfo.name, name.c_str(), 49);
+	strncpy(reInfo.paytime, paytime.c_str(), 49);
+	strncpy(reInfo.payid, payid.c_str(), 49);
+
+	// 通过payid是不是空来判断是否是插入
+	if (reInfo.payid[ 0 ] == 0) {
+		if (LocalDBMgr.insertRechargeInfo(&reInfo)) {
+			return 1;
+		}
+	} else {
+		if (LocalDBMgr.updateRechargeInfo(&reInfo)) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int LuaGetPlayerNameAndPayTimeByUId(lua_State *scriptL) {
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+	ASSERT(n == 1);
+
+	string uid = (string)LUA_TOSTRING(scriptL, 1);
+	string name = "";
+	string paytime = "";
+	string guid = "";
+	LocalDBMgr.queryRechargeNameAndPayTimeByUid(uid, guid, name, paytime);
+	lua_pushstring(scriptL, guid.c_str());
+	lua_pushstring(scriptL, name.c_str());
+	lua_pushstring(scriptL, paytime.c_str());
+
+	return 3;
 }

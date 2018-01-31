@@ -126,7 +126,7 @@ function AppInstanceMgr:passVipInstance(id, hard)
 	end
 	
 	if max > cmp then
-		outFmtInfo("vip instance passed, id = %d, hard = %d ", id, hard)
+		outFmtDebug("vip instance passed, id = %d, hard = %d ", id, hard)
 		self:SetByte(indx, 1, max)
 	end
 end
@@ -171,7 +171,8 @@ function AppInstanceMgr:checkIfCanEnterResInstance(id)
 	-- 判断进入次数是否足够
 	-- 每个信息4个byte[0:挑战次数,1:预留,2:预留,3:预留]
 	
-	local indx = INSTANCE_INT_FIELD_RES_START + id - 1
+	local indx = INSTANCE_INT_FIELD_RES_START + config.type - 1
+	
 	local times = self:GetByte(indx, 0)
 	local mapid = config.mapid
 	
@@ -211,10 +212,31 @@ end
 function AppInstanceMgr:passResInstance(id)
 	--outFmtDebug("ton guan zi yuan fu ben %d *************************************",id)
 	local idx =  INSTANCE_INT_FIELD_RES_START + id - 1
-	self:AddByte(idx, 0, 1)
+	
+	local config = tb_instance_res[id]
+	local count_idx = INSTANCE_INT_FIELD_RES_START + config.type - 1
+	self:AddByte(count_idx, 0, 1)
 	local pas = self:GetByte(idx,1)
 	if pas == 0 then
 		self:SetByte(idx,1,1)
+	end
+end
+
+function AppInstanceMgr:onPickResInstanceFirstReward(id)
+	--outFmtDebug("ton guan zi yuan fu ben %d *************************************",id)
+	local idx =  INSTANCE_INT_FIELD_RES_START + id - 1
+	local pass = self:GetByte(idx,1)
+	local pick = self:GetByte(idx,2)
+	if pass == 1 and pick == 0 then
+		local player = self:getOwner()
+		local config = tb_instance_res[id]
+		if config then
+			self:SetByte(idx,2,1)
+			
+			player:AppdAddItems(config.firstReward,MONEY_CHANGE_FACTION_RES_INSTANCE_FIRST,LOG_ITEM_OPER_TYPE_RES_INSTANCE_FIRST)
+			
+		end
+		return 
 	end
 end
 
@@ -228,7 +250,8 @@ function AppInstanceMgr:sweepResInstance(id)
 		
 		--tb_instance_reward
 		local baseconfig = tb_instance_res[id]
-		local times = self:GetByte(baseIdx, 0)
+		local count_Idx =  INSTANCE_INT_FIELD_RES_START + baseconfig.type - 1
+		local times = self:GetByte(count_Idx, 0)
 		local mapid = baseconfig.mapid
 		
 		local allTime = baseconfig.times
@@ -308,7 +331,7 @@ function AppInstanceMgr:resetTrialInstance()
 	-- 判断能否花元宝
 	local costs = tb_instance_trial[passed].resetCosts
 	local player = self:getOwner()
-	if not player:useAllItems(MONEY_CHANGE_RESET_TRIAL, costs) then
+	if not player:useAllItems(MONEY_CHANGE_RESET_TRIAL, nil, costs) then
 		outFmtError("gold is not enough")
 		return
 	end
@@ -342,6 +365,9 @@ function AppInstanceMgr:instanceDailyReset()
 	for i = INSTANCE_INT_FIELD_RES_START,INSTANCE_INT_FIELD_RES_END-1 do
 		self:SetByte(i,0,0)
 	end
+	
+	-- 重置组队副本
+	self:ResetGroupExpDailyTimes()
 end
 
 -------------------------------活动------------------------------
@@ -357,11 +383,13 @@ end
 --增加活跃度
 function AppInstanceMgr:addActivity(num)
 	self:AddUInt32(INSTANCE_INT_FIELD_ACTIVE,num)
+	self:getOwner():AddUInt32(PLAYER_INT_FIELD_ACTIVE,num)
 end
 
 --设置活跃度
 function AppInstanceMgr:setActivity(num)
 	self:SetUInt32(INSTANCE_INT_FIELD_ACTIVE,num)
+	self:getOwner():SetUInt32(PLAYER_INT_FIELD_ACTIVE,num)
 end
 
 --获取总活跃度
@@ -409,8 +437,8 @@ function AppInstanceMgr:get3v3DayReward(id)
 end
 
 --设置3v3每日奖励状态
-function AppInstanceMgr:set3v3DayReward(id)
-	return self:SetByte(INSTANCE_INT_FIELD_3V3_DAY_REWARD,id-1,1)
+function AppInstanceMgr:set3v3DayReward(id, val)
+	return self:SetByte(INSTANCE_INT_FIELD_3V3_DAY_REWARD,id-1, val)
 end
 
 --获取3v3段位奖励时间戳
@@ -597,7 +625,7 @@ function AppInstanceMgr:RefreshEnemysAfterRankChanged()
 				local l = myrank - range[ 2 ]
 				local r = myrank - range[ 1 ]
 				if l <= rank and rank <= r then
-					exists[ j ] = 1
+					exists[ j ] = rank
 					vist = true
 					break
 				end
@@ -618,10 +646,11 @@ function AppInstanceMgr:RefreshEnemysAfterRankChanged()
 			local r = myrank - range[ 1 ]
 			local rank = randInt(l, r)
 			
-			local emptyIndx = self:GetEmptyIndx()
-			if rank > 0 and emptyIndx >= 0 then
-				self:SetUInt32(emptyIndx, rank)
+			if rank > 0 then
+				self:SetUInt32(j-1+INSTANCE_INT_FIELD_DOUJIANTAI_ENEMY_S, rank)
 			end
+		else
+			self:SetUInt32(j-1+INSTANCE_INT_FIELD_DOUJIANTAI_ENEMY_S, exists[ j ])
 		end
 	end
 end
@@ -720,30 +749,25 @@ function AppInstanceMgr:RandomEnemy(range)
 end
 
 
-function AppInstanceMgr:checkIfCanEnterMassBoss(id)
-	local config = tb_mass_boss_info[ id ]
+function AppInstanceMgr:checkIfCanEnterMassBoss(bossId)
+	local config = tb_mass_boss_info[bossId]
 	local player = self:getOwner()
 	
-	-- 判断等级是否足够
-	if player:GetLevel() < config.permitLevel then
-		outFmtError("no level to enter id = %s", id)
+	if player:GetLevel() < config.level then
 		return
 	end
 	
-	-- 次数是否足够
-	if not player:costMassBossTimes() then
-		return
-	end
-
 	local x 	= config.enterPos[ 1 ]
 	local y 	= config.enterPos[ 2 ]
-	local mapid = config.mapId
+	local mapid = config.mapid
+	local room  = config.roomIndx
+	local generalId = string.format("massboss#%d", room)
 	
 	-- 发起传送
-	call_appd_teleport(player:GetScenedFD(), player:GetGuid(), x, y, mapid, ''..id)
+	call_appd_teleport(player:GetScenedFD(), player:GetGuid(), x, y, mapid, generalId)
 	
 	player:AddActiveItem(VITALITY_TYPE_MASS_BOSS)
-	player:onUpdatePlayerQuest(QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES, {})
+	--player:onUpdatePlayerQuest(QUEST_TARGET_TYPE_JOIN_MASS_BOSS_TIMES, {})
 end
 
 --组队副本
@@ -1025,6 +1049,74 @@ function AppInstanceMgr:checkPickStageInstanceBonus(id)
 	
 	self:SetStageInstanceBonusFlag(id)
 end
+
+-- 判断是否能够进入经验副本
+function AppInstanceMgr:checkIfCanEnterGroupExp(generalId)
+	-- 判断进入次数是否满足	
+	if self:GetGroupExpDailyTimes() == 0 then
+		return
+	end
+	self:SubGroupExpDailyTimes()
+	
+	local playerInfo = self:getOwner()
+	local config = tb_instance_group_exp[ 1 ]
+	local x = config.born[ 1 ] + randInt(0, config.born[ 3 ])
+	local y = config.born[ 2 ] + randInt(0, config.born[ 3 ])
+	
+	playerInfo:AddActiveItem(VITALITY_TYPE_EXP_INSTANCE)
+	playerInfo:onUpdatePlayerQuest( QUEST_TARGET_TYPE_INSTANCE_EXP_TIMES,{})
+	
+	call_appd_teleport(playerInfo:GetScenedFD(), playerInfo:GetGuid(), x, y, config.mapid, generalId)
+end
+
+function AppInstanceMgr:checkIfCanEnterGroupInstance(indx, generalId)
+	local playerInfo = self:getOwner()
+	local config = tb_group_instance_base[indx]
+	local pos = config.enterPos
+	
+	local offset = 2
+	local x = randInt(-offset, offset) + pos[ 1 ]
+	local y = randInt(-offset, offset) + pos[ 2 ]
+
+	playerInfo:onUpdatePlayerQuest( QUEST_TARGET_TYPE_INSTANCE_GROUP_TIMES,{})
+	
+	call_appd_teleport(playerInfo:GetScenedFD(), playerInfo:GetGuid(), x, y, config.mapid, generalId)
+end
+
+
+-- 获得经验副本购买次数
+function AppInstanceMgr:GetGroupExpBuyCount()
+	return self:GetUInt32(INSTANCE_INT_FIELD_GROUP_EXP_BUYED_TIMES)
+end
+
+-- 增加经验副本购买次数
+function AppInstanceMgr:AddGroupExpBuyCount(val)
+	self:AddUInt32(INSTANCE_INT_FIELD_GROUP_EXP_BUYED_TIMES, val)
+end
+
+-- 获得经验副本每天次数
+function AppInstanceMgr:GetGroupExpDailyTimes()
+	return self:GetUInt32(INSTANCE_INT_FIELD_GROUP_EXP_TIMES)
+end
+
+function AppInstanceMgr:AddGroupExpDailyTimes(count)
+	self:AddUInt32(INSTANCE_INT_FIELD_GROUP_EXP_TIMES, count)
+end
+
+-- 减少经验副本每天次数
+function AppInstanceMgr:SubGroupExpDailyTimes()
+	if self:GetQualifyDailyTimes() > 0 then
+		self:SubUInt32(INSTANCE_INT_FIELD_GROUP_EXP_TIMES, 1)
+	end
+end
+
+-- 重置经验副本每天次数
+function AppInstanceMgr:ResetGroupExpDailyTimes()
+	local val = tb_instance_group_exp[ 1 ].dailyTimes
+	self:SetUInt32(INSTANCE_INT_FIELD_GROUP_EXP_TIMES, val)
+	self:SetUInt32(INSTANCE_INT_FIELD_GROUP_EXP_BUYED_TIMES, 0)
+end
+
 
 -------------------------------------------------------------------------------
 

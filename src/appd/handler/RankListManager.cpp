@@ -218,6 +218,15 @@ vector<string> RankListManager::GetRankGuidList(ERankTypes type)
 	return ary;
 }
 
+string RankListManager::GetRankName(ERankTypes type, uint32 level)
+{
+	RankListCurrentObj* binlog = GetRankListData(type,level);
+	if (binlog) {
+		return binlog->GetCurrentPlayerName();
+	}
+	return "";
+}
+
 bool RankListManager::HasRankGuid(ERankTypes type,string &guid,int &rank)
 {
 	for (int j = 0; j < RANK_LIST_MAX_VALUES; j++)
@@ -367,6 +376,9 @@ void RankListManager::Sort(ERankTypes type)
 		if(current_obj->GetCurrentGuid() == g)
 		{
 			SwitchRankInfo(type, i, current_obj);
+			// 清空最后一个
+			RankListCurrentObj *last_obj = GetRankListData(type, RANK_LIST_MAX_VALUES);
+			last_obj->Init();
 			break;
 		}
 		if(g.empty())//这个排行榜还没满员
@@ -394,6 +406,7 @@ void RankListManager::Sort(ERankTypes type)
 		|| current_obj->GetRanking() == RANK_LIST_MAX_VALUES				//在排行榜中未找到自己的数据，那一定也是要试着进榜的
 		|| current_obj->Compare(GetRankListData(type, RANK_LIST_MAX_VALUES)) > 0)	//或者和自己原来的数据比是增加的
 	{
+		bool vist = false;
 		for (int i = current_obj->GetRanking(); i > 0; i--)
 		{
 			int next_i = i - 1;
@@ -403,6 +416,7 @@ void RankListManager::Sort(ERankTypes type)
 
 			//比你厉害，往前挪
 			SwitchRankInfo(type, next_i, current_obj);
+			vist = true;
 		}
 	}
 	else//我的能力减退了，所以我的名次可能倒退
@@ -719,6 +733,8 @@ public:
 		SetCurrentPlayerTitle(player->GetTitle());
 		SetCurrentPlayerWing(player->GetUInt32(PLAYER_INT_FIELD_WINGS_RANK)*100 + player->GetUInt32(PLAYER_INT_FIELD_WINGS_STAR));
 		SetOnlineTime(player->GetOnlineTime());
+		SetCurrentPlayerShow(0,player->GetUInt16(PLAYER_INT_FIELD_APPEARANCE,1));
+		SetCurrentPlayerShow(1,player->GetUInt16(PLAYER_INT_FIELD_APPEARANCE,0));
 
 		return true;
 	}
@@ -754,6 +770,8 @@ public:
 		SetCurrentPlayerGender(player->GetGender());
 		SetCurrentPlayerTitle(player->GetTitle());
 		SetCurrentPlayerWing(player->GetUInt32(PLAYER_INT_FIELD_WINGS_RANK)*100 + player->GetUInt32(PLAYER_INT_FIELD_WINGS_STAR));
+		SetCurrentPlayerShow(0,player->GetUInt16(PLAYER_INT_FIELD_APPEARANCE,1));
+		SetCurrentPlayerShow(1,player->GetUInt16(PLAYER_INT_FIELD_APPEARANCE,0));
 		SetLayers(player->GetTrialLayers());
 
 		return true;
@@ -762,6 +780,7 @@ public:
 	uint32 GetLayers(){return GetUInt32(RANK_LIST_CURRENT_OBJ_INT_FIELD_TRIAL);}
 	void SetLayers(uint32 v){return SetUInt32(RANK_LIST_CURRENT_OBJ_INT_FIELD_TRIAL, v);}
 };
+
 //神兵排行榜
 class RankListDivineObj: public RankListCurrentObj
 {
@@ -995,6 +1014,50 @@ public:
 	void SetWingsLv(uint32 v){SetUInt32(RANK_LIST_CURRENT_OBJ_INT_FIELD_LEVEL, v);}
 };
 
+
+//3v3排行
+class RankList3V3Obj : public RankListCurrentObj
+{
+public:
+	ERankTypes GetType()
+	{
+		return RANK_TYPE_3V3;
+	}
+
+	int Compare(RankListCurrentObj *obj)
+	{
+		RankList3V3Obj *f_obj = dynamic_cast<RankList3V3Obj*>(obj);
+		ASSERT(f_obj);
+		return CompareNumber(this->GetLayers(), f_obj->GetLayers());
+	}
+
+	bool SetData(BinLogObject *binlog)
+	{
+		if(!binlog)
+			return false;
+		AppdContext *player = dynamic_cast<AppdContext*>(binlog);
+		ASSERT(player);
+		SetCurrentPlayerGuid(player->GetGuid());
+		SetCurrentPlayerName(player->GetName());
+		SetCurrentPlayerGender(player->GetGender());
+		SetCurrentPlayerTitle(player->GetTitle());
+		SetCurrentPlayerWing(player->GetUInt32(PLAYER_INT_FIELD_WINGS_RANK)*100 + player->GetUInt32(PLAYER_INT_FIELD_WINGS_STAR));
+		SetLayers(player->Get3V3Score());
+		SetUInt32(RANK_LIST_CURRENT_OBJ_INT_FIELD_LEVEL, player->Get3V3Wins());
+		SetUInt32(RANK_LIST_CURRENT_OBJ_INT_FIELD_ONLINE_TIME, player->Get3V3Count());
+		SetCurrentPlayerFaction(player->GetStr(PLAYER_STRING_FIELD_FACTION_NAME));
+		SetCurrentPlayerShow(0,player->GetUInt16(PLAYER_INT_FIELD_APPEARANCE,1));
+		SetCurrentPlayerShow(1,player->GetUInt16(PLAYER_INT_FIELD_APPEARANCE,0));
+
+		return true;
+	}
+public:
+	
+	uint32 GetLayers(){return GetUInt32(RANK_LIST_CURRENT_OBJ_INT_FIELD_TRIAL);}
+	void SetLayers(uint32 v){return SetUInt32(RANK_LIST_CURRENT_OBJ_INT_FIELD_TRIAL, v);}
+};
+
+
 RankListCurrentObj *RankListCurrentObj::Factoy(ERankTypes type)
 {
 	RankListCurrentObj *obj = nullptr;
@@ -1029,6 +1092,9 @@ RankListCurrentObj *RankListCurrentObj::Factoy(ERankTypes type)
 		break;
 	case RANK_TYPE_WINGS:
 		obj = new RankListWingsObj;
+		break;
+	case RANK_TYPE_3V3:
+		obj = new RankList3V3Obj;
 		break;
 	case MAX_RANK_TYPE:
 		break;

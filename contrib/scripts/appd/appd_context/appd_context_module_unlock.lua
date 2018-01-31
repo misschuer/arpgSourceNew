@@ -50,13 +50,17 @@ end
 --Ìí¼Ó¹¦ÄÜid
 function PlayerInfo:AddOpenMenuFlag(id,subid)
 	if self:GetOpenMenuFlag(id,subid) then
-		--outFmtInfo("AddOpenMenuFlag: already set flag true: %d %d",id,subid)
+		--outFmtDebug("AddOpenMenuFlag: already set flag true: %d %d",id,subid)
 		return 0
 	end
-
+--[[
 	--²âÊÔ
 	if id == MODULE_PRACTICE and subid == MODULE_PRACTICE_EXP then
 		self:InitCultivation()
+	end--]]
+	
+	if id == MODULE_REALM and subid == MODULE_REALM_ALL then
+		self:UnlockTalismanSlotByRealmbreakLv(0)
 	end
 	
 	self:call_module_active (id * 10 + subid)
@@ -64,7 +68,7 @@ function PlayerInfo:AddOpenMenuFlag(id,subid)
 	local allIds = self:GetAllOpenMenuIds()
 	if allIds[id] == nil then
 		if self:GetOpenMenuIndex() == MAX_PLAYER_OPEN_MENU_COUNT then
-			outFmtInfo("AddOpenMenuFlag: can not add more OpenMenuId!")
+			outFmtDebug("AddOpenMenuFlag: can not add more OpenMenuId!")
 			return 0
 		end
 		self:SetUInt32(self:OpenMenuStart() + OPEN_MENU_MAIN_ID,id)
@@ -85,7 +89,7 @@ function PlayerInfo:UnlockModuleByTaskId(taskId)
 	local flag = 0
 	local list = tb_system_base_task_list[taskId]
 	if list ==	nil then
-		--outFmtInfo("UnlockModuleByTaskId: no module can unlock  with task:%d ",taskId)
+		--outFmtDebug("UnlockModuleByTaskId: no module can unlock  with task:%d ",taskId)
 		return flag
 	else
 		for i,id in ipairs(list) do
@@ -93,7 +97,7 @@ function PlayerInfo:UnlockModuleByTaskId(taskId)
 			
 				flag = 1 
 			end
-			--outFmtInfo("UnlockModuleByTaskId: unlock module %d ",id)
+			--outFmtDebug("UnlockModuleByTaskId: unlock module %d ",id)
 		end
 	end
 	
@@ -114,7 +118,7 @@ function PlayerInfo:UnlockModuleByLevel(startLv,endLv)
 				
 					flag = 1
 				end
-				--outFmtInfo("UnlockModuleByLevel: unlock module %d ",id)
+				--outFmtDebug("UnlockModuleByLevel: unlock module %d ",id)
 			end
 		end
 	end
@@ -126,11 +130,21 @@ end
 function PlayerInfo:printAllUnlock()
 	local allIds = self:GetAllOpenMenuIds()
 	for id,index in pairs(allIds) do
-		outFmtInfo("id: %d index:%d ",id,index)
+		outFmtDebug("id: %d index:%d ",id,index)
 		for i = 0, 9 do
-			outFmtInfo("subid:%d flag:%s",i,self:GetOpenMenuFlag(id,i))
+			outFmtDebug("subid:%d flag:%s",i,self:GetOpenMenuFlag(id,i))
 			
 		end
 	
+	end
+end
+
+
+function PlayerInfo:LoginUpdateModuleUnlock()
+	local lv = self:GetLevel()
+	for id,info in pairs(tb_system_base) do
+		if lv >= info.level then
+			self:AddOpenMenuFlag( math.floor(id/10),id%10)
+		end
 	end
 end

@@ -10,10 +10,10 @@ tb_faction_bossdefense_point = {
 	--  enemy_pos:array 怪物出生坐标
 	--  type:int 怪物类型
 	--  time_limit:int 时间限制 秒
-	[1] = {id = 1, map_id = 5002, born_pos = {26,26}, enemy_pos = {26,26}, type = 1, time_limit = 60},
-	[2] = {id = 2, map_id = 5002, born_pos = {26,26}, enemy_pos = {26,26}, type = 2, time_limit = 60},
-	[3] = {id = 3, map_id = 5002, born_pos = {26,26}, enemy_pos = {26,26}, type = 2, time_limit = 60},
-	[4] = {id = 4, map_id = 5002, born_pos = {26,26}, enemy_pos = {26,26}, type = 2, time_limit = 60},
-	[5] = {id = 5, map_id = 5002, born_pos = {26,26}, enemy_pos = {26,26}, type = 2, time_limit = 60},
-	[6] = {id = 6, map_id = 5002, born_pos = {26,26}, enemy_pos = {26,26}, type = 2, time_limit = 60},
+	[1] = {id = 1, map_id = 5002, born_pos = {26,26}, enemy_pos = {18,17}, type = 1, time_limit = 60},
+	[2] = {id = 2, map_id = 5002, born_pos = {26,26}, enemy_pos = {18,17}, type = 2, time_limit = 60},
+	[3] = {id = 3, map_id = 5002, born_pos = {26,26}, enemy_pos = {18,17}, type = 2, time_limit = 60},
+	[4] = {id = 4, map_id = 5002, born_pos = {26,26}, enemy_pos = {18,17}, type = 2, time_limit = 60},
+	[5] = {id = 5, map_id = 5002, born_pos = {26,26}, enemy_pos = {18,17}, type = 2, time_limit = 60},
+	[6] = {id = 6, map_id = 5002, born_pos = {26,26}, enemy_pos = {18,17}, type = 2, time_limit = 60},
 }

@@ -2,6 +2,7 @@ InstanceResGold = class("InstanceResGold", InstanceResBase)
 
 InstanceResGold.Name = "InstanceResGold"
 InstanceResGold.exit_time = 10
+InstanceResGold.broadcast_nogrid = 1
 
 function InstanceResGold:ctor(  )
 	
@@ -13,13 +14,13 @@ function InstanceResGold:InitRes(config)
 end
 
 
-function InstanceResGold:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceResGold:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("gold shua guai ************")
 	
 	
 	local id = self:GetIndex()
 	local config = tb_instance_res[ id ]
-	local plev = player:GetLevel()
+	local plev = config.level
 	local cnt = config.monsternum
 	local entry = config.monster[1]
 	local monsterposlist = config.monsterInfo
@@ -36,9 +37,8 @@ function InstanceResGold:ApplyRefreshMonsterBatch(player,batchIdx)
 
 		local creature = mapLib.AddCreature(self.ptr, 
 			{templateid = entry, x = bornX, y = bornY, level=plev, active_grid = true, alias_name = config.name, 
-			ainame = "AI_res", npcflag = {}})
+			ainame = "AI_res", attackType = REACT_AGGRESSIVE, npcflag = {}})
 		
-		creatureLib.ModifyThreat(creature, player.ptr, self.THREAT_V)
 	end
 	
 	return true,cnt

@@ -29,6 +29,10 @@ struct GridUpdateMask
 		create_int_mask_->SetBit(UINT_INT_FIELD_WINGS_RANK);
 		create_int_mask_->SetBit(UNIT_INT_FIELD_APPEARANCE);
 		create_int_mask_->SetBit(UNIT_FIELD_DAO);
+		create_int_mask_->SetBit(UNIT_INT_FIELD_BOSS_OWN_FLAG);
+		create_int_mask_->SetBit(UNIT_INT_FIELD_MOUNT_RIDE);
+
+		create_string_mask_->SetBit(UNIT_STRING_FIELD_FACTION_NAME);
 
 		for (int i = 0; i < MAX_UNIT_STRING_FIELD; i++)
 		{

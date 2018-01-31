@@ -29,42 +29,48 @@ extern void WriteYbIncome(const string & account, const string &player_id, doubl
 						  double unit_price,uint16 item_bind, uint16 item_del, uint32 quest);
 
 //记录额外的元宝消费
-extern void WrtieYbExpend(const string & account, const string &player_id, double amount, double balance, uint32 level, uint32 reason, 
-						  double old_value, const string &trace_id, uint32 p1, uint32 p2,
-						  double unit_price,uint16 item_bind, uint16 item_del, uint32 quest);
+extern void WrtiePay(const string & account, const string &player_id, uint32 operTime, uint32 isCost, uint32 reason, double modifyValue,
+					 string& relateItemIds, string& relateItemNums, uint32 level);
 
 //记录用户登录行为
-extern void WriteLogin(const string & account, const string &player_id, uint32 level, const char *ip, uint32 map, const char *group, double power);
+extern void WriteLogin(const string & account, const string &player_id, uint32 level, const char *ip, uint32 map, double force, double currGold);
 
 //记录用户登出行为
-extern void WriteLogout(const string & account, const string &player_id, uint32 level, const char *ip, uint32 map, const char *group);
+extern void WriteLogout(const string & account, const string &player_id, uint32 createTime, uint32 logoutTime, uint32 onlineLast,
+						const char *ip,	uint32 gender, uint32 level, double force, uint32 activityValue, uint32 mapId, uint32 mainQuestId,
+						double rechargeGoldSum, double currGold, double currBindGold, double gameMoney, double gameBindMoney);
 
 //记录用户创建角色行为
-extern void WriteCreateRole(const string & account, const string &player_id, const char *rolename, string ip);
+extern void WriteCreateRole(const string & account, const string &player_id, const char *rolename, string ip, uint32 gender);
 
 //记录用户死亡事件
 extern void WriteDeath(const string & account, const string &player_id, const char *reason, uint32 level, uint32 map, uint32 is_player);
 
 //记录用户接受任务的行为
-extern void WriteAcceptTask(const string & account, const string &player_id, uint32 taskid, uint32 type, uint32 map);
+//extern void WriteAcceptTask(const string & account, const string &player_id, uint32 taskid, uint32 type, uint32 map);
+extern void WriteAcceptTask(const string & account, const string &player_id,uint32 time_stamp, uint32 taskid, uint32 type, const string &remain);
+
+int LuaWriteAcceptTask(lua_State *scriptL);
 
 //记录用户完成任务的行为
-extern void WriteTask(const string & account, const string &player_id, uint32 taskid, uint32 map_id, uint32 result);
+//extern void WriteTask(const string & account, const string &player_id, uint32 taskid, uint32 map_id, uint32 result);
+extern void WriteMainTask(const string & account, const string &player_id, uint32 time_stamp, uint32 taskid, uint32 type, const string &remain);
+
+int LuaWriteTask(lua_State *scriptL);
 
 //记录用户复活
 extern void WriteRelive(const string & account, const string &player_id, uint32 type, uint32 map);
 
 //记录用户升级事件
-extern void WriteUpgrade(const string & account, const string &player_id, uint32 level, uint32 map, double power);
+extern void WriteLvup(const string & account, const string &player_id, uint32 createTime, uint32 lvUpTime, uint32 level, uint32 levelDiffTime);
 
 //记录用户金币所得行为
-extern void WriteSilver(const string & account, const string &player_id, double sum, uint32 status, uint32 map, double old_value, double new_value, double warehouse_value,
-						const string &trace_id, uint32 p1, uint32 p2,double unit_price,uint16 item_bind, uint16 item_del, uint32 quest,uint32 level);
+extern void WriteYxb(const string & account, const string &player_id, uint32 operTime, uint32 isCost, uint32 reason, 
+						double modifyValue, string& relateItemIds, string& relateItemNums, uint32 level);
 
 //记录用户的绑定元宝行为
-extern void WriteBindGold(const string & account, const string &player_id, uint16 oper_type, double v,double old_value, double new_value, 
-						  const string &trace_id, uint32 item_id, uint32 count, uint32 level, uint32 map_id,
-						  double unit_price,uint16 item_bind, uint16 item_del, uint32 quest);
+extern void WriteBindGold(const string& account, const string& player_id, uint32 operTime, uint32 isCost, uint32 reason, 
+						  double modifyValue, string& relateItemIds, string& relateItemNums, uint32 level);
 
 //记录用户领取新手卡的行为
 extern void WriteNewCardReceive(const string & account, const string &player_id, const char * card_id, uint32 map, uint32 x, uint32 y);
@@ -82,7 +88,10 @@ extern void WriteItemLog(const string & account, const string &player_id, uint32
 extern void WriteMap(const string & account, const string &player_id, uint32 level, uint32 nonce_map, uint32 to_map);
 
 //记录在线人数
-extern void WriteOnline(uint32 account_count, uint32 player_count);
+//extern void WriteOnline(uint32 account_count, uint32 player_count);
+extern void WriteOnline(uint32 time_stamp, uint32 account_count, uint32 player_count, uint32 ip_count, uint32 old_player_count);
+
+
 
 //记录用户进入游戏主界面(未建角色)
 extern void WriteGameEnter(const string & account, const char *ip);
@@ -155,6 +164,19 @@ extern void WriteTXMoneyLog(const string &account,const string &player_id,const 
 
 //1001日志
 extern void WriteObjectLoss(const string &account, const string &player_id, const string &obj_guid, uint32 op_type);
+
+//0点在线日志
+extern void WriteOnlineUser24th(const string &account, const string &player_id, const string &name, uint32 create_time, uint32 last_login_time, uint32 from_last_time,
+					const string &ip, uint32 gender, uint32 level, double force, uint32 active_value, uint32 map_id,uint32 main_quest_id,
+					uint32 history_recharge, double gold,double bind_gold,double money,double bind_money);
+
+int LuaWriteOnlineUser24th(lua_State *scriptL);
+
+
+//帮派日志
+extern void WriteUnion(const string &account, const string &player_id, uint32 time_stemp, const string &faction_id, const string &faction_name, uint32 type, const string &remain);
+
+int LuaWriteUnion(lua_State *scriptL);
 
 /////////////////////////////////////////////////////////
 #endif

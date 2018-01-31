@@ -19,13 +19,14 @@ globalValue:RandomStepWorldBossIfNeverDoes()
 -------------------------------------------------------------------
 --初始化一些东西，例如BUFF对游戏操作的限制 用数字的说明是一些特殊的东西
 config = {
+	boss_forid_buff	 = 300					,--不能攻击怪物的buff
 	--以下来自原来的配置文件
 	max_player_level = 200					,--最大等级
 	
 	new_player_protected_level = 0			,--新手保护最大等级
 		
 	jump_cd = 4								,--跳cd
-	jump_max_distance = 15					,--最大跳跃距离
+	jump_max_distance = 12					,--最大跳跃距离
 	
 	nomal_attack_distance	= 4				,--默认攻击距离
 	
@@ -163,6 +164,10 @@ config = {
 		CMSG_ENTER_PRIVATE_BOSS,	--个人BOSS挑战
 		CMSG_USE_RESTORE_POTION,
 		CMSG_ENTER_STAGE_INSTANCE,
+		CMSG_ENTER_GROUP_EXP,
+		CMSG_ENTER_FACTION_MATCH_MAP,
+		CMSG_BUY_INSPIRATION,		-- 购买鼓舞
+		CMSG_GROUP_INSTANCE_MATCH,	-- 进入本地组队副本
 		--CMSG_CHANGE_LINE,
 		--[[
 		CMSG_START_HUNG_UP,--开始挂机*/
@@ -292,18 +297,22 @@ function load_lua_scripts()
 		--{'九重天脚本1'		,'scened/instance/instanceTower1'},
 		--{'九重天脚本2'		,'scened/instance/instanceTower2'},
 		--{'桃花迷阵脚本'		,'scened/instance/instanceTaoHua'},
-		
+
 		{'全民boss'				,'scened/instance/instance_mass_boss'},
 		{'个人boss'				,'scened/instance/instance_private_boss'},
 		{'跨服组队副本'			,'scened/instance/instance_kuafu_group'},
-		
-		{'闯关副本 基类'			,'scened/instance/instance_stage_base'},
-		{'闯关副本 区域'			,'scened/instance/instance_stage_group'},
-		{'闯关副本 单队'			,'scened/instance/instance_stage_queue_single'},
-		{'闯关副本 双队'			,'scened/instance/instance_stage_queue_double'},
-		
-		
-		{'LUA之GM命令'		,'scened/gm_command'},
+
+		{'闯关副本 基类'		,'scened/instance/instance_stage_base'},
+		{'闯关副本 区域'		,'scened/instance/instance_stage_group'},
+		{'闯关副本 单队'		,'scened/instance/instance_stage_queue_single'},
+		{'闯关副本 双队'		,'scened/instance/instance_stage_queue_double'},
+
+		{'家族战'				,'scened/instance/instance_faction_match'},
+
+		{'经验副本'				,'scened/instance/instance_group_exp'},
+		{'本地3v3'				,'scened/instance/instance_local_3v3'},
+
+		{'LUA之GM命令'			,'scened/gm_command'},
 	}
 	local i = 0
 	repeat
@@ -401,6 +410,15 @@ function initScriptTable()
 	
 	--  stage_quene_double:array 闯关 双队
 	onRangeMapping(tb_script_base[ 1 ].stage_queue_double, InstanceStageQueueDouble)
+
+	-- jyfb, 经验副本
+	onRangeMapping(tb_script_base[ 1 ].jyfb, InstanceGroupExp)
+	
+	--  jzz:array 家族战
+	onRangeMapping(tb_script_base[ 1 ].jzz, InstanceFactionMatch)
+
+	--  local3v3:array 本地3v3
+	onRangeMapping(tb_script_base[ 1 ].local3v3, InstanceLocal3v3)
 end
 
 initScriptTable()

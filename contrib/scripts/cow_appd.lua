@@ -16,6 +16,9 @@ require("util.json")
 outString('load share.tick_name script')
 require("share/tick_name")
 
+outString('load appd.appd_match_manager script')
+require('appd.appd_match_manager')
+
 -------------------------------------------------------------------------------
 --配置文件信息
 config = {
@@ -118,6 +121,9 @@ config = {
 		CMSG_PICK_QUEST_REALMBREAK,
 		--CMSG_PICK_REALMBREAK_DAILY_REWARD,
 		CMSG_PICK_STAGE_INSTANCE_BONUS,
+		CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD,
+		CMSG_QUERY_FACTION_MATCH_INFO,
+		CMSG_PICK_RES_INSTANCE_FIRST_REWARD,
 		--CMSG_ENTER_PRIVATE_BOSS,
 		--CMSG_EXCHANGE_ITEM,
 		--CMSG_BAG_EXTENSION,
@@ -205,10 +211,12 @@ config = {
 		CMSG_PICK_QUEST_REWARD,
 		CMSG_USE_VIRTUAL_ITEM,
 		CMSG_PICK_QUEST_CHAPTER_REWARD,
-		--[[CMSG_KUAFU_3V3_MATCH,
+		CMSG_KUAFU_3V3_MATCH,
 		CMSG_KUAFU_3V3_MATCH_OPER,
-		CMSG_KUAFU_3V3_BUYTIMES,
 		CMSG_KUAFU_3V3_DAYREWARD,
+		--[[
+		CMSG_KUAFU_3V3_BUYTIMES,
+		
 		CMSG_KUAFU_3V3_GETRANLIST,
 		CMSG_KUAFU_3V3_GETMYRANK,
 		--]]
@@ -236,7 +244,7 @@ config = {
 		CMSG_STOREHOUSE_DESTROY,	--/*销毁装备*/
 		
 		CMSG_BUY_MASS_BOSS_TIMES,
-		CMSG_GROUP_INSTANCE_MATCH,
+		--CMSG_GROUP_INSTANCE_MATCH,
 		CMSG_BUY_GROUP_INSTANCE_TIMES,
 		
 		CMSG_MERIDIAN_PRACTISE,		-- /*经脉修炼*/	
@@ -253,6 +261,40 @@ config = {
 		CMSG_DRAW_LOTTERY,			-- 抽奖
 		CMSG_RENAME,				--改名
 		CMSG_RISK_GET_RANK,
+		
+		CMSG_GROUP_CREATE,			-- /*创建队伍*/	
+		CMSG_GROUP_JOIN_REQUEST,	-- /*申请加入队伍*/	
+		CMSG_GROUP_JOIN_ACCEPT,		-- /*同意加入队伍*/	
+		CMSG_GROUP_QUIT,			-- /*退出队伍*/	
+		CMSG_GROUP_GIVE_CAPTAIN,	--移交队伍队长
+		CMSG_GROUP_KICK,			--踢队员
+		
+		CMSG_GROUP_SEND_INVITE,		--发送组队邀请
+		CMSG_GROUP_AGREE_INVITE,	--同意组队邀请
+		
+		CMSG_GET_GROUP_SEARCH_INFO_LIST,--便捷组队队伍列表
+		
+		CMSG_GROUP_CHANGE_CONFIG,	--修改组队设置
+		CMSG_GROUP_JOIN_DENIED,		--拒绝加入队伍
+		CMSG_GROUP_INVITE_DENIED,	--拒绝邀请
+		
+		CMSG_SELECT_GROUP_ENTER,	-- 队伍决定
+		CMSG_BUY_GROUP_EXP_TIMES, 	-- 经验副本都买次数
+		CMSG_TALISMAN_EQUIP,		-- 装备法宝
+		CMSG_TALISMAN_UNEQUIP,		-- 卸下法宝
+		
+		CMSG_AUTO_GROUP_MATCH,
+		CMSG_CANCEL_AUTO_GROUP_MATCH,
+		
+		CMSG_KUAFU_3V3_GROUP_MATCH,	-- /*组队3v3跨服匹配*/	
+		
+		CMSG_BOOKING_MONEY,
+		CMSG_ONE_STEP_ROBOT_UP,
+		CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD,
+		CMSG_LOTTERY_RECHARGE,
+		MSG_PING_PONG,
+		CMSG_USE_GIFTCODE,	--使用兑换码
+		CMSG_BOOKING_GAME2_MONEY,
 	},
 	--pk服命令表
 	pk_external_router_map = {
@@ -537,9 +579,9 @@ function SendFactionGiftRankReward()
 end
 
 function printAllFactionRank()
-	outFmtInfo("======================printAllFactionRank")
+	outFmtDebug("======================printAllFactionRank")
 	for index = 1,#appd_faction_rank do
-		outFmtInfo("name:%s guid:%s point:%d",appd_faction_rank[index].queen_name,appd_faction_rank[index].queen_guid,appd_faction_rank[index].point)
+		outFmtDebug("name:%s guid:%s point:%d",appd_faction_rank[index].queen_name,appd_faction_rank[index].queen_guid,appd_faction_rank[index].point)
 	end
 end
 
@@ -586,4 +628,5 @@ loadFactionInfo()
 
 globalCounter:InitDoujiantaiRank()
 globalCounter:activityInit()
+globalValue:UpdateFactionMatchStartTime()
 --globalValue:UpdateFactionGiftRank()

@@ -16,13 +16,13 @@ tb_faction_base = {
 	--  token_max_keep:int boss令牌持有上限
 	--  token_points:int boss令牌积分需求
 	[1] = {id = 1, cost = 5, maxnum = 20, golddonation = 10, ybdonation = 10, shop = {{1,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[2] = {id = 2, cost = 5, maxnum = 24, golddonation = 10, ybdonation = 10, shop = {{2,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[3] = {id = 3, cost = 5, maxnum = 27, golddonation = 10, ybdonation = 10, shop = {{3,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[4] = {id = 4, cost = 5, maxnum = 30, golddonation = 10, ybdonation = 10, shop = {{4,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[5] = {id = 5, cost = 5, maxnum = 34, golddonation = 10, ybdonation = 10, shop = {{5,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[6] = {id = 6, cost = 5, maxnum = 37, golddonation = 10, ybdonation = 10, shop = {{6,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[7] = {id = 7, cost = 5, maxnum = 40, golddonation = 10, ybdonation = 10, shop = {{7,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[8] = {id = 8, cost = 5, maxnum = 44, golddonation = 10, ybdonation = 10, shop = {{8,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[9] = {id = 9, cost = 5, maxnum = 47, golddonation = 10, ybdonation = 10, shop = {{9,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
-	[10] = {id = 10, cost = 5, maxnum = 50, golddonation = 10, ybdonation = 10, shop = {{10,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[2] = {id = 2, cost = 5, maxnum = 25, golddonation = 10, ybdonation = 10, shop = {{2,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[3] = {id = 3, cost = 5, maxnum = 30, golddonation = 10, ybdonation = 10, shop = {{3,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[4] = {id = 4, cost = 5, maxnum = 35, golddonation = 10, ybdonation = 10, shop = {{4,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[5] = {id = 5, cost = 5, maxnum = 40, golddonation = 10, ybdonation = 10, shop = {{5,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[6] = {id = 6, cost = 5, maxnum = 45, golddonation = 10, ybdonation = 10, shop = {{6,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[7] = {id = 7, cost = 5, maxnum = 50, golddonation = 10, ybdonation = 10, shop = {{7,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[8] = {id = 8, cost = 5, maxnum = 55, golddonation = 10, ybdonation = 10, shop = {{8,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[9] = {id = 9, cost = 5, maxnum = 60, golddonation = 10, ybdonation = 10, shop = {{9,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
+	[10] = {id = 10, cost = 5, maxnum = 65, golddonation = 10, ybdonation = 10, shop = {{10,9}}, token_max_buy = 3, token_buy_price = {{1,100},{1,150},{1,200}}, token_daily = 5, token_max_keep = 3, token_points = 10},
 }

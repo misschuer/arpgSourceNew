@@ -53,7 +53,7 @@ typedef std::set<Creature*>	CreatureSet;
 typedef UNORDERED_MAP<string,GameObject*> GameObjectMap;
 typedef std::map<string, Player*> PlayerMap;
 typedef std::map<uint32, std::set<string>> HitMap;
-typedef vector<wait_joining> WaitJoiningVec;
+typedef std::map<string, wait_joining> WaitJoiningVec;
 typedef vector<BossRankInfo> BossRankInfoVec;
 
 class Map

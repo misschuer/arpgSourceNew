@@ -1,6 +1,6 @@
 --3v3每周排名奖励
 function Rank3v3kuafuWeek()
-	outFmtDebug("Rank3v3kuafuWeek11")
+	--[[outFmtDebug("Rank3v3kuafuWeek11")
 	
 	local ranklist = app.kuafu_rank
 	
@@ -27,7 +27,7 @@ function Rank3v3kuafuWeek()
 			AddGiftPacksData(v[6],0,GIFT_PACKS_TYPE_3V3_WEEK,os.time(),os.time() + 86400*30, config.mailname, config.maildesc, rewardStr, SYSTEM_NAME)
 		end
 		
-	end
+	end--]]
 	
 end
 
@@ -43,7 +43,7 @@ end
 --3v3每月段位奖励
 function PlayerInfo:Rank3v3SegmentReward()
 	
-	local kftime = globalGameConfig:GetKaiFuShiJian()
+	--[[local kftime = globalGameConfig:GetKaiFuShiJian()
 	local curtime = os.time()
 	local intervalTime = 28 * 24 * 60 * 60
 	
@@ -97,7 +97,15 @@ function PlayerInfo:Rank3v3SegmentReward()
 	
 	--重置时间 积分清空
 	instMgr:set3v3SegmentTime(ktime)
-	self:SetKuafu3v3TotalScore(0)
+	self:SetKuafu3v3TotalScore(0)--]]
 	
 	
+end
+
+
+function PlayerInfo:Reset3V3daily()
+	local instMgr = self:getInstanceMgr()
+	for i = 1, #tb_kuafu3v3_day_reward do
+		instMgr:set3v3DayReward(i, 0)
+	end
 end

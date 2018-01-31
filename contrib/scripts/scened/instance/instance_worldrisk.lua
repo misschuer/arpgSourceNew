@@ -232,7 +232,7 @@ function InstanceWorldRisk:oneTrialMonsterKilled(player_ptr,dict)
 		playerInfo:AddRiskMonsterKilledCount()
 		PlayerAddRewards(player_ptr, dict, MONEY_CHANGE_TRIAL_INSTANCE_REWARD, LOG_ITEM_OPER_TYPE_TRIAL_INSTANCE_REWARD, 0)
 	else
-		outFmtInfo("##### entry %d kill one monster", playerInfo:GetEntry())
+		outFmtDebug("##### entry %d kill one monster", playerInfo:GetEntry())
 	end
 	-- 判断是否需要刷下一波
 	self:refresh()

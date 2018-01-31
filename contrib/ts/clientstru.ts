@@ -1071,3 +1071,95 @@ class act_rank_info
 	}
 }
 
+
+
+
+class faction_match_info
+{				
+	/**
+	 * 家族名称
+	 */
+	public name:string = "";	//String
+	/**
+	 * 比赛结果
+	 */
+	public result:number;	//uint32		
+	/**
+	 * 本届结果
+	 */
+	public rank:number;	//uint32		
+	/**
+	 * 家族id
+	 */
+	public guid:string = "";	//String
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public read(input:ByteArray):void
+	{			
+		var i:number;		
+		this.name = input.readStringByLen(50);		
+		this.result = input. readUint32 ();
+		this.rank = input. readUint32 ();
+		this.guid = input.readStringByLen(50);		
+	}
+
+	/**
+	 * 将结构体写入到输出二进制流中
+	 */
+	public write(output:ByteArray):void
+	{			
+		var i:number;
+		output.writeStringByLen(this.name, 50);
+		output.writeUint32 (this.result);	
+		output.writeUint32 (this.rank);	
+		output.writeStringByLen(this.guid, 50);
+	}
+}
+
+
+
+
+class group_search_info
+{				
+	/**
+	 * 队伍guid
+	 */
+	public guid:string = "";	//String
+	/**
+	 * 队长guid
+	 */
+	public cap_guid:string = "";	//String
+	/**
+	 * 队长名称
+	 */
+	public cap_name:string = "";	//String
+	/**
+	 * 家族id
+	 */
+	public members:number;	//uint32		
+	/**
+	 从输入二进制流中读取结构体
+	 */
+	public read(input:ByteArray):void
+	{			
+		var i:number;		
+		this.guid = input.readStringByLen(50);		
+		this.cap_guid = input.readStringByLen(50);		
+		this.cap_name = input.readStringByLen(50);		
+		this.members = input. readUint32 ();
+	}
+
+	/**
+	 * 将结构体写入到输出二进制流中
+	 */
+	public write(output:ByteArray):void
+	{			
+		var i:number;
+		output.writeStringByLen(this.guid, 50);
+		output.writeStringByLen(this.cap_guid, 50);
+		output.writeStringByLen(this.cap_name, 50);
+		output.writeUint32 (this.members);	
+	}
+}
+

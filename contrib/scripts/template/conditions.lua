@@ -397,6 +397,10 @@ local equip_attr_type = {
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = "control_resist_rate",	--控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = "strength_armor",	--强化护甲
 	[EQUIP_ATTR_DAO] = "dao",				--境界
+	[EQUIP_ATTR_PVP_DAMAGE_AMPLIFY_RATE] = "pvp_damage_amplify_rate",	--PVP伤害增加
+	[EQUIP_ATTR_PVP_DAMAGE_RESIST_RATE] = "pvp_damage_resist_rate",	--减少PVP伤害
+	[EQUIP_ATTR_PVE_DAMAGE_AMPLIFY_RATE] = "pve_damage_amplify_rate",	--增加PVE伤害
+	[EQUIP_ATTR_DAMAGE_RESIST_VALUE] = "damage_resist_value",	--减少伤害
 	
 	[ITEM_OTHER_ATTR_FAIL_TIME 	] = "ifailtm",
 	[ITEM_OTHER_ATTR_STRONG_LV 	] = "istronglv",

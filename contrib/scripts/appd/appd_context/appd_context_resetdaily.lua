@@ -121,6 +121,7 @@ function PlayerInfo:onRealReset()
 	self:resetDailyShop()
 	self:SetWelfareBackAllNum()
 	--self:Rank3v3SegmentReward()
+	self:Reset3V3daily()
 	self:OnResetXianfu()
 	self:DoDoujiantaiDayReward()
 	
@@ -150,6 +151,7 @@ function PlayerInfo:onRealReset()
 	DoActivityDataReset(self)
 	
 	self:LoginUpdateSevenDayProcess()
+	self:ClearWelfareSevenDayRechargeTodayFlag()
 	
 	self:DailyResetActive()
 	
@@ -158,6 +160,11 @@ function PlayerInfo:onRealReset()
 	self:DailyResetEscortRobCount()
 	
 	self:DailyResetRealmbreakDailyQuestState()
+	
+	self:UnSetFactionMatchChampionDailyRewardFlag()
+	
+	self:CheckClearCheckInData()
+	self:ResetActRankData()
 end
 
 function PlayerInfo:resetWeeklyInfo()

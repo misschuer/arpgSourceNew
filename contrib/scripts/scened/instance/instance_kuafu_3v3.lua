@@ -132,7 +132,7 @@ function InstanceKuafu3v3:OnJoinPlayer(player)
 		self:SetByte(intStart + KUAFU_3V3_PLAYER_SHOW_INFO, 1, 100)
 		self:SetUInt16(intStart + KUAFU_3V3_PLAYER_SHOW_INFO, 1, playerInfo:GetLevel())
 		self:SetByte(intStart + KUAFU_3V3_PLAYER_SETTLEMENT, 2, playerInfo:GetVirtualCamp())
-		playerInfo:SetToGroupMode(''..playerInfo:GetVirtualCamp())
+		--playerInfo:SetToGroupMode(''..playerInfo:GetVirtualCamp())
 	end
 end
 

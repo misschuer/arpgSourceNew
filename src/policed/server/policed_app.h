@@ -115,6 +115,7 @@ private:
 	static int on_logind_merge_server(tcp_connection* coon, server_packet* pkt);	//登陆服通知合服了
 	static int on_update_gag_status(tcp_connection* coon, server_packet* pkt);		//更新禁言状态
 	static int on_update_lock_status(tcp_connection* coon, server_packet* pkt);		//更新禁言状态
+	static int on_mongo_recharge(tcp_connection* coon, server_packet* pkt);
 	//后台数据统计相关
 	static int on_ht_forge_up_info(tcp_connection *,server_packet *pkt);	//锻造成功统计
 	static int on_save_backup(tcp_connection *,server_packet *pkt);	//锻造成功统计

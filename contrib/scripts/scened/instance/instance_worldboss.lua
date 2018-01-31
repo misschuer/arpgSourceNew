@@ -201,11 +201,28 @@ function InstanceWorldBoss:OnTimer_RefreshBoss()
 	return false
 end
 
--- 初始化怪物信息
-function InstanceWorldBoss:InitCreatureInfo(creature_ptr, bRecal, mul)
+--[[
+10000 <= 命中率 <= 16500
+500 <= 闪避率 <= 5000
+500 <= 暴击率 <= 6000
+--]]
+local rangedAttr = {
+	[EQUIP_ATTR_CRIT_RATE] = {500, 6000},
+	[EQUIP_ATTR_HIT_RATE]  = {10000, 16500},
+	[EQUIP_ATTR_MISS_RATE] = {500, 5000},
+}
+function InstanceWorldBoss:SetCreaturePro(creatureInfo, pros, bRecal, mul)
 	local level = globalValue:GetWorldBossLevel()
-	mul = 1 + level * 0.2
-	Instance_base.InitCreatureInfo(self, creature_ptr, bRecal, mul)
+	local newPro = rewardsAddExtraAndClone(pros, level * 0.2)
+	
+	for _, info in ipairs(newPro) do
+		local attrId = info[ 1 ]
+		if rangedAttr[attrId] then
+			info[ 2 ] = math.min(math.max(info[ 2 ], rangedAttr[attrId][ 1 ]), rangedAttr[attrId][ 2 ])
+		end
+	end
+
+	Instance_base.SetCreaturePro(self, creatureInfo, newPro, bRecal, 1)
 end
 
 -- 进行排名更新

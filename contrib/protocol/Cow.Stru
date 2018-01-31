@@ -164,3 +164,19 @@ equip_info,/*装备信息*/
 act_rank_info,/*开服活动排名*/
 	name,String,50,/*名称*/
 	value,uint32,0,/*数值*/
+	
+	
+#家族战榜单
+faction_match_info,/*家族战榜单*/
+	name,String,50,/*家族名称*/
+	result,uint32,0,/*比赛结果*/
+	rank,uint32,0,/*本届结果*/
+	guid,String,50,/*家族id*/
+	
+	
+#队伍查询信息
+group_search_info,/*队伍查询信息*/
+	guid,String,50,/*队伍guid*/
+	cap_guid,String,50,/*队长guid*/
+	cap_name,String,50,/*队长名称*/
+	members,uint32,0,/*家族id*/

@@ -246,17 +246,10 @@ int ScenedApp::on_join_map(tcp_connection *, server_packet *pkt)
 
 
 	//加入待传送列表,验证一下重复传送
-	auto& vec = Map::wait_joing_vec;
-	for (auto it = vec.begin();it != vec.end();)
-	{
-		//重复传送
-		if(it->player_guid == guid /*&& it->connection_id == fd*/)
-		{
-			ASSERT(false);
-			it = vec.erase(it);
-			continue;
-		}
-		++it;
+	auto& hash = Map::wait_joing_vec;
+
+	if (hash.find(guid) != hash.end()) {
+		return 0;
 	}
 
 	wait_joining wj;
@@ -269,7 +262,8 @@ int ScenedApp::on_join_map(tcp_connection *, server_packet *pkt)
 	wj.to_x = x;
 	wj.to_y = y;
 	wj.create_tm = (uint32)time(NULL);
-	vec.push_back(wj);
+
+	hash.insert(std::make_pair(guid, wj));
 
 	ObjMgr.CallAddWatch(guid);
 	return 0;
@@ -300,15 +294,7 @@ int ScenedApp::on_leave_map(tcp_connection *,server_packet *pkt)
 	{
 		//要离开地图了，但是数据还没到
 		tea_pdebug("ScenedApp::on_leave_map %s %u, but data not found", guid, fd);
-		//既然这样，那就要把轮询加入地图去掉
-		auto& vec = Map::wait_joing_vec;
-		for (auto it = vec.begin();it != vec.end();)
-		{
-			if(strcmp(it->player_guid, guid) == 0)
-				it = vec.erase(it);
-			else
-				++it;
-		}
+		Map::wait_joing_vec.erase(guid);
 	}
 	if(session)
 		ObjMgr.SendPlayerBinlog(session);
@@ -558,9 +544,9 @@ int ScenedApp::on_gm_commands(tcp_connection *,server_packet *pkt)
 			tea_pinfo("player level from %u to %u\n", prevLvl, player_lv);
 			player->SetLevel(player_lv);
 			player->Upgrade_Calculate(prevLvl);
-			if (player_lv < g_Config.max_player_level) {
-				player_lv ++;
-			}
+			//if (player_lv < g_Config.max_player_level) {
+			//	player_lv ++;
+			//}
 			char_level *level_info = char_level_db[player_lv];
 			player->GetSession()->SetDouble(PLAYER_EXPAND_INT_NEXT_LEVEL_XP ,level_info->next_exp);
 		}
@@ -888,18 +874,18 @@ int ScenedApp::on_scened_addexp(tcp_connection *,server_packet *pkt)
 }
 
 //通知应用服增加money
-void ScenedApp::call_player_addmoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string &p1, int32 p2, int32 p3, uint8 p4, uint8 p5)
+void ScenedApp::call_player_addmoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string& relateItemIds, string& relateItemNums)
 {
 	WorldPacket _pkt (INTERNAL_OPT_APPD_ADD_MONEY);
-	_pkt << player_id << money_type << opt_type<< val <<p1 << p2 << p3 << p4 << p5;
+	_pkt << player_id << money_type << opt_type<< val << relateItemIds << relateItemNums;
 	ScenedApp::g_app->SendToAppd(_pkt);
 }
 
 //通知应用服扣money
-void ScenedApp::call_player_submoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string &p1, int32 p2, int32 p3, uint8 p4, uint8 p5)
+void ScenedApp::call_player_submoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string& relateItemIds, string& relateItemNums)
 {
 	WorldPacket _pkt (INTERNAL_OPT_APPD_SUB_MONEY);
-	_pkt << player_id << money_type << opt_type<< val <<p1 << p2 << p3 << p4 << p5;
+	_pkt << player_id << money_type << opt_type<< val << relateItemIds << relateItemNums;
 	ScenedApp::g_app->SendToAppd(_pkt);	
 }
 

@@ -4,6 +4,7 @@ InstanceResZhenQi.Name = "InstanceResZhenQi"
 InstanceResZhenQi.exit_time = 10
 --Ë¢ÐÂ×ø±êÆ«ÒÆÖµ
 InstanceResZhenQi.RefreshOffset = 3;
+InstanceResZhenQi.broadcast_nogrid = 1
 
 function InstanceResZhenQi:ctor(  )
 	
@@ -15,7 +16,7 @@ function InstanceResZhenQi:InitRes(config)
 end
 
 
-function InstanceResZhenQi:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceResZhenQi:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("zhen qi shua guai ************")
 	--local batchPos = self:GetRandomMonsterIndex(batchIdx)
 
@@ -25,7 +26,7 @@ function InstanceResZhenQi:ApplyRefreshMonsterBatch(player,batchIdx)
 	
 	local id = self:GetIndex()
 	local config = tb_instance_res[ id ]
-	local plev = player:GetLevel()
+	local plev = config.level
 	local cnt = config.monsternum
 	local monsterlist = config.monster
 	local monsterposlist = config.monsterInfo
@@ -55,31 +56,31 @@ function InstanceResZhenQi:ApplyRefreshMonsterBatch(player,batchIdx)
 	self:SetUInt16(REFRESH_MONSTER_FIELD_ID, 1, cnt)
 	
 	mapLib.DelTimer(self.ptr, 'OnTimer_MonsterBornOneByOne')
-	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval, player:GetPlayerGuid())
+	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval)
 	
 	return true,cnt
 end
 
-function InstanceResZhenQi:OnTimer_MonsterBornOneByOne(playerGuid)
+function InstanceResZhenQi:OnTimer_MonsterBornOneByOne()
 	local dids = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 0)
 	local need = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 1)
 	if dids >= need then
 		return false
 	end
 	
-	local player_ptr = mapLib.GetPlayerByPlayerGuid(self.ptr, playerGuid)
+	
 	local indx = dids * 2 + REFRESH_MONSTER_FIELD_INFO_START
-	self:CreateMonster(player_ptr, indx)
+	self:CreateMonster(indx)
 
 	indx = indx + 2
-	self:CreateMonster(player_ptr, indx)
+	self:CreateMonster( indx)
 	
 	self:AddUInt16(REFRESH_MONSTER_FIELD_ID, 0, 2)
 	
 	return true
 end
 
-function InstanceResZhenQi:CreateMonster(player_ptr, indx)
+function InstanceResZhenQi:CreateMonster( indx)
 	local entry = self:GetUInt16(indx  , 0)
 	local level = self:GetUInt16(indx  , 1)
 	local bornX = self:GetUInt16(indx+1, 0)
@@ -89,9 +90,6 @@ function InstanceResZhenQi:CreateMonster(player_ptr, indx)
 			{templateid = entry, x = bornX, y = bornY, level=level, active_grid = true, 
 			ainame = "AI_res", npcflag = {}, attackType = REACT_AGGRESSIVE})
 	
-	if player_ptr then
-		creatureLib.ModifyThreat(creature, player_ptr, self.THREAT_V)
-	end
 end
 
 return InstanceResZhenQi

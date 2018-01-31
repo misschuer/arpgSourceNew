@@ -24,7 +24,7 @@ function QuestEquipsFitRequire:GetProcessValue(playerInfo, start, offset)
 		
 		local config = tb_item_template[entry]
 		if config then
-			if config.level >= targetLevel and config.rank >= targetRank then
+			if config.level >= targetLevel and config.quality >= targetRank then
 				cnt = cnt + 1
 			end
 		end

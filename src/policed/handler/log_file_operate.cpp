@@ -20,15 +20,15 @@ const char *log_file_name[MAX_LOG_FILE_TYPE] = {
 	"DEAL",							//记录用户的交易行为
 	"YB_INCOME",					//记录额外元宝收入
 	"ITEM_INCOME",					//记录额外道具收入
-	"YB_EXPEND",					//记录额外元宝消费
+	"PAY",							//记录额外元宝消费
 	"LOGIN",						//记录用户登录行为
 	"LOGOUT",						//记录用户登出行为
 	"CREATE_ROLE",					//记录用户创建角色行为
 	"DEATH",						//记录用户角色死亡事件
 	"ACCEPT_TASK",					//记录用户接收任务的行为
-	"TASK",							//记录用户完成任务的行为
-	"UPGRADE",						//记录用户升级事件
-	"GOLD",							//记录用户金币所得行为
+	"MAIN_TASK",					//记录用户完成任务的行为
+	"LV_UP",						//记录用户升级事件
+	"YXB",							//记录用户金币所得行为
 	"MAP",							//记录用户切换地图的行为
 	"LONGER",						//记录用户的挂机行为
 	"MONSTER",						//记录用户打怪的行为
@@ -54,6 +54,8 @@ const char *log_file_name[MAX_LOG_FILE_TYPE] = {
 	"CLIENT_LOG",					//记录客户端日志
 	"FORGE_INFO",					//锻造日志保存
 	"OBJECT_LOSS",					//1001日志
+	"ONLINE_USER_24TH",				//0点在线用户
+	"UNION",						//帮派操作
 };
 
 void LogFileOperate::HandlerInit()
@@ -65,15 +67,15 @@ void LogFileOperate::HandlerInit()
 	m_handle_map[LOG_FILE_TYPE_RECHARGE]				= &LogFileOperate::Handle_Write_Recharge;
 	m_handle_map[LOG_FILE_TYPE_DEAL]					= &LogFileOperate::Handle_Write_Deal;
 	m_handle_map[LOG_FILE_TYPE_YB_INCOME]				= &LogFileOperate::Handle_Write_YbIncome;
-	m_handle_map[LOG_FILE_TYPE_YB_EXPEND]				= &LogFileOperate::Handle_Write_YbExpend;
+	m_handle_map[LOG_FILE_TYPE_PAY]						= &LogFileOperate::Handle_Write_Pay;
 	m_handle_map[LOG_FILE_TYPE_LOGIN]					= &LogFileOperate::Handle_Write_Login;
 	m_handle_map[LOG_FILE_TYPE_LOGOUT]					= &LogFileOperate::Handle_Write_Logout;
 	m_handle_map[LOG_FILE_TYPE_CREATE_ROLE]				= &LogFileOperate::Handle_Write_CreateRole;
 	m_handle_map[LOG_FILE_TYPE_DEATH]					= &LogFileOperate::Handle_Write_Death;
 	m_handle_map[LOG_FILE_TYPE_ACCEPT_TASK]				= &LogFileOperate::Handle_Write_AcceptTask;
-	m_handle_map[LOG_FILE_TYPE_TASK]					= &LogFileOperate::Handle_Write_Task;
-	m_handle_map[LOG_FILE_TYPE_UPGRADE]					= &LogFileOperate::Handle_Write_Upgrade;
-	m_handle_map[LOG_FILE_TYPE_GOLD]					= &LogFileOperate::Handle_Write_Gold;
+	m_handle_map[LOG_FILE_TYPE_MAIN_TASK]				= &LogFileOperate::Handle_Write_Task;
+	m_handle_map[LOG_FILE_TYPE_LV_UP]					= &LogFileOperate::Handle_Write_Lvup;
+	m_handle_map[LOG_FILE_TYPE_YXB]						= &LogFileOperate::Handle_Write_Yxb;
 	m_handle_map[LOG_FILE_TYPE_MAP]						= &LogFileOperate::Handle_Write_Map;
 	m_handle_map[LOG_FILE_TYPE_TRANSCRIPT]				= &LogFileOperate::Handle_Write_Transcript;
 	m_handle_map[LOG_FILE_TYPE_ONLINE]					= &LogFileOperate::Handle_Write_Online;
@@ -92,6 +94,8 @@ void LogFileOperate::HandlerInit()
 	m_handle_map[LOG_FILE_TYPE_FORMAT_LOG]				= &LogFileOperate::Handle_Write_FormatLog;
 	m_handle_map[LOG_FILE_TYPE_FORGE_LOG]				= &LogFileOperate::Handle_Write_Forge_Log;
 	m_handle_map[LOG_FILE_TYPE_OBJECT_LOSS]				= &LogFileOperate::Handle_Write_ObjectLoss;
+	m_handle_map[LOG_FILE_TYPE_ONLINE_USER_24TH]		= &LogFileOperate::Handle_Write_OnlineUser24th;
+	m_handle_map[LOG_FILE_TYPE_UNION]					= &LogFileOperate::Handle_Write_Union;
 }
 
 LogFileOperate::LogFileOperate():m_today(999),m_host(999)
@@ -174,7 +178,13 @@ void LogFileOperate::ResetMap(struct tm *local)
 		{
 			//日志文件
 			stringstream ss;
-			ss << g_Config.log_folder << "/" << datetime << "_" << log_file_name[i] << ".log";
+			if (i == LOG_FILE_TYPE_ONLINE_USER_24TH) {
+				char xx[14];
+				sprintf(xx, "%04d-%02d-%02d-%02d", local->tm_year + 1900, local->tm_mon + 1, local->tm_mday, 0);
+				ss << g_Config.log_folder << "/" << xx << "_" << log_file_name[i] << ".log";
+			} else {
+				ss << g_Config.log_folder << "/" << datetime << "_" << log_file_name[i] << ".log";
+			}
 			LogFileStream *file = new LogFileStream(ss.str().c_str());
 			m_file_map[i] = file;
 			string name = log_file_name[i];			
@@ -187,7 +197,14 @@ void LogFileOperate::ResetMap(struct tm *local)
 		{
 			ASSERT(it->second != NULL);
 			stringstream ss;
-			ss << g_Config.log_folder << "/" << datetime << "_" << log_file_name[it->first] << ".log";
+
+			if (it->first == LOG_FILE_TYPE_ONLINE_USER_24TH) {
+				char xx[14];
+				sprintf(xx, "%04d-%02d-%02d-%02d", local->tm_year + 1900, local->tm_mon + 1, local->tm_mday, 0);
+				ss << g_Config.log_folder << "/" << xx << "_" << log_file_name[it->first] << ".log";
+			} else {
+				ss << g_Config.log_folder << "/" << datetime << "_" << log_file_name[it->first] << ".log";
+			}
 			it->second->Open(ss.str().c_str());
 		}
 	}
@@ -225,7 +242,7 @@ void LogFileOperate::ReWriteLog(TimerHolder& th)
 	}
 	else
 	{
-		WriteLog(pkt->pkt);
+		WriteLog(pkt->pkt, a_info, player);
 	}
 	internal_protocol_free_packet(pkt->pkt);
 }
@@ -241,8 +258,14 @@ void LogFileOperate::WriteAbnormalPackets(account_info *a_info, PolicedContext *
 void LogFileOperate::WriteBaseLog(uint32 type, LogFileStream& file, time_t sec, time_t usec, account_info *a_info, PolicedContext *player)
 {
 	ASSERT(a_info->id != "" || type == LOG_FILE_TYPE_ONLINE);
-	
-	file << g_Config.game_id << (string)a_info->sid << (string)a_info->sid << (string)a_info->uid << (string)a_info->id << player->guid() << player->GetName() << player->GetPlatformId() << sec;
+	/**
+	平台id	int	与接口统一的pid
+	operation_id	varchar	平台注册号,指登陆接口uid  (账号最后个_后面)
+	服务器号	int	区服，1服对应1，2服对应2，合服后仍为原区服
+	玩家唯一标识码	varchar	角色ID，全局角色标识
+	玩家名字	varchar	角色名称
+	*/
+	file << player->GetPlatformId() << (string)a_info->uid << (string)a_info->sid << player->guid() << player->GetName();
 }
 
 void LogFileOperate::WriteClientLog(packet *pkt)
@@ -290,10 +313,9 @@ void LogFileOperate::WriteLog(packet *pkt, account_info *a_info, PolicedContext 
 		tea_perror("LogFileOperate::WriteLog log_type %u player:%s , log_type >= m_file_map.size()", log_type, player_id);
 		return;
 	}
-
 	if(a_info == NULL && !PolicedApp::g_app->LoadInfo(account, player_id, &a_info, &player))
 	{
-		tea_pwarn("LogFileOperate::WriteLog player_id = %s , account = %s not found, retry", player_id,account);
+		tea_pwarn("LogFileOperate::WriteLog player_id = %s , account = %s not found, retry wpos = %u", player_id,account, pkt->wpos);
 		log_packet *_pkt = (log_packet *)malloc(sizeof(log_packet));
 		_pkt->pkt = internal_protocol_new_packet(INTERNAL_OPT_WRITE_LOG);
 		packet_copy_from(_pkt->pkt, pkt);
@@ -320,10 +342,11 @@ void LogFileOperate::WriteLog(packet *pkt, account_info *a_info, PolicedContext 
 
 void LogFileOperate::Handle_Write_Recharge(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info *a_info, PolicedContext* player) 
 {
-	double balance,amount,money;
-	uint32 level, order;
-	*pkt >> balance >> amount >> money >> balance >> level >> order;
-	(*file) << amount << money << balance << level << order;
+	string payid, paytime, goodsname, money, desc;
+	double gold, goodsnum;
+
+	*pkt >> payid >> paytime >> goodsname >> money >> goodsnum >> gold >> desc;
+	(*file) << payid << paytime << goodsname << money << goodsnum << gold << desc;
 }
 
 void LogFileOperate::Handle_Write_Deal(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*)
@@ -373,77 +396,9 @@ void LogFileOperate::Handle_Write_Deal(uint32 , packet *pkt, LogFileStream *file
 
 void LogFileOperate::Handle_Write_ItemLog(uint32 , packet *pkt, LogFileStream *file, time_t sec, time_t usec, account_info* a_info, PolicedContext* player)
 {
-	uint32 itemid, amount, new_amount, opid, level, bind_mode, map_id;
-	double balance,money;
-	*pkt >> itemid >> amount >> new_amount >> opid >> level >> bind_mode >> balance >> money >> map_id;
-	const char *bind_str = (bind_mode == ITEM_BIND_NONE ? "u" : "b");
-
-	//看看是不是吃药
-	if(opid == LOG_ITEM_OPER_TYPE_USE && m_heal.find(itemid) != m_heal.end())
-	{
-		opid = LOG_ITEM_OPER_TYPE_HEAL;
-	}
-	(*file) << itemid << opid << amount << new_amount << bind_mode << level;
-
-	switch(opid)
-	{
-	case LOG_ITEM_OPER_TYPE_SHOP_BUY:
-		{
-			LogFileStream *file_t = m_file_map.find(LOG_FILE_TYPE_SHOP_BUY)->second;
-			WriteBaseLog(LOG_FILE_TYPE_SHOP_BUY, *file_t, sec, usec, a_info, player);
-			(*file_t) << balance << itemid << amount << money << level << map_id << LOG_SINGLE_END;					
-			file_t->Flush();
-		}
-		break;
-	case LOG_ITEM_OPER_TYPE_NPC_BUY:
-		{
-			LogFileStream *file_t = m_file_map.find(LOG_FILE_TYPE_GAME_BUY)->second;
-			WriteBaseLog(LOG_FILE_TYPE_GAME_BUY, *file_t, sec, usec, a_info, player);
-			(*file_t) << balance << itemid << amount << money << level << map_id << LOG_SINGLE_END;
-			file_t->Flush();
-		}
-		break;
-	case LOG_ITEM_OPER_TYPE_NPC_SELL:
-		{
-			LogFileStream *file_t = m_file_map.find(LOG_FILE_TYPE_GAME_SELL)->second;
-			WriteBaseLog(LOG_FILE_TYPE_GAME_SELL, *file_t, sec, usec, a_info, player);
-			(*file_t) << balance << itemid << amount << money << level << map_id << LOG_SINGLE_END;
-			file_t->Flush();
-		}
-		break;
-	case LOG_ITEM_OPER_TYPE_USE:
-		{
-			if(m_gold_goods.find(itemid) != m_gold_goods.end())
-			{
-				uint32 can_use = m_can_use_item.find(itemid) == m_can_use_item.end() ? 2 : 1;
-				LogFileStream *file_t = m_file_map.find(LOG_FILE_TYPE_ITEM_USE)->second;
-				WriteBaseLog(LOG_FILE_TYPE_ITEM_USE, *file_t, sec, usec, a_info, player);
-				(*file_t) << itemid << amount << new_amount 
-					<< can_use << level << map_id << LOG_SINGLE_END;
-				file_t->Flush();
-			}
-		}
-		break;
-	case LOG_ITEM_OPER_TYPE_BIND_SHOP_BUY:
-		{
-			LogFileStream *file_t = m_file_map.find(LOG_FILE_TYPE_GIFTMONEY_BUY)->second;
-			WriteBaseLog(LOG_FILE_TYPE_GIFTMONEY_BUY, *file_t, sec, usec, a_info, player);
-			(*file_t) << balance << itemid << amount << money << level << map_id << LOG_SINGLE_END;
-			file_t->Flush();
-		}
-	default:
-		{
-			if(((opid < 200 || opid > 300) && opid != 302 && opid != 303 && opid != 304)
-				&& m_gold_goods.find(itemid) != m_gold_goods.end())
-			{
-				LogFileStream *file_t = m_file_map.find(LOG_FILE_TYPE_ITEM_INCOME)->second;
-				WriteBaseLog(LOG_FILE_TYPE_ITEM_INCOME, *file_t, sec, usec, a_info, player);
-				(*file_t) << itemid << amount << level << opid << LOG_SINGLE_END;
-				file_t->Flush();
-			}
-		}
-		break;
-	}
+	uint32 operTime, itemid, isUse, reason, count, level;
+	*pkt >> operTime >> itemid >> isUse >> reason >> count >> level;
+	(*file) << operTime << itemid << isUse << reason << count << level;
 }
 
 void LogFileOperate::Handle_Write_YbIncome(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext* player)
@@ -456,23 +411,25 @@ void LogFileOperate::Handle_Write_YbIncome(uint32 log_type, packet *pkt, LogFile
 	(*file) << amount << balance << level << reason << old_value << trace_id << p1 << p2 << unit_price << item_bind << item_del << quest;
 }
 
-void LogFileOperate::Handle_Write_YbExpend(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext* player)
+void LogFileOperate::Handle_Write_Pay(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext* player)
 {
-	double amount, balance,old_value,unit_price;
-	uint32 level, reason,p1,p2,quest;
-	string trace_id;
-	uint16 item_bind,item_del;
-	*pkt >> amount >> balance >> level >> reason >> old_value >> trace_id >> p1 >> p2 >> unit_price >> item_bind >> item_del >> quest;
-	(*file) << amount << balance << level << reason << old_value << trace_id << p1 << p2 << unit_price << item_bind << item_del << quest;
+	uint32 operTime, isCost, reason, level;
+	double modifyValue;
+	string relateItemIds, relateItemNums;
+
+	*pkt >> operTime >> isCost >> reason >> modifyValue >> relateItemIds >> relateItemNums >> level;
+	(*file) << operTime << isCost << reason << modifyValue << relateItemIds << relateItemNums << level;
 }
 
 void LogFileOperate::Handle_Write_Login(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext* player)
 {
 	uint32 level, map_id;
-	string ip, group;
-	double power;
-	*pkt >> level >> ip >> map_id >> group >> power;
-	(*file) << level << ip << map_id << (group.size() == 0 ? "NULL" : group) << power;
+	string ip;
+	double power, currGold;
+	uint32 loginTime;
+
+	*pkt >> loginTime >> level >> ip >> map_id >> power >> currGold;
+	(*file) << loginTime << level << ip << map_id << power << currGold;
 	for (auto it:PolicedApp::g_app->m_platform_post)
 	{
 		it->UpgradePost(a_info, player, m_time, level, power);
@@ -490,17 +447,21 @@ void LogFileOperate::Handle_Write_Login(uint32 log_type, packet *pkt, LogFileStr
 
 void LogFileOperate::Handle_Write_Logout(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext* player)
 {
-	uint32 level, map_id;
-	string ip, group;
-	*pkt >> level >> ip >> map_id >> group;
-	(*file) << level << ip << map_id << (group.size() == 0 ? "NULL" : group);
+	uint32 createTime, logoutTime, onlineLast, gender, level, activityValue, mapId, mainQuestId;
+	double force, rechargeGoldSum, currGold, currBindGold, gameMoney ,gameBindMoney;
+	string ip;
+
+	*pkt >> createTime >> logoutTime >> onlineLast >> ip >>	gender >> level >> force >> activityValue >> mapId >> mainQuestId >> rechargeGoldSum >> currGold >> currBindGold >> gameMoney >> gameBindMoney;
+
+	(*file) << createTime << logoutTime << onlineLast << ip <<	gender << level << force << activityValue << mapId << mainQuestId << rechargeGoldSum << currGold << currBindGold << gameMoney << gameBindMoney;
 }
 
 void LogFileOperate::Handle_Write_CreateRole(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext* player)
 {
 	string rolename, ip;
-	*pkt >> rolename >> ip;
-	(*file) << rolename << ip;
+	uint32 gender;
+	*pkt >> rolename >> ip >> gender;
+	(*file) << rolename << ip << gender;
 }
 
 void LogFileOperate::Handle_Write_Death(uint32 , packet *pkt, LogFileStream *file, time_t sec, time_t , account_info* , PolicedContext* player)
@@ -514,39 +475,42 @@ void LogFileOperate::Handle_Write_Death(uint32 , packet *pkt, LogFileStream *fil
 
 void LogFileOperate::Handle_Write_AcceptTask(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*)
 {
-	uint32 taskid, type, map;
-	*pkt >> taskid >> type >> map;
-	(*file) << taskid << type << map;
+	uint32 time_stamp , taskid, type;
+	string remain;
+	*pkt >> time_stamp >> taskid >> type >> remain;
+	(*file) << time_stamp << taskid << type << remain;
 }
 
 void LogFileOperate::Handle_Write_Task(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*)
 {
-	uint32 taskid, map_id, result;
-	*pkt >> taskid >> map_id >> result;
-	(*file) << taskid << map_id << result;
+	uint32 time_stamp , taskid, type;
+	string remain;
+	*pkt >> time_stamp >> taskid >> type >> remain;
+	(*file) << time_stamp << taskid << type << remain;
 }
 
-void LogFileOperate::Handle_Write_Upgrade(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext *player)
+void LogFileOperate::Handle_Write_Lvup(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext *player)
 {
-	uint32 level, map;
-	double power;
-	*pkt >> level >> map >> power;
-	(*file) << level << map << power;
+	uint32 createTime, lvUpTime, level, levelDiffTime;
+
+	*pkt >> createTime >> lvUpTime >> level >> levelDiffTime;
+	(*file) << createTime << lvUpTime << level << levelDiffTime;
+
+	// 不知道这个干嘛用
 	for (auto it:PolicedApp::g_app->m_platform_post)
 	{
-		it->UpgradePost(a_info, player, m_time,level, power);
+		it->UpgradePost(a_info, player, m_time,level, player->GetForce());
 	}
 }
 
-void LogFileOperate::Handle_Write_Gold(uint32 , packet *pkt, LogFileStream *file, time_t sec, time_t usec, account_info* a_info, PolicedContext *player)
+void LogFileOperate::Handle_Write_Yxb(uint32 , packet *pkt, LogFileStream *file, time_t sec, time_t usec, account_info* a_info, PolicedContext *player)
 {
-	uint32 status, map,quest,p1,p2;
-	uint32 level = 0;
-	double sum, old_value, new_value, warehouse_value,unit_price;
-	string trace_id;
-	uint16 item_bind,item_del;
-	*pkt >> sum >> status >> map >> old_value >> new_value >> warehouse_value >> trace_id >> p1 >> p2 >> unit_price >> item_bind >> item_del >> quest >> level;
-	(*file) << sum << status << map << old_value << new_value << warehouse_value << trace_id << p1 << p2 << unit_price << item_bind << item_del << quest << level;
+	uint32 operTime, isCost, reason, level;
+	double modifyValue;
+	string relateItemIds, relateItemNums;
+
+	*pkt >> operTime >> isCost >> reason >> modifyValue >> relateItemIds >> relateItemNums >> level;
+	(*file) << operTime << isCost << reason << modifyValue << relateItemIds << relateItemNums << level;
 }
 
 void LogFileOperate::Handle_Write_Map(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*)
@@ -565,11 +529,10 @@ void LogFileOperate::Handle_Write_Transcript(uint32 , packet *pkt, LogFileStream
 
 void LogFileOperate::Handle_Write_Online(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info, PolicedContext* player)
 {
-	uint32 account_count = 0;
-	uint32 player_count = 0;
+	uint32 time_stamp, account_count ,player_count ,ip_count ,old_player_count;
 
-	*pkt >> account_count >> player_count;
-	*file << account_count << player_count;
+	*pkt >> time_stamp >> account_count >> player_count >> ip_count >> old_player_count;
+	*file << time_stamp << account_count << player_count << ip_count << old_player_count;
 }
 
 void LogFileOperate::Handle_Write_GameEnter(uint32 log_type, packet *pkt, LogFileStream *file, time_t, time_t , account_info* a_info , PolicedContext* player)
@@ -603,19 +566,12 @@ void LogFileOperate::Handle_Write_Relive(uint32 , packet *pkt, LogFileStream *fi
 
 void LogFileOperate::Handle_Write_BindGold(uint32 , packet *pkt, LogFileStream *file, time_t sec, time_t usec, account_info* a_info, PolicedContext* player)
 {
-	uint16 oper_type,item_bind,item_del;
-	uint32 item_id, count, level, map,quest;
-	string trace_id;
-	double v, old_value, new_value,unit_price;
-	*pkt >> oper_type >> v >> old_value >> new_value >> trace_id >> item_id >> count >> level >> map >> unit_price >> item_bind >> item_del >> quest;
-	(*file) << oper_type << v << old_value << new_value << trace_id << item_id << count << level << map << unit_price << item_bind << item_del << quest;
-	if(old_value < new_value)
-	{
-		LogFileStream *file_t = m_file_map.find(LOG_FILE_TYPE_GIFTMONEY_INCOME)->second;
-		WriteBaseLog(LOG_FILE_TYPE_GIFTMONEY_INCOME, *file_t, sec, usec, a_info, player);
-		(*file_t) << v << new_value << oper_type << level << map << LOG_SINGLE_END;
-		file_t->Flush();
-	}
+	uint32 operTime, isCost, reason, level;
+	double modifyValue;
+	string relateItemIds, relateItemNums;
+
+	*pkt >> operTime >> isCost >> reason >> modifyValue >> relateItemIds >> relateItemNums >> level;
+	(*file) << operTime << isCost << reason << modifyValue << relateItemIds << relateItemNums << level;
 }
 
 void LogFileOperate::Handle_Write_NewCardReceive(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*)
@@ -697,4 +653,22 @@ void LogFileOperate::Handle_Write_ObjectLoss(uint32 , packet *pkt, LogFileStream
 	uint32 op_type;
 	*pkt >> obj_guid >> op_type;
 	(*file)<< obj_guid << op_type;
+}
+
+void LogFileOperate::Handle_Write_OnlineUser24th(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*)
+{
+	string name, ip;
+	uint32 create_time, last_login_time, from_last_time, gender, level, force , active_value , map_id , main_quest_id , history_recharge ;
+	double gold , bind_gold , money , bind_money;
+	*pkt >> name >> create_time >> last_login_time >> from_last_time >> ip >> gender >> level >> force >> active_value >> map_id >> main_quest_id >> history_recharge >> gold >> bind_gold >> money >> bind_money;
+	(*file) << name << create_time << last_login_time << from_last_time << ip << gender << level << force << active_value << map_id << main_quest_id << history_recharge << gold << bind_gold << money << bind_money;
+}
+
+void LogFileOperate::Handle_Write_Union(uint32 , packet *pkt, LogFileStream *file, time_t, time_t , account_info* , PolicedContext*)
+{
+	string faction_id, faction_name,remain;
+	uint32 time_stemp, type;
+	*pkt >> time_stemp >> faction_id >> faction_name >> type >> remain;
+	(*file) << time_stemp << faction_id << faction_name << type << remain;
+
 }

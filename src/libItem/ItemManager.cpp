@@ -208,23 +208,53 @@ void ItemManager::SavePtr(const Item* item)
 }
 
 //统计指定物品数量
-int ItemManager::CountEntey(int entry,int bag)
+int ItemManager::CountEntey(int entry,int bag, int isBind, int failTime)
 {
 	if(CheckBagAndPos(bag,0))
 		return 0;
 	int count = 0;
 
+	int bindPos = 10;	//== ITEM_FLAGS_IS_BINDED
 	//遍历
 	for (auto iter = itemsMap_.begin(); iter != itemsMap_.end(); ++iter)
 	{
 		uint32_t true_pos = obj_->GetUInt32(iter->first);
 		if(iter->second.GetEntry() != entry || true_pos/kMaxBagSize != bag)
 			continue;
+		if (isBind != -1 && (isBind != 0) != iter->second.GetBit(bindPos)) {
+			continue;
+		}
+		if (failTime != -1 && failTime != iter->second.GetAttr("ifailtm")) {
+			continue;
+		}
 		count += iter->second.GetCount();
 	}
 
 	return count;
 }
+
+int ItemManager::CountAllEntey(int entry, int isBind, int failTime) {
+	int count = 0;
+
+	int bindPos = 10;	//== ITEM_FLAGS_IS_BINDED
+	//遍历
+	for (auto iter = itemsMap_.begin(); iter != itemsMap_.end(); ++iter)
+	{
+		uint32_t true_pos = obj_->GetUInt32(iter->first);
+		if(iter->second.GetEntry() != entry)
+			continue;
+		if (isBind != -1 && (isBind != 0) != iter->second.GetBit(bindPos)) {
+			continue;
+		}
+		if (failTime != -1 && failTime != iter->second.GetAttr("ifailtm")) {
+			continue;
+		}
+		count += iter->second.GetCount();
+	}
+
+	return count;
+}
+
 
 //扣除指定模板的物品
 int ItemManager::Sub(int entry, int count,int bag)

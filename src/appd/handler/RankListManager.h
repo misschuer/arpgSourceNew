@@ -222,6 +222,7 @@ public:
 	void UpdateRankList();
 
 	vector<string> GetRankGuidList(ERankTypes type);
+	string GetRankName(ERankTypes type, uint32 level);
 	bool HasRankGuid(ERankTypes type,string &guid,int &rank);
 	void UpdateRankLike(int type,const string &guid,uint32 num);
 	//ĞÄÌø¡£¡£

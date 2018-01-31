@@ -4,14 +4,14 @@ local security = require("base/Security")
 function PlayerInfo:QueryKuafuMatchInfo()
 	self:OnCheckWorld3v3Match()
 	self:OnCheckWorldXianfuMatch()
-	self:OnCheckGroupInstanceMatch()
+	-- self:OnCheckGroupInstanceMatch()
 end
 
 -- 人物离线取消所有匹配
 function PlayerInfo:OnCancelKuafuMatch()
 	self:OnCancelWorld3v3MatchBeforeOffline()
 	self:OnCancelWorldXianfuMatchBeforeOffline()
-	self:OnCancelGroupInstanceMatchBeforeOffline()
+	-- self:OnCancelGroupInstanceMatchBeforeOffline()
 end
 
 -- 进行奖励检查
@@ -27,7 +27,7 @@ function PlayerInfo:CheckMatchReward()
 	self:CheckWorldXianfuReward()
 	self:OnSyncMoney()
 	--]]
-	self:CheckGroupInstanceReward()
+	-- self:CheckGroupInstanceReward()
 end
 
 -- 匹配取消

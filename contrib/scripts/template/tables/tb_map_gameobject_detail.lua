@@ -4,7 +4,7 @@
 
 
 tb_map_gameobject_detail = {
-	--  id:int 序号
+	--  id:int 采集序号ID
 	--  entry:int 采集物模版id
 	--  position:array 采集物位置
 	--  angle:int 采集物朝向
@@ -19,7 +19,7 @@ tb_map_gameobject_detail = {
 	[9] = {id = 9, entry = 26, position = {20,42}, angle = 180},
 	[11] = {id = 11, entry = 31, position = {39,120}, angle = 180},
 	[12] = {id = 12, entry = 32, position = {212,24}, angle = 180},
-	[13] = {id = 13, entry = 33, position = {98,37}, angle = 180},
+	[13] = {id = 13, entry = 20, position = {98,37}, angle = 180},
 	[14] = {id = 14, entry = 34, position = {201,105}, angle = 180},
 	[15] = {id = 15, entry = 35, position = {91,110}, angle = 180},
 	[16] = {id = 16, entry = 36, position = {141,74}, angle = 180},
@@ -27,10 +27,10 @@ tb_map_gameobject_detail = {
 	[18] = {id = 18, entry = 38, position = {157,23}, angle = 180},
 	[19] = {id = 19, entry = 39, position = {187,22}, angle = 180},
 	[20] = {id = 20, entry = 31, position = {40,120}, angle = 180},
-	[21] = {id = 21, entry = 22, position = {48,88}, angle = 180},
+	[21] = {id = 21, entry = 46, position = {48,88}, angle = 180},
 	[22] = {id = 22, entry = 21, position = {104,35}, angle = 180},
 	[23] = {id = 23, entry = 27, position = {19,223}, angle = 180},
-	[24] = {id = 24, entry = 31, position = {94,115}, angle = 180},
+	[24] = {id = 24, entry = 47, position = {94,115}, angle = 180},
 	[25] = {id = 25, entry = 32, position = {110,178}, angle = 180},
 	[26] = {id = 26, entry = 34, position = {86,102}, angle = 180},
 	[27] = {id = 27, entry = 40, position = {153,183}, angle = 180},
@@ -39,4 +39,11 @@ tb_map_gameobject_detail = {
 	[30] = {id = 30, entry = 33, position = {155,140}, angle = 180},
 	[31] = {id = 31, entry = 25, position = {97,21}, angle = 180},
 	[32] = {id = 32, entry = 36, position = {191,108}, angle = 180},
+	[33] = {id = 33, entry = 33, position = {155,139}, angle = 180},
+	[34] = {id = 34, entry = 44, position = {98,23}, angle = 180},
+	[35] = {id = 35, entry = 45, position = {190,110}, angle = 180},
+	[43] = {id = 43, entry = 43, position = {80,169}, angle = 180},
+	[44] = {id = 44, entry = 48, position = {10,154}, angle = 180},
+	[45] = {id = 45, entry = 49, position = {144,10}, angle = 180},
+	[46] = {id = 46, entry = 50, position = {82,206}, angle = 180},
 }

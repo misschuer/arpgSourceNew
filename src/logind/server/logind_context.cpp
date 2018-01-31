@@ -153,7 +153,7 @@ void LogindContext::SavePlayerLoginLog()
 	if(m_is_save_login_log) return;
 
 	WriteLogin(m_account, m_player ? m_player->GetGuid() : 0, m_player ? m_player->GetLevel() : 0, m_remote_ip.c_str()
-		, m_player ? m_player->GetMapId() : 0, "", m_player->GetForce());
+		, m_player ? m_player->GetMapId() : 0, m_player->GetForce(), m_player->GetMoney(MONEY_TYPE_GOLD_INGOT));
 	//ÌÚÑ¶ÈÕÖ¾
 	if(m_player && LogindApp::g_app->GetPlatformID() == PLATFORM_QQ)
 		WriteTXLoginLog(m_account, m_player->GetGuid(),m_player->GetName(),m_player->GetLevel(),"","",GetPlatInfo(m_player->GetPlatData(),"pf"),m_remote_ip.c_str(),(uint32)time(NULL));
@@ -172,8 +172,11 @@ void LogindContext::SavePlayerLogoutLog()
 {
 	if(m_player)
 	{
-		WriteLogout(m_account, m_player->GetGuid(), m_player->GetLevel(), m_remote_ip.c_str()
-			, m_player->GetMapId(), "");
+		WriteLogout(m_account, m_player->GetGuid(), m_player->GetCreateTime(), m_player->GetLastLogoutTime(), m_player->GetOnlineTime(),
+			m_remote_ip.c_str(), m_player->GetGender(), m_player->GetLevel(), m_player->GetForce(), 
+			m_player->GetUInt32(PLAYER_INT_FIELD_ACTIVE), m_player->GetMapId(), m_player->GetUInt32(PLAYER_INT_FIELD_MAIN_QUEST_ID),
+			(double)m_player->GetUInt32(PLAYER_APPD_INT_FIELD_RECHARGE_SUM), m_player->GetMoney(MONEY_TYPE_GOLD_INGOT), m_player->GetMoney(MONEY_TYPE_BIND_GOLD), m_player->GetMoney(MONEY_TYPE_SILVER), 0
+		);
 		if (m_player->GetFlags(PLAYER_APPD_INT_FIELD_FLAGS_YEYOU_ONLINE))
 			m_player->UnSetFlags(PLAYER_APPD_INT_FIELD_FLAGS_YEYOU_ONLINE);
 		g_DAL.UpdateCharsOnline(m_player->GetGuid(), PLAYER_ONLINE_STATE_OUTLINE);

@@ -145,7 +145,7 @@ end
 
 
 --根据规则选取场景服
-function ServerConnList:SelectScenedFDByType (scened_type, mapid)
+function ServerConnList:SelectScenedFDByType (mapid)
 
 	--地图选场景配置
 	local map_config = {
@@ -158,8 +158,8 @@ function ServerConnList:SelectScenedFDByType (scened_type, mapid)
 	}
 
 	local conn_id = 0
-	local idx = -1
-	for k, val in pairs(map_config) do
+	local idx = tb_map[mapid].connIndx
+	--[[for k, val in pairs(map_config) do
 		for i, v in pairs(val) do
 			if(v == mapid)then
 				idx = k
@@ -169,11 +169,12 @@ function ServerConnList:SelectScenedFDByType (scened_type, mapid)
 		if(idx ~= -1)then
 			break
 		end
-	end
-	
+	end--]]
+	outFmtDebug("!!!!!!!!!!!!!!!!!select scene idx = %u", idx)
 	if(idx ~= -1)then
 		self:Foreach(function(index, fd, server_type, ok_flag, scened_type)
 			if(server_type == SERVER_TYPE_SCENED and ok_flag)then
+				outFmtDebug("scened_type = %u fd = %d", scened_type, fd)
 				if(scened_type == idx)then
 					conn_id = fd
 					return true
@@ -205,18 +206,18 @@ end
 
 --根据一定的规则获得场景服连接 inst_type:副本类型（0：不是副本 1：活动副本 2：单人副本）
 function ServerConnList:GetScenedFDByType (inst_type, mapid)
-	local conn_id = 0
-	if(inst_type == MAP_INST_TYP_SINGLETON)then		--单人副本
+	local conn_id = self:SelectScenedFDByType(mapid)
+	--[[if(inst_type == MAP_INST_TYP_SINGLETON)then		--单人副本
 		conn_id = self:SelectScenedFDByType(SCENED_TYPE_INST, mapid)
 	elseif(inst_type == MAP_INST_TYP_ACTIVITY)then	--活动副本
 		conn_id = self:SelectScenedFDByType(SCENED_TYPE_ACTIVI, mapid)
 	elseif(inst_type == MAP_INST_TYP_NO_INSTANCE)then	--不是副本
 		conn_id = self:SelectScenedFDByType(SCENED_TYPE_NO_INST, mapid)
-	end
+	end--]]
 	--如果相应的服务器没有找到	
-	if(conn_id == 0)then
+--[[	if(conn_id == 0)then
 		conn_id = self:SelectScenedFDByType(MAX_SCENED_TYPE);
-	end
+	end--]]
 	outDebug('tip: SelectScenedFDByType:mapid = '..mapid..' select scened connection = '..conn_id)
 	return conn_id	
 end

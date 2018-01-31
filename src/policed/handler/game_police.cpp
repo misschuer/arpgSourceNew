@@ -33,6 +33,7 @@ void GamePolice::SaveHTInfo(TimerHolder& th)
 	//更新玩家在线
 	ObjMgr.ForEachPlayer([](PolicedContext* player){
 		g_LOG.SaveHTBasicInfo(player, player->GetStatus() == STATUS_LOGGEDIN);
+		g_LOG.SaveHTDailyInfo(player);
 	});
 	th._next_time += 300;
 }

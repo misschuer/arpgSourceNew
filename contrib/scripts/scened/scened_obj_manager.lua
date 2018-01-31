@@ -14,7 +14,7 @@ end
 
 --远程创建新对象后触发
 function ScenedObjectManager:afterAttachObject( o )
-	--outFmtInfo("ScenedObjectManager %s afterAttachObject", tostring(o.class))
+	--outFmtDebug("ScenedObjectManager %s afterAttachObject", tostring(o.class))
 end
 
 return ScenedObjectManager

@@ -7,14 +7,9 @@ tb_meridian_source = {
 	--  id:int 活跃类型ID
 	--  exp:int 每次完成经验
 	--  limit:int 每天完成次数
-	[1] = {id = 1, exp = 100, limit = 2},
-	[2] = {id = 2, exp = 100, limit = 2},
-	[3] = {id = 3, exp = 100, limit = 2},
-	[4] = {id = 4, exp = 100, limit = 2},
-	[10] = {id = 10, exp = 100, limit = 2},
-	[11] = {id = 11, exp = 100, limit = 2},
-	[16] = {id = 16, exp = 100, limit = 2},
-	[19] = {id = 19, exp = 100, limit = 2},
-	[20] = {id = 20, exp = 100, limit = 2},
-	[21] = {id = 21, exp = 100, limit = 2},
+	[10] = {id = 10, exp = 200, limit = 5},
+	[11] = {id = 11, exp = 200, limit = 5},
+	[3] = {id = 3, exp = 200, limit = 5},
+	[2] = {id = 2, exp = 200, limit = 5},
+	[4] = {id = 4, exp = 200, limit = 5},
 }

@@ -170,6 +170,7 @@ function UnitInfo:SetSpellCD(spell_id, nowtime)
 	if config ~= nil then
 		local levelIndex = self:GetSpellLvIndex(spell_id)
 		local upConfig = tb_skill_uplevel[levelIndex]
+		-- 作为动作的施法时间
 		local category_cd = config.groupCD
 		local single_cd = config.singleCD - upConfig.mcd
 		

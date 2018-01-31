@@ -27,6 +27,10 @@ void AppdContext::OpcodeHandlerInitor()
 	opcode_handler_[CMSG_RANK_LIST_QUERY].status = STATUS_LOGGEDIN;
 	opcode_handler_[CMSG_RANK_LIST_QUERY].cooldown = 0;
 
+	opcode_handler_[CMSG_BOOKING_MONEY].handler = std::bind(&AppdContext::Handle_Booking_Money, this, std::placeholders::_1);
+	opcode_handler_[CMSG_BOOKING_MONEY].status = STATUS_LOGGEDIN;
+	opcode_handler_[CMSG_BOOKING_MONEY].cooldown = 0;
+
 	opcode_handler_[CMSG_CHAR_REMOTESTORE].handler = std::bind(&AppdContext::Handle_Char_Remotestore, this, std::placeholders::_1);
 	opcode_handler_[CMSG_CHAR_REMOTESTORE].status = STATUS_LOGGEDIN;
 	opcode_handler_[CMSG_CHAR_REMOTESTORE].cooldown = 0;
@@ -265,14 +269,14 @@ double AppdContext::GetMoney(uint16 type)
 	return m_all_money[type];
 }
 
-void AppdContext::addMoney(uint8 money_type, uint8 oper_type, double val, const string &trace_id, uint32 p1, uint32 p2, uint8 item_bind, uint8 item_del)
+void AppdContext::addMoney(uint8 money_type, uint8 oper_type, double val, string& relateItemIds, string& relateItemNums)
 {
 	if(val <= 0) return;
 
 	if(money_type >= MAX_MONEY_TYPE)
 	{
-		tea_perror("cent_player::addMoney money_type:%u error player:%s,oper_type:%u,val:%u,trace_id:%s,item_id:%u,count:%u"
-			, money_type,GetGuid().c_str(),oper_type,val,trace_id.c_str(),p1,p2);
+		tea_perror("cent_player::addMoney money_type:%u error player:%s,oper_type:%u,val:%u,relateItemIds:%s,relateItemNums:%u"
+			, money_type,GetGuid().c_str(),oper_type,val,relateItemIds.c_str(),relateItemIds.c_str());
 		return;
 	}
 
@@ -284,37 +288,32 @@ void AppdContext::addMoney(uint8 money_type, uint8 oper_type, double val, const 
 	m_all_money[money_type] = new_money;
 
 	SetDouble(PLAYER_EXPAND_INT_MONEY + money_type * 2, new_money);
+	uint32 now = (uint32)time(NULL);
 
 	switch(money_type)
 	{
 	case MONEY_TYPE_GOLD_INGOT:
 		{
-			SaveGoldLog(GetAccount(), GetGuid(), GetName(), money_type, oper_type, val, old_value, new_money, trace_id, p1, p2, 
-				p2 == 0 ? val : val/p2, item_bind, item_del, GetLevel(), 0/*主线任务ID*/);
-			WriteYbIncome(GetAccount(), GetGuid(), val, new_money, GetLevel(), oper_type,old_value, trace_id, p1, p2, 
-				p2 == 0 ? val : val/p2, item_bind, item_del, 0/*主线任务ID*/);
+			SaveGoldLog(GetAccount(), GetGuid(), GetName(), money_type, oper_type, val, old_value, new_money, "", 0, 0, 
+				val, 0, 0, GetLevel(), 0/*主线任务ID*/);
+
+			WrtiePay(GetAccount(), GetGuid(), now, 0, oper_type, val, relateItemIds, relateItemNums, GetLevel());
+
+
 			//腾讯日志
-			if(AppdApp::g_app->GetPlatformID() == PLATFORM_QQ)
-				WriteTXMoneyLog(GetAccount(),GetGuid(),GetName(),oper_type,0,old_value,new_money,val,0,p1,p2,(uint32)time(NULL),GetPlatInfo(GetPlatData(),"pf"));
+			/*if(AppdApp::g_app->GetPlatformID() == PLATFORM_QQ)
+				WriteTXMoneyLog(GetAccount(),GetGuid(),GetName(),oper_type,0,old_value,new_money,val,0,p1,p2,(uint32)time(NULL),GetPlatInfo(GetPlatData(),"pf"));*/
 			break;	
 		}
 	case MONEY_TYPE_BIND_GOLD:
 		{
-			WriteBindGold(GetAccount(), GetGuid(), oper_type, val, old_value, new_money, trace_id, p1, p2, GetLevel(), GetMapId(),
-				p2 == 0 ? val : val/p2, item_bind, item_del,0/*主线任务ID*/);
+			WriteBindGold(GetAccount(), GetGuid(), now, 0, oper_type, val, relateItemIds, relateItemNums, GetLevel());
 			break;
 		}
 	case MONEY_TYPE_SILVER:
 		{
 			RankListMgr->InsertTask(GetGuid(),RANK_TYPE_MONEY);
-			WriteSilver(GetAccount(), GetGuid(), val, oper_type, GetMapId(), old_value, new_money, GetMoney(MONEY_TYPE_SILVER_WAREHOUSE),
-				trace_id, p1, p2, p2 == 0 ? val : val/p2, item_bind, item_del,0/*主线任务ID*/,GetLevel());
-			break;
-		}
-	case MONEY_TYPE_SILVER_WAREHOUSE:
-		{
-			WriteSilver(GetAccount(), GetGuid(), val, oper_type, GetMapId(), old_value, new_money, GetMoney(MONEY_TYPE_SILVER),
-				trace_id, p1, p2, p2 == 0 ? val : val/p2, item_bind, item_del,0/*主线任务ID*/,GetLevel());
+			WriteYxb(GetAccount(), GetGuid(), now, 0, oper_type, val, relateItemIds, relateItemNums, GetLevel());
 			break;
 		}
 	default:
@@ -322,14 +321,14 @@ void AppdContext::addMoney(uint8 money_type, uint8 oper_type, double val, const 
 	}
 }
 
-bool AppdContext::subMoney(uint8 money_type, uint8 oper_type, double val, const string &trace_id, uint32 p1, uint32 p2, uint8 item_bind, uint8 item_del)
+bool AppdContext::subMoney(uint8 money_type, uint8 oper_type, double val, string& relateItemIds, string& relateItemNums)
 {
 	if(val <= 0)
 		return false;
 	if(money_type >= MAX_MONEY_TYPE)
 	{
-		tea_perror("cent_player::subMoney money_type:%u error player:%s,oper_type:%u,val:%u,trace_id:%s,p1:%u,p2:%u"
-			, money_type,GetGuid().c_str(),oper_type,val,trace_id.c_str(),p1,p2);
+		tea_perror("cent_player::subMoney money_type:%u error player:%s,oper_type:%u,val:%u,relateItemIds:%s,relateItemNums:%u"
+			, money_type,GetGuid().c_str(),oper_type,val,relateItemIds.c_str(),relateItemIds.c_str());
 		return false;
 	}
 
@@ -340,6 +339,7 @@ bool AppdContext::subMoney(uint8 money_type, uint8 oper_type, double val, const 
 		double new_money = old_value - val;
 		m_all_money[money_type] = new_money;
 		SetDouble(PLAYER_EXPAND_INT_MONEY + money_type * 2, new_money);
+		uint32 now = (uint32)time(NULL);
 
 		switch(money_type)
 		{
@@ -347,32 +347,25 @@ bool AppdContext::subMoney(uint8 money_type, uint8 oper_type, double val, const 
 			{
 				//消费元宝
 				DoGlodConsumeStatistics(this, val);
-				SaveGoldLog(GetAccount(), GetGuid(), GetName(), money_type, oper_type, -1 * val, old_value, new_money, trace_id, p1,
-					p2, p2 == 0 ? val : val/p2, item_bind, item_del, GetLevel(), 0/*主线任务ID*/);
-				WriteYbIncome(GetAccount(), GetGuid(), val, new_money, GetLevel(), oper_type,old_value, trace_id, p1, p2, 
-					p2 == 0 ? val : val/p2, item_bind, item_del, 0/*主线任务ID*/);
-				//腾讯日志
-				if(AppdApp::g_app->GetPlatformID() == PLATFORM_QQ)
-					WriteTXMoneyLog(GetAccount(),GetGuid(),GetName(),oper_type,0,old_value,new_money,val,0,p1,p2,(uint32)time(NULL),GetPlatInfo(GetPlatData(),"pf"));
+				SaveGoldLog(GetAccount(), GetGuid(), GetName(), money_type, oper_type, -1 * val, old_value, new_money, "", 0, 0, 
+					val, 0, 0, GetLevel(), 0/*主线任务ID*/);
+
+				WrtiePay(GetAccount(), GetGuid(), now, 1, oper_type, val, relateItemIds, relateItemNums, GetLevel());
+
+				////腾讯日志
+				//if(AppdApp::g_app->GetPlatformID() == PLATFORM_QQ)
+				//	WriteTXMoneyLog(GetAccount(),GetGuid(),GetName(),oper_type,0,old_value,new_money,val,0,p1,p2,(uint32)time(NULL),GetPlatInfo(GetPlatData(),"pf"));
 				break;
 			}
 		case MONEY_TYPE_BIND_GOLD:
 			{
-				WriteBindGold(GetAccount(), GetGuid(), oper_type, val, old_value, new_money, trace_id, p1, p2, GetLevel(), GetMapId(),
-					p2 == 0 ? val : val/p2, item_bind, item_del,0/*主线任务ID*/);
+				WriteBindGold(GetAccount(), GetGuid(), now, 1, oper_type, val, relateItemIds, relateItemNums, GetLevel());
 				break;
 			}
 		case MONEY_TYPE_SILVER:
 			{
 				RankListMgr->InsertTask(GetGuid(),RANK_TYPE_MONEY);
-				WriteSilver(GetAccount(), GetGuid(), val, oper_type, GetMapId(), old_value, new_money, GetMoney(MONEY_TYPE_SILVER_WAREHOUSE),
-					trace_id, p1, p2, p2 == 0 ? val : val/p2, item_bind, item_del,0/*主线任务ID*/,GetLevel());
-				break;
-			}
-		case MONEY_TYPE_SILVER_WAREHOUSE:
-			{
-				WriteSilver(GetAccount(), GetGuid(), val, oper_type, GetMapId(), old_value, new_money, GetMoney(MONEY_TYPE_SILVER),
-					trace_id, p1, p2, p2 == 0 ? val : val/p2, item_bind, item_del,0/*主线任务ID*/,GetLevel());
+				WriteYxb(GetAccount(), GetGuid(), now, 1, oper_type, val, relateItemIds, relateItemNums, GetLevel());
 				break;
 			}
 		}
@@ -452,6 +445,44 @@ void AppdContext::Handle_Char_Remotestore(packet& pkt)
 		return;
 	}
 	SetUInt32(PLAYER_EXPAND_INT_CLIENT_DATA + key, value);	
+}
+
+//记录购买订单
+void AppdContext::Handle_Booking_Money(packet& pkt) {
+	char *orderid;
+	char *goodsname;
+	char *money1;
+	uint32 goodsnum;
+
+	if(unpack_booking_money(&pkt, &orderid, &goodsname, &money1, &goodsnum)) {
+		WriteAttackPacker(GetAccount(),GetGuid(),pkt.head->optcode,ACCACK_PACKET_TYPE_UNPACK,"");
+		return;
+	}
+	// 5玩通道
+	if (AppdApp::g_app->GetPlatformID() != PLATFORM_5WANPK) {
+		return;
+	}
+
+	recharge_info reInfo;
+	memset(&reInfo, 0, sizeof(recharge_info));
+	strncpy(reInfo.guid, this->GetGuid().c_str(), 49);
+	strncpy(reInfo.orderid, orderid, 49);
+	strncpy(reInfo.goodsname, goodsname, 49);
+	strncpy(reInfo.money1, money1, 49);
+	strncpy(reInfo.account, this->GetAccount().c_str(), 49);
+	strncpy(reInfo.name, this->GetName().c_str(), 49);
+	reInfo.goodsnum = goodsnum;
+
+	uint8 ret = 0;
+	if (LocalDBMgr.insertRechargeInfo(&reInfo)) {
+		ret = 1;
+	}
+	
+	packet *_pkt;
+	pack_booking_money_result(&_pkt, orderid, ret);
+	update_packet_len(_pkt);
+	SendPacket(*_pkt);
+	external_protocol_free_packet(_pkt);
 }
 
 //保存客户端配置信息

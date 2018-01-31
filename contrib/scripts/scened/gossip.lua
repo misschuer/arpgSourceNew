@@ -28,6 +28,27 @@ function Script_Gameobject_Pick_Check(player_ptr, entry, x, y)
 	return lx <= px and px <= rx and ly <= py and py <= ry
 end
 
+function isInRectange(px, py, rec)
+	local lx = rec[ 1 ]
+	local ly = rec[ 2 ]
+	local rx = rec[ 3 ]
+	local ry = rec[ 4 ]
+	
+	if lx > rx then
+		tmp = lx
+		lx = rx
+		rx = tmp
+	end
+	
+	if ly > ry then
+		tmp = ly
+		ly = ry
+		ry = tmp
+	end
+	
+	return lx <= px and px <= rx and ly <= py and py <= ry
+end
+
 --客户端发起的世界地图传送
 function Script_WorldMap_Teleport(player,map_id,p_x,p_y)
 	outFmtDebug("Script_WorldMap_Teleport")

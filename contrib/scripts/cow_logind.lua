@@ -120,11 +120,14 @@ end
 --玩家下线的时候判断是否记录玩家所在地图的信息，最多保留10分钟
 -- fuben_type = baseInfo.instance_type
 function DoIsRecordIntanceInfo(player, map_id, isfuben, fuben_type)	
-	if(isfuben == 0 or fuben_type ~= MAP_INST_TYP_SINGLETON)then
+	--[[if(isfuben == 0 or fuben_type ~= MAP_INST_TYP_SINGLETON)then
 		return false
+	end--]]
+	if isfuben > 0 and DoIsOfflineReenter(map_id) then
+		return true
 	end
 
-	return true
+	return false
 end
 
 --是否需要提供传送generalid,通过地图id判断

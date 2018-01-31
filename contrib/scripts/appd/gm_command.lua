@@ -1,3 +1,5 @@
+local security = require("base/Security")
+
 --应用服
 function  DoGMScripts(player_ptr, gm_commands)
 	local player = app.objMgr:fromPtr(player_ptr)
@@ -30,7 +32,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif tokens[1] == '@VIP' then	
 		local lv = paras[2] or 1
 		local tm = os.time() + 30 * 24 * 3600
-		player:SetVIP(lv, tm)
+		player:SetVIP(lv, 0)
 		
 	elseif(tokens[1] == '@hp')then
 		if(#paras >= 2)then			
@@ -478,7 +480,7 @@ function  DoGMScripts(player_ptr, gm_commands)
 	elseif(tokens[1] == "@邮件")then
 		--发放礼包
 		local toguid = player:GetGuid()
-		if #tokens >= 2 then
+		if #tokens >= 2 and string.len(tokens[2]) > 0 then
 			toguid = tokens[2]
 		end
 		
@@ -1406,6 +1408,9 @@ function  DoGMScripts(player_ptr, gm_commands)
 			end
 			player:AppdAddItems({{id,1}})
 		end
+		if tonumber( tokens[ 3 ]) == 1 then
+			player:Handle_One_Step_Robot_Up({id = 3})
+		end
 	elseif (tokens[ 1 ] == "@批量熔炼") then
 		local count = tonumber( tokens[ 2 ]) or 1
 		for i = 1,count do
@@ -1501,10 +1506,21 @@ function  DoGMScripts(player_ptr, gm_commands)
 		
 	elseif (tokens[ 1 ] == "@境界每日") then
 		player:PickRealmbreakDailyReward()
-	elseif (tokens[ 1 ] == "@组队") then
-		player:createGroup()
-	elseif (tokens[ 1 ] == "@解散队伍") then
-		player:testDissolutionGroup()
+	elseif (tokens[ 1 ] == "@创建队伍") then
+		local pkt = {}
+		pkt.type = tonumber(tokens[2]) or 0
+		player:msgCreateGroup(pkt)
+	elseif (tokens[ 1 ] == "@申请组队") then
+		local pkt = {}
+		pkt.guid = tokens[2] or ''
+		player:msgRegisterGroup(pkt)
+	elseif (tokens[ 1 ] == "@退出组队") then
+		player:msgQuitGroup({})
+	elseif (tokens[ 1 ] == "@队伍决定") then
+		local pkt = {}
+		pkt.instSubType = tonumber(tokens[2]) or 0
+		pkt.choise = tonumber(tokens[3]) or 0
+		player:msgGroupSelect(pkt)
 	elseif (tokens[ 1 ] == "@闯关") then
 		local stage = tonumber(tokens[2]) or 1
 		
@@ -1525,6 +1541,69 @@ function  DoGMScripts(player_ptr, gm_commands)
 		local id = tonumber(tokens[2]) or 1
 		
 		player:SetPassedStageInstanceId(player:GetPassedStageInstanceId() + id)
+	elseif (tokens[ 1 ] == "@家族战") then
+		call_appd_teleport(player:GetScenedFD(),player:GetGuid(),200,118,7001,'1')
+		
+	elseif (tokens[ 1 ] == "@开启家族战") then
+		globalValue:StartFactionMatch()
+	elseif (tokens[ 1 ] == "@清空家族战") then
+		globalValue:ClearAllFactionMatch()
+	elseif (tokens[ 1 ] == "@参加家族战") then
+		player:EnterFactionMatchMap()
+	elseif (tokens[ 1 ] == "@装备法宝") then
+		local id = tonumber(tokens[2]) or 1
+		player:EquipTalismanToSlot(id)
+		
+	elseif (tokens[ 1 ] == "@卸下法宝") then
+		local id = tonumber(tokens[2]) or 1
+		player:UnEquipTalismanFromSlot(id)
+		
+	elseif (tokens[ 1 ] == "@充值天数") then
+		--local id = tonumber(tokens[2]) or 1
+		local time = player:GetRechageLastTime() - 60*60*24
+		if time < 0 then
+			time = 0
+		end
+		player:SetRechageLastTime(time)
+		player:ClearWelfareSevenDayRechargeTodayFlag()		
+	elseif (tokens[ 1 ] == "@坐骑升阶") then
+		local id = player:getSpellMgr():getMountLevel( ) + 1
+		player:SetMountLevel(id )
+		player:SetMountStar(0)
+		
+		player:getSpellMgr():setMountLevel(id )
+		player:getSpellMgr():setMountStar(0)
+		player:DoAfterUpgrade(id )
+	elseif (tokens[ 1 ] == "@翅膀升阶") then
+		local id = tonumber(tokens[2]) or 100
+		if not tb_wings_bless[id] then
+			return
+		end
+		player:getSpellMgr():SetWingsId(id)
+		
+		-- 重算战斗力(当前和属性绑定在一起)
+		player:RecalcAttrAndBattlePoint()
+		--更新开服排行
+		DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_WING,player})
+		
+		rankInsertTask(player:GetGuid(),RANK_TYPE_WINGS)
+			
+	elseif (tokens[ 1 ] == "@testlua") then
+		local list = {}
+		for i = 1, 10 do
+			table.insert(list, i)
+		end
+		
+		list.s = 'abc'
+		list.next = {[1]=1}
+		
+		outFmtDebug("@testlua==== \n%s", table.dump(list, true))
+	elseif tokens[ 1 ] == '@gmlv' then
+		local lv = tonumber(tokens[ 2 ]) or 0
+		player:SetByte(PLAYER_FIELD_BYTES_5, 0, lv)
+	elseif tokens[ 1 ] == '@兑换码' then
+		local giftcode = tokens[ 2 ] or ""
+		player:UseGiftcode(giftcode)
 	end
 	
 	return result

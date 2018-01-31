@@ -82,7 +82,7 @@ function SortItem(player,flag,bagType)
 		local items = itemMgr:getBagAllItem(bag_type)
 		local index = 0
 		for pos, item in pairsByKeys(items) do      
-			--outFmtInfo("pos:%d item:%s",pos,item) 
+			--outFmtDebug("pos:%d item:%s",pos,item) 
 			if pos == index then
 				index = index + 1
 			else
@@ -192,7 +192,7 @@ function SortItem(player,flag,bagType)
 		local items = itemMgr:getBagAllItem(bag_type)
 		local index = 0
 		for pos, item in pairsByKeys(items) do      
-			--outFmtInfo("pos:%d item:%s",pos,item) 
+			--outFmtDebug("pos:%d item:%s",pos,item) 
 			if pos == index then
 				index = index + 1
 			else

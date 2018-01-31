@@ -203,9 +203,11 @@ function GlobalSystemMail:PickSystemMail(playerInfo, indx)
 	local gift_desc   = self:GetStr(strIndx + SYSTEM_MAIL_INFO_STRING_DESC)
 	local item_config = self:GetStr(strIndx + SYSTEM_MAIL_INFO_STRING_ITEM)
 	
-	print(gift_type, start_time, end_time, gift_name, gift_desc, item_config)
-	
-	giftPack:AddGiftPacksInfo(gift_type, start_time, end_time, gift_name, gift_desc, item_config, "")
+	--print(gift_type, start_time, end_time, gift_name, gift_desc, item_config)
+	-- 一定要在创建角色后的礼包 和 在可领取范围的礼包
+	if playerInfo:GetCharCreateTime() < start_time and os.time() < end_time then
+		giftPack:AddGiftPacksInfo(gift_type, start_time, end_time, gift_name, gift_desc, item_config, "")
+	end
 end
 
 

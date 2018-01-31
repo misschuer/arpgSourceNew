@@ -56,9 +56,10 @@ function DoUseItemScript(user, item_entry, count)
 	--获得buff
 	elseif item_type == ITEM_TYPE_BUFF then
 		local using_effect = config.using_effect
-		for i = 1,#using_effect,2 do
-			local buff_id = using_effect[i]
-			SpelladdBuff(user, buff_id, user, 1, tb_buff_template[buff_id].duration)
+		for i = 1,#using_effect do
+			local buffEffectId = using_effect[i]
+			local effectConfig = tb_buff_effect[buffEffectId]
+			SpelladdBuff(user, effectConfig.buff_id, user, buffEffectId, effectConfig.duration)
 		end
 	end
 

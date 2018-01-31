@@ -99,17 +99,18 @@ function ItemMgrBase:addItem(entry, count, isBind, isAppaisal, isSystem, strong_
 		
 		local bag_pos = self.itemMgr:Add(item.item, bag_type, pos)
 		
-		if item_tempate.type == ITEM_TYPE_EQUIP and table.find(item_tempate.availableGender, self:getOwner():GetGender()) and item_tempate.level <= self:getOwner():GetLevel() then
+		if item_tempate.type == ITEM_TYPE_EQUIP and table.find(item_tempate.availableGender, self:getOwner():GetGender()) --[[and item_tempate.level <= self:getOwner():GetLevel() --]]and item_tempate.realmbreak_level <= self:getOwner():GetRealmbreakLevel() then
 			-- 与背包对应位置装备战力比较
 			local equiped_item = self:getBagItemByPos(BAG_TYPE_EQUIP,item_tempate.pos)
 	
 			if not equiped_item or item:getForce() > equiped_item:getForce() then
-				--outFmtInfo("!!!!!!!!!!!!!@@@@@@@@@@@@@ addItem: find better equip %d %d %d ",entry,bag_pos, item:getForce())
+				--outFmtDebug("!!!!!!!!!!!!!@@@@@@@@@@@@@ addItem: find better equip %d %d %d ",entry,bag_pos, item:getForce())
 				--local item_guid = string.format("%s;%d",self:GetGuid(), result_pos)
 				self:getOwner():call_bag_find_equip_better(entry, bag_pos,item:getForce())
 			end
 		end
-		if item_tempate.type == ITEM_TYPE_BOX then
+		if item_tempate.belong_bag == 3 and item_tempate.use_hint
+ == 1 then
 			self:getOwner():call_bag_find_equip_better(entry,count,0)
 		end
 		count = count - overlay
@@ -176,26 +177,29 @@ end
 --isBind和fail_time为nil的话（即参数不传）则不校验
 function ItemMgrBase:countItem(bag_type, entry, isBind, fail_time)
 	bag_type = bag_type or self.default_bag_type
-	if type(isBind) == "number" then
-		isBind = isBind ~= 0
+	fail_time = fail_time or -1
+	local bind = getBindValue(isBind)
+	local count = self.itemMgr:CountEntey(entry, bag_type, bind, fail_time)
+	return count
+end
+
+function getBindValue(isBind)
+	local bindValue = isBind or -1
+	if type(isBind) == "boolean" then
+		bindValue = 0
+		if isBind then
+			bindValue = 1
+		end
 	end
 	
-	local count = 0
-	self.itemMgr:ForEachBagItem(bag_type, function(ptr)
-		local item = require("appd.appd_item").new(ptr)
-		if entry == item:getEntry() and ( isBind == nil or item:isBind() == isBind )  and (fail_time == nil or item:getFailTime() == fail_time) then
-			count = count + item:getCount()
-		end		
-	end)
-	return count
+	return bindValue
 end
 
 --统计所有包裹里物品个数
 function ItemMgrBase:countAllItem(entry, isBind, fail_time)
-	local count = 0
-	for bag = 0, self.default_max_bag-1 do
-		count = count + self:countItem(bag, entry, isBind, fail_time)
-	end		
+	fail_time = fail_time or -1
+	local bind = getBindValue(isBind)
+	local count = self.itemMgr:CountAllEntey(entry, bind, fail_time)
 	return count
 end
 

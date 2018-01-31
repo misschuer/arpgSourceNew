@@ -68,6 +68,8 @@ static const struct luaL_reg mylib[] = {
 	//{"open_robert_debugger",	&luaopen_robert_debugger},					//打开调试支持
 
 	{"setUpdateRobot",			&LuaSetUpdateRobot},
+	{"getMsTime",				&LuaGetMsTime},				//获取服务器运行时间
+
 	{NULL, NULL} /* sentinel */ 
 };
 
@@ -170,6 +172,13 @@ lua_State *__script_init(const char* path)
 	}
 	ASSERT(lua_gettop(L) == 0);//不要有残留
 	return L;
+}
+
+//获取服务器运行时间
+int LuaGetMsTime(lua_State *scriptL)
+{	
+	lua_pushnumber(scriptL, ms_time());
+	return 1;
 }
 
 

@@ -7,6 +7,7 @@ InstanceInstBase.Time_Out_Fail_Callback = "instanceFail"
 InstanceInstBase.Leave_Callback = "prepareToLeave"
 InstanceInstBase.player_auto_respan = 9
 InstanceInstBase.exit_time = 10
+InstanceInstBase.wait_time = 5
 
 function InstanceInstBase:ctor(  )
 	
@@ -335,21 +336,24 @@ end
 -------------------------------------------------------------------------------------------
 
 --玩家加入地图
-function InstanceInstBase:OnJoinPlayer(player)
+function InstanceInstBase:OnJoinPlayer(player, isReenter)
 	Instance_base.OnJoinPlayer(self, player)
 	
 	local playerInfo = UnitInfo:new{ptr = player}
-	
-	--playerInfo:ChangeToPeaceModeAfterTeleport()
-	playerInfo:ModifyHealth(playerInfo:GetMaxHealth())
+	if playerInfo:IsAlive() and not isReenter then
+		playerInfo:ModifyHealth(playerInfo:GetMaxHealth())
+		playerInfo:call_fullize_hp (playerInfo:GetGuid())
+	end
 end
 
 --当玩家离开时触发
 function InstanceInstBase:OnLeavePlayer( player, is_offline)
 	Instance_base.OnLeavePlayer(self, player, is_offline)
 	
-	--local playerInfo = UnitInfo:new{ptr = player}
-	--playerInfo:ChangeToPeaceModeAfterTeleport()
+	local playerInfo = UnitInfo:new{ptr = player}
+	if playerInfo:IsAlive() and not is_offline then
+		playerInfo:ModifyHealth(playerInfo:GetMaxHealth())
+	end
 end
 
 return InstanceInstBase

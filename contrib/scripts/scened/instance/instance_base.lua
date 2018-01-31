@@ -550,7 +550,38 @@ Instance_base = {
 				-- 默认开始时间和创建时间一致, 有倒计时显示的除外
 				self:SetMapStartTime(os.time())
 			end
+			
+			-- 创建安全区采集物
+			local mapid = self:GetMapId()
+			local safety = tb_map[mapid].safeObject
+			for _, info in ipairs(safety) do
+				local x 	= info[ 1 ]
+				local y 	= info[ 2 ]
+				local entry = info[ 3 ]
+				mapLib.AddGameObject(self.ptr, entry, x, y, GO_GEAR_STATUS_END)
+			end
+			
+			-- 增加定时器
+			mapLib.AddTimer(self.ptr, 'OnFabaoSpellCal', 1000)
 		end,
+
+	OnFabaoSpellCal = function(self)
+		local now = os.time()
+		local players 	= mapLib.GetAllPlayer(self.ptr)
+		local creatures = mapLib.GetAllCreature(self.ptr)
+		
+		for _, player in ipairs(players) do
+			local unitInfo = UnitInfo:new{ptr = player}
+			unitInfo:onCheckFabaoSpell(now)
+		end
+
+		for _, creature in ipairs(creatures) do
+			local unitInfo = UnitInfo:new{ptr = creature}
+			unitInfo:onCheckFabaoSpell(now)
+		end
+		
+		return true
+	end,
 	
 	--开始移动前需要处理的逻辑
 	OnMoveTo = 
@@ -636,9 +667,26 @@ Instance_base = {
 		function(self,player)
 			local mapid = self:GetMapId()
 			local default_mode = tb_map[mapid].default_mode
+			local playerInfo = UnitInfo:new{ptr = player}
 			if default_mode == PEACE_MODE or default_mode == FAMILY_MODE or default_mode == GROUP_MODE then
-				local playerInfo = UnitInfo:new{ptr = player}
 				playerInfo:SetBattleMode(default_mode)
+			end
+			
+			local prev = playerInfo:rideFlag()
+			if prev > 0 and tb_map[mapid].aotubattle == 1 then	--下坐骑
+				playerInfo:MountUnride()
+				playerInfo:CalSpeed(0)
+			end
+			
+			playerInfo:clearAllLeaveClearBuff()
+			
+			local groupId = playerInfo:GetGroupId()
+			if string.len(groupId) > 0 then
+				local groupObj = app.objMgr:getObj(groupId)
+				if groupObj then
+					local lineNo = self:GetMapLineNo()
+					groupObj:SetPlayerMapidAndLineNo(playerInfo, mapid, lineNo)
+				end
 			end
 		end,
 
@@ -692,6 +740,7 @@ Instance_base = {
 		local mapid = self:GetMapId()
 		local sub_type = tb_map[mapid].inst_sub_type
 		playerInfo:SetLastInstanceType(sub_type)
+		playerInfo:clearAllLeaveClearBuff()
 	end,
 	
 	--地图需要清空人时要做的事
@@ -982,9 +1031,6 @@ Instance_base = {
 		spells: 技能数据 {{技能ID,释放概率（万分比）,这个技能动作时间,技能等级, 技能组}, ..., {}}
 		--]]
 	GetImageInfo = function(self, config)
-		if config.gender ~= 1 and config.gender ~= 2 then
-			config.gender = 1
-		end
 		config.id = tb_char_info[config.gender].dummy_entry
 		--[[
 		local image = {}
@@ -1077,6 +1123,9 @@ Instance_base = {
 
 		-- 技能
 		self:SetSpells(creature, image.spells)
+		
+		-- 被动技能
+		self:SetPassiveSpells(creature, image.passivespells)
 
 		return creature, pet
 	end,
@@ -1173,6 +1222,25 @@ Instance_base = {
 				
 				local targetType = skillConfig.type
 				creatureLib.MonsterAddSpell(creature_ptr, spellInfo[ 1 ], spellInfo[ 2 ], inteval, spellInfo[ 4 ], spellInfo[ 5 ], dist, groupCD, singleCD, targetType)
+			end
+		end
+	end,
+	
+	SetPassiveSpells = function (self, creature_ptr, spells)
+		local indx = 0
+		for i = 1, #spells do
+			local spellInfo = spells[ i ]
+			-- spellInfo = {技能ID,技能等级}
+			local skillConfig = tb_skill_base[spellInfo[ 1 ]]
+			if skillConfig then
+				local index = skillConfig.uplevel_id[ 1 ] + spellInfo[ 2 ] - 1
+				local upgradeConfig = tb_skill_uplevel[index]
+				if upgradeConfig.dispatch_condition[ 1 ] == PASSIVE_DISPATCH_TYPE_SECONDS then
+					-- 法宝被动技能
+					self:SetUInt16(UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_START + indx, 0, spellInfo[ 1 ])
+					self:SetUInt16(UNIT_INT_FIELD_FABAO_PASSIVE_SPELL_START + indx, 1, spellInfo[ 2 ])
+					indx = indx + 1
+				end
 			end
 		end
 	end,
@@ -1285,6 +1353,16 @@ Instance_base = {
 		end
 	end,
 	
+	-- 鼓舞
+	inspire = function (self, playerInfo, category)
+		
+	end,
+	
+	-- 是否能进行鼓舞
+	checkCanInspire = function (self, playerInfo, category)
+		return -1
+	end,
+	
 	-- 判断是否够随机复活
 	OnCheckIfCanRandomRespawn = function (self, playerInfo)
 		if playerInfo:IsAlive() then
@@ -1295,6 +1373,10 @@ Instance_base = {
 	end,
 	
 	OnRandomRespawn = function (self, unitInfo)
+		local mapId = self:GetMapId()
+		if #tb_map[mapId].rebornPos == 0 then
+			return
+		end
 		if not unitInfo:IsAlive() then
 			unitInfo:SetUseRespawnMapId(0)
 			unitLib.Respawn(unitInfo.ptr, RESURRPCTION_HUANHUNDAN, 100)	--原地复活

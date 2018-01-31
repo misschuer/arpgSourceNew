@@ -23,6 +23,7 @@ require("template.tables.tb_mount_upgrade")
 require("template.tables.tb_mount_raise_level")
 
 require("template.tables.tb_shop")
+require("template.tables.tb_shop_chongzhi")
 require("template.tables.tb_store")
 require("template.tables.tb_hook_hp_item")
 
@@ -62,6 +63,7 @@ require("template.tables.tb_divine_spirit")
 --法宝表
 require("template.tables.tb_talisman_base")
 require("template.tables.tb_talisman_spirit")
+require("template.tables.tb_talisman_slot")
 
 --神羽表
 require("template.tables.tb_wings_base")
@@ -285,6 +287,38 @@ require("template.tables.tb_realmbreak_dailyquest_base")
 require("template.tables.tb_instance_stage")
 require("template.tables.tb_instance_stage_bonus")
 require("template.tables.tb_instance_stage_base")
+
+require("template.tables.tb_instance_group_exp")
+
+--家族战
+require("template.tables.tb_faction_match_base")
+require("template.tables.tb_faction_match_winstrike")
+require("template.tables.tb_faction_match_rank_reward")
+require("template.tables.tb_faction_match_champion")
+require("template.tables.tb_faction_match_phase")
+
+-- 离线经验
+require("template.tables.tb_offline_exp_base")
+require("template.tables.tb_offline_exp_data")
+
+require("template.tables.tb_local3v3_daily_reward")
+
+require("template.tables.tb_fabaoskill")
+
+--充值活动
+require("template.tables.tb_recharge_first_reward")
+require("template.tables.tb_recharge_7day_reward")
+require("template.tables.tb_recharge_7day_extra_reward")
+
+
+
+require("template.tables.tb_recharge_wheel")
+
+--兑换码
+require("template.tables.tb_giftcode")
+require("template.tables.tb_giftcode_type")
+
+
 
 --- 数据预处理
 require("template.tabset")

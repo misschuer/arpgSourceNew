@@ -3,9 +3,10 @@ InstanceStageQueueSingle = class("InstanceStageQueueSingle", InstanceStageBase)
 InstanceStageQueueSingle.Name = "InstanceStageQueueSingle"
 InstanceStageQueueSingle.exit_time = 10
 --刷新坐标偏移值
-InstanceStageQueueSingle.RefreshOffset = 3;
+InstanceStageQueueSingle.RefreshOffset = 1;
 
 InstanceStageQueueSingle.MonsterRefreshInterval = 500
+
 
 function InstanceStageQueueSingle:ctor(  )
 	
@@ -16,7 +17,7 @@ function InstanceStageQueueSingle:InitRes(config)
 end
 
 --设置每波怪刷新的次序
-function InstanceStageBase:SetRandomMonsterIndex(num)
+function InstanceStageQueueSingle:SetRandomMonsterIndex(num)
 	local tab = GetRandomIndexTable(num,num)
 	for i=1,#tab do
 		if i <= 4 then
@@ -28,7 +29,7 @@ function InstanceStageBase:SetRandomMonsterIndex(num)
 	end
 end
 
-function InstanceStageBase:GetRandomMonsterIndex(idx)
+function InstanceStageQueueSingle:GetRandomMonsterIndex(idx)
 	if idx <= 3 then
 		return self:GetByte(MAP_INT_FIELD_RESERVE2,idx)
 	elseif idx <= 7 then
@@ -38,7 +39,7 @@ function InstanceStageBase:GetRandomMonsterIndex(idx)
 	return 0
 end
 
-function InstanceStageQueueSingle:ApplyRefreshMonsterBatch(player,batchIdx)
+function InstanceStageQueueSingle:ApplyRefreshMonsterBatch(batchIdx)
 	outFmtDebug("ApplyRefreshMonsterBatch base")
 	local batchPos = self:GetRandomMonsterIndex(batchIdx)
 
@@ -49,11 +50,11 @@ function InstanceStageQueueSingle:ApplyRefreshMonsterBatch(player,batchIdx)
 	local id = self:GetIndex()
 	local config = tb_instance_stage[ id ]
 	local entry = config.monster[batchPos]
-	local plev = player:GetLevel()
+	local plev = config.monsterlevel
 	local bornPos = config.monsterInfo[batchPos]
 	local cnt = config.monsternum
 	
-	
+	outFmtDebug("ApplyRefreshMonsterBatch %d %d  %s ",id,entry,bornPos)
 	--REFRESH_MONSTER_FIELD_ID			=	MAP_INT_FIELD_INSTANCE_TYPE + 1,	//2个short(0:当前已经刷的,1:总共需要刷多少怪
 	for i = 1, cnt do
 		local bornX = bornPos[ 1 ] + randInt(0, self.RefreshOffset)
@@ -68,12 +69,12 @@ function InstanceStageQueueSingle:ApplyRefreshMonsterBatch(player,batchIdx)
 	self:SetUInt16(REFRESH_MONSTER_FIELD_ID, 1, cnt)
 	
 	mapLib.DelTimer(self.ptr, 'OnTimer_MonsterBornOneByOne')
-	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval, player:GetPlayerGuid())
+	mapLib.AddTimer(self.ptr, 'OnTimer_MonsterBornOneByOne', self.MonsterRefreshInterval)
 	
 	return true,cnt
 end
 
-function InstanceStageQueueSingle:OnTimer_MonsterBornOneByOne(playerGuid)
+function InstanceStageQueueSingle:OnTimer_MonsterBornOneByOne()
 	local dids = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 0)
 	local need = self:GetUInt16(REFRESH_MONSTER_FIELD_ID, 1)
 	if dids >= need then
@@ -85,15 +86,11 @@ function InstanceStageQueueSingle:OnTimer_MonsterBornOneByOne(playerGuid)
 	local level = self:GetUInt16(indx  , 1)
 	local bornX = self:GetUInt16(indx+1, 0)
 	local bornY = self:GetUInt16(indx+1, 1)
-	
+	--outFmtDebug("%d,%d,%d,%d",entry, bornX, bornY, level)
 	local creature = mapLib.AddCreature(self.ptr, 
 			{templateid = entry, x = bornX, y = bornY, level=level, active_grid = true, 
 			ainame = "AI_stage", npcflag = {}, attackType = REACT_AGGRESSIVE})
 	
-	local player_ptr = mapLib.GetPlayerByPlayerGuid(self.ptr, playerGuid)
-	if player_ptr then
-		creatureLib.ModifyThreat(creature, player_ptr, self.THREAT_V)
-	end
 	self:AddUInt16(REFRESH_MONSTER_FIELD_ID, 0, 1)
 	
 	return true

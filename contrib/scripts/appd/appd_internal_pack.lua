@@ -161,6 +161,16 @@ function unpack_send_to_appd_add_offline_mail( pkt )
 	return true, player_guid, str
 end
 
+function unpack_send_to_appd_force_unlock( pkt )
+	local ret, rank1, rank2
+	ret, rank1 = pkt:readU32()
+	if not ret then return false end
+	ret, rank2 = pkt:readU32()
+	if not ret then return false end
+	
+	return true, rank1, rank2
+end
+
 function unpack_scened_send_notice( pkt )
 	local ret, id, content, data
 	ret, id = pkt:readU32()
@@ -413,5 +423,26 @@ function call_opt_update_char_name(player_guid, name)
 	pkt:writeUTF(player_guid)
 	pkt:writeUTF(name)
 	app:sendToLogind(pkt)
+	pkt:delete()
+end
+
+
+--场景服发起传送
+function call_opt_policed_mongo_recharge(account, player_guid, name, ext, payid, paytime, goodsname, money)
+	local pkt = Packet.new(INTERNAL_OPT_MONGO_RECHARGE)
+	local s1 = string.split(account, '_')
+	local s2 = string.split(ext, '_')
+	pkt:writeUTF(s1[#s1])
+	pkt:writeUTF(player_guid)
+	pkt:writeU32(tonumber(s2[ 1 ]))
+	pkt:writeU32(tonumber(s2[ 2 ]))
+	pkt:writeUTF(name)
+	pkt:writeUTF(payid)
+	pkt:writeUTF(paytime)
+	pkt:writeUTF(goodsname)
+	pkt:writeUTF(money)
+	
+	
+	app:sendToPoliced(pkt)
 	pkt:delete()
 end

@@ -2,24 +2,99 @@
 function PlayerInfo:WelfareShouchong()
 	local questMgr = self:getQuestMgr()
 	if questMgr:getWelfareShouchong() == 1 then
-		--outFmtDebug("has get shouchong")
-		return
+		outFmtDebug("has get shouchong")
+		return false
 	end
 	
 	
 	if self:GetRechageSum() == 0 then
-		--outFmtDebug("has never Rechage")
-		return
+		outFmtDebug("has never Rechage")
+		return false
 	end
 	
-	local config = tb_welfare_shouchong[1]
+	--[[local config = tb_welfare_shouchong[1]
 	if not config then
 		return
 	end
 	
-	self:AppdAddItems(config.item,MONEY_CHANGE_SHOUCHONG,LOG_ITEM_OPER_TYPE_SHOUCHONG)
+	self:AppdAddItems(config.item,MONEY_CHANGE_SHOUCHONG,LOG_ITEM_OPER_TYPE_SHOUCHONG)--]]
+	
+	local config = tb_recharge_first_reward[self:GetGender()]
+	if not config then
+		outFmtDebug("config error ")
+		return false
+	end
+	
+	--发送邮件
+	local desc = config.mail_desc
+	local name = config.mail_name
+	local reward = itemListToItemString(config.reward)
+	AddGiftPacksData(self:GetGuid(),0,GIFT_PACKS_TYPE_RECHARGE,os.time(),os.time() + 86400*30, name, desc, reward, SYSTEM_NAME)
+	
+	self:CallOptResult(OPERTE_TYPE_RECEIVE_GIFT_PACKS,RECEIVE_GIFT_PACKS_FIRST_RECHARGE_GIFT,{})
 	questMgr:setWelfareShouchong()
+	return true
 end
+
+function PlayerInfo:WelfareSevenDayRecharge(recharge_time)
+	local questMgr = self:getQuestMgr()
+	local last_time = self:GetRechageLastTime()
+	
+	if self:GetRechageSum() == 0 then
+		outFmtDebug("has never Rechage")
+		return
+	end
+	
+	if checkSameDay(last_time, recharge_time ) then
+		outFmtDebug("WelfareSevenDayRecharge same day")
+		return
+	else
+		questMgr:SetWelfareSevenDayRechargeTodayFlag()
+	end
+	
+	
+	local recharge_count = questMgr:GetWelfareSevenDayRechargeProcess()
+	outFmtDebug("WelfareSevenDayRecharge count  %d",recharge_count)
+	local config = tb_recharge_7day_reward[recharge_count + 1]
+	if config then
+		local desc = config.mail_desc
+		local name = config.mail_name
+		local reward = itemListToItemString(config.reward)
+		AddGiftPacksData(self:GetGuid(),0,GIFT_PACKS_TYPE_RECHARGE,os.time(),os.time() + 86400*30, name, desc, reward, SYSTEM_NAME)
+		
+		self:CallOptResult(OPERTE_TYPE_RECEIVE_GIFT_PACKS,RECEIVE_GIFT_PACKS_DAY_RECHARGE_GIFT,{})
+		questMgr:SetWelfareSevenDayRechargeProcess(recharge_count + 1)
+		
+	end
+	
+	
+end
+
+function PlayerInfo:GetSevenDayRechargeExtraReward(id)
+	local config = tb_recharge_7day_extra_reward[id]
+	local questMgr = self:getQuestMgr()
+	
+	
+	
+	if config then
+		local flag = questMgr:GetWelfareSevenDayRechargeExtraFlag(id - 1)
+		local recharge_count = questMgr:GetWelfareSevenDayRechargeProcess()
+		
+		if not flag and recharge_count >= config.day then
+			
+			self:AppdAddItems(config.reward,MONEY_CHANGE_SEVEN_DAY_RECHARGE_EXTRA,LOG_ITEM_OPER_TYPE_SEVEN_DAY_RECHARGE_EXTRA)
+			
+			questMgr:SetWelfareSevenDayRechargeExtraFlag(id - 1)
+		end
+		
+		
+		
+	end
+	
+	
+end
+
+
 --每日签到奖励
 function PlayerInfo:WelfareCheckIn(day)
 	
@@ -299,7 +374,7 @@ function PlayerInfo:SetWelfareBackAllNum()
 					allNum = allNum + maxNum - curnum
 				end
 				
-				outFmtDebug("type:%d curnum:%d",type,curnum)
+				-- outFmtDebug("type:%d curnum:%d",type,curnum)
 			end
 			
 			local time = GetTodayStartTimestamp(0)
@@ -307,7 +382,7 @@ function PlayerInfo:SetWelfareBackAllNum()
 			outFmtDebug("type:%d today:%d",type,curnum)
 			
 			questMgr:setWelfareBackAllNum(type,allNum)
-			outFmtDebug("--------")
+			--outFmtDebug("--------")
 		end
 	end
 end
@@ -462,4 +537,110 @@ function PlayerInfo:GetWelfareSevendayReward(id)
 	
 	self:AppdAddItems(config.item,MONEY_CHANGE_SEVEN_DAY_GIFT,LOG_ITEM_OPER_TYPE_SEVEN_DAY_GIFT)
 	questMgr:SetSevenDayFlag(id - 1)
+end
+
+--使用兑换码
+function PlayerInfo:UseGiftcode(giftcode)
+	outFmtInfo("UseGiftcode code = @@@%s@@@",giftcode)
+	local code_config = tb_giftcode[giftcode]
+	if not code_config then
+		--无效兑换码
+		self:CallOptResult(OPRATE_TYPE_GIFTCODE,GIFTCODE_NOTICE_TYPE_INVALID,{})
+		return
+	end
+	
+	local type_config = tb_giftcode_type[code_config.type]
+	
+	if not type_config then
+		--无效兑换码
+		self:CallOptResult(OPRATE_TYPE_GIFTCODE,GIFTCODE_NOTICE_TYPE_INVALID,{})
+		return
+	end
+	
+	if type_config.once == 1 then --一次性兑换码
+		if CheckGiftcodeIsUsed(giftcode) == 1 then
+			--该兑换码已经被使用过了
+			self:CallOptResult(OPRATE_TYPE_GIFTCODE,GIFTCODE_NOTICE_TYPE_USED,{})
+			return
+		end
+		
+		if self:GetGiftcodeTypeFlag(code_config.type) then
+			--已领取过该类型礼包
+			self:CallOptResult(OPRATE_TYPE_GIFTCODE,GIFTCODE_NOTICE_TYPE_ALREADY_GET,{})
+			return
+		end
+	
+		AddUsedGiftcode(giftcode)
+		
+		self:SetGiftcodeTypeFlag(code_config.type)
+		
+		--local desc = type_config.mail_desc
+		--local name = type_config.mail_name
+		--local reward = type_config.reward_str
+		--local giftType = GIFT_PACKS_TYPE_GIFTCODE
+		--AddGiftPacksData(self:GetGuid(),0,giftType,os.time(),os.time() + 86400*30, name, desc, reward, SYSTEM_NAME)
+		
+		local list = {}
+		for _,v in ipairs(type_config.reward) do
+			--奖励通知
+			local stru = item_reward_info_t .new()
+			stru.item_id	= v[1]
+			stru.num 		= v[2]
+			table.insert(list, stru)
+		end
+		self:call_show_giftcode_reward_list(list)
+		
+		self:AppdAddItems(type_config.reward, MONEY_CHANGE_GIFTCODE, LOG_ITEM_OPER_TYPE_GIFTCODE)
+		--兑换成功
+		self:CallOptResult(OPRATE_TYPE_GIFTCODE,GIFTCODE_NOTICE_TYPE_SUCCESS,{type_config.name})
+		
+	elseif type_config.once == 0 then --通用兑换码
+		
+		if self:GetGiftcodeTypeFlag(code_config.type) then
+			--已领取过该类型礼包
+			self:CallOptResult(OPRATE_TYPE_GIFTCODE,GIFTCODE_NOTICE_TYPE_ALREADY_GET,{})
+			return
+		end
+		
+		self:SetGiftcodeTypeFlag(code_config.type)
+	--[[local desc = type_config.mail_desc
+		local name = type_config.mail_name
+		local reward = type_config.reward_str
+		local giftType = GIFT_PACKS_TYPE_GIFTCODE
+		AddGiftPacksData(self:GetGuid(),0,giftType,os.time(),os.time() + 86400*30, name, desc, reward, SYSTEM_NAME)--]]
+		local list = {}
+		for _,v in ipairs(type_config.reward) do
+			--奖励通知
+			local stru = item_reward_info_t .new()
+			stru.item_id	= v[1]
+			stru.num 		= v[2]
+			table.insert(list, stru)
+		end
+		self:call_show_giftcode_reward_list(list)
+		
+		self:AppdAddItems(type_config.reward, MONEY_CHANGE_GIFTCODE, LOG_ITEM_OPER_TYPE_GIFTCODE)
+		--兑换成功
+		self:CallOptResult(OPRATE_TYPE_GIFTCODE,GIFTCODE_NOTICE_TYPE_SUCCESS,{type_config.name})
+	end
+	
+end
+
+function PlayerInfo:SetGiftcodeTypeFlag(id)
+	local index, offset = getRealOffset(id,32)
+	if index < 0 or index > MAX_GIFTCODE_TYPE_FLAG_COUNT - 1 then
+		outFmtError("SetGiftcodeTypeFlag id %d bigger than limit %d",id,MAX_GIFTCODE_TYPE_FLAG_COUNT * 32)
+		return
+	end
+	
+	self:SetBit(PLAYER_INT_FIELD_GIFTCODE_TYPE_FLAG_START + index, offset)
+end
+
+function PlayerInfo:GetGiftcodeTypeFlag(id)
+	local index, offset = getRealOffset(id,32)
+	if index < 0 or index > MAX_GIFTCODE_TYPE_FLAG_COUNT - 1 then
+		outFmtError("SetGiftcodeTypeFlag id %d bigger than limit %d",id,MAX_GIFTCODE_TYPE_FLAG_COUNT * 32)
+		return true
+	end
+	
+	return self:GetBit(PLAYER_INT_FIELD_GIFTCODE_TYPE_FLAG_START + index, offset)
 end

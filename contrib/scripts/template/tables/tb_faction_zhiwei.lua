@@ -7,9 +7,10 @@ tb_faction_zhiwei = {
 	--  id:int 职位
 	--  num:int 人数
 	--  reward:int 奖励
-	[1] = {id = 1, num = 1, reward = 1301},
-	[2] = {id = 2, num = 1, reward = 1301},
-	[3] = {id = 3, num = 4, reward = 1301},
-	[4] = {id = 4, num = 20, reward = 1301},
-	[5] = {id = 5, num = 20, reward = 1301},
+	--  title:string 名称
+	[1] = {id = 1, num = 1, reward = 1301, title = "族长"},
+	[2] = {id = 2, num = 1, reward = 1301, title = "副族长"},
+	[3] = {id = 3, num = 4, reward = 1301, title = "长老"},
+	[4] = {id = 4, num = 20, reward = 1301, title = "精英"},
+	[5] = {id = 5, num = 20, reward = 1301, title = "成员"},
 }

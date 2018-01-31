@@ -85,7 +85,7 @@ function AppItemMgr:exchangePos(src_bag, src_pos, dst_bag, dst_pos)
 			return false
 		end		
 	elseif src_bag == BAG_TYPE_GEM then
-		if dst_bag ~= BAG_TYPE_GEM_BAG then
+		if dst_bag ~= BAG_TYPE_GEM then
 			--其他包裹就只能交换到主包裹
 			outFmtError("exchangePos5:cant exchange to dst_bag %d src_bag %d",dst_bag, src_bag)
 			return false
@@ -176,9 +176,15 @@ function AppItemMgr:exchangePos(src_bag, src_pos, dst_bag, dst_pos)
 				return false
 			end
 					
-			--校验穿戴等级
+			--[[--校验穿戴等级
 			if owner:GetLevel() < src_temp.level then
 				outFmtError("exchangePos: player level %d < min_level %d", owner:GetLevel(), src_temp.level)
+				return false
+			end--]]
+			
+			--校验境界等级
+			if owner:GetRealmbreakLevel() < src_temp.realmbreak_level then
+				outFmtError("exchangePos: player Realmbreak level %d < min_level %d", owner:GetRealmbreakLevel(), src_temp.realmbreak_level)
 				return false
 			end
 			
@@ -461,7 +467,7 @@ end
 
 
 --使用一组物品{{entry,count},{entry,count} ...} 
-function AppItemMgr:useMulItem(costItemTable,multiple)
+function AppItemMgr:useMulItem(itemLog, costItemTable,multiple)
 	multiple = multiple or 1
 
 	if not self:hasMulItem(costItemTable,multiple) then
@@ -470,6 +476,7 @@ function AppItemMgr:useMulItem(costItemTable,multiple)
 	
 	for _, costItem in pairs(costItemTable) do
 		if self:delItem(costItem[1],costItem[2]*multiple,self.default_bag_type) == 0 then
+			WriteItemLog(self:GetOwner(), itemLog, costItem[1], 1, costItem[2]*multiple)
 			return false
 		end
 	end
@@ -486,7 +493,11 @@ function AppItemMgr:smeltingEquip(pos_str)
 		return false
 	end
 	
+	--outFmtDebug("=== %s", pos_str)
 	local values =  string.split(pos_str, "|")
+	--if #values > 9 then
+	--	return
+	--end
 	local cnt = 0
 	local rewardList = {}
 	

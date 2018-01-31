@@ -51,6 +51,7 @@ static void getAttStr(string &str,std::vector<ItemBaseAtt> &ary){
 		double val = atof(tokens[i+1].c_str());
 		int qua =atoi(tokens[i+2].c_str());
 		ItemBaseAtt temp;
+		memset(&temp, 0, sizeof(ItemBaseAtt));
 		temp.key = key;
 		temp.val = val;
 		temp.qua = qua;
@@ -126,6 +127,7 @@ void Item::SetBaseAttr(unsigned int pos,int key,double val,int qua)
 void Item::AddBaseAttr(int key,double val,int qua)
 {
 	ItemBaseAtt temp;
+	memset(&temp, 0, sizeof(ItemBaseAtt));
 	temp.key = key;
 	temp.val = val;
 	temp.qua = qua;

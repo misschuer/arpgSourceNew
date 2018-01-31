@@ -330,6 +330,48 @@ function PlayerInfo:SetDao(val)
 	self:SetDouble(PLAYER_FIELD_DAO, val)
 end
 
+-- 获得PVP伤害增加
+function PlayerInfo:GetPvpDamageAmplifyRate()
+	return self:GetDouble(PLAYER_FIELD_PVP_DAMAGE_AMPLIFY_RATE)
+end
+
+-- 获得减少PVP伤害
+function PlayerInfo:GetPvpDamageResistRate()
+	return self:GetDouble(PLAYER_FIELD_PVP_DAMAGE_RESIST_RATE)
+end
+
+-- 获得增加PVE伤害
+function PlayerInfo:GetPveDamageAmplifyRate()
+	return self:GetDouble(PLAYER_FIELD_PVE_DAMAGE_AMPLIFY_RATE)
+end
+
+-- 获得减少伤害
+function PlayerInfo:GetDamageResistValue()
+	return self:GetDouble(PLAYER_FIELD_DAMAGE_RESIST_VALUE)
+end
+
+
+-- 设置PVP伤害增加
+function PlayerInfo:SetPvpDamageAmplifyRate(val)
+	self:SetDouble(PLAYER_FIELD_PVP_DAMAGE_AMPLIFY_RATE, val)
+end
+
+-- 设置减少PVP伤害
+function PlayerInfo:SetPvpDamageResistRate(val)
+	self:SetDouble(PLAYER_FIELD_PVP_DAMAGE_RESIST_RATE, val)
+end
+
+-- 设置增加PVE伤害
+function PlayerInfo:SetPveDamageAmplifyRate(val)
+	self:SetDouble(PLAYER_FIELD_PVE_DAMAGE_AMPLIFY_RATE, val)
+end
+
+-- 设置减少伤害
+function PlayerInfo:SetDamageResistValue(val)
+	self:SetDouble(PLAYER_FIELD_DAMAGE_RESIST_VALUE, val)
+end
+
+
 local PlayerInfo_Get_Attr_Func = {
 	[EQUIP_ATTR_MAX_HEALTH] = PlayerInfo.GetMaxHealth,	--设置最大生命
 	[EQUIP_ATTR_DAMAGE] = PlayerInfo.GetDamage,	--设置攻击力
@@ -363,6 +405,11 @@ local PlayerInfo_Get_Attr_Func = {
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = PlayerInfo.GetControlResistRate,	--设置控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = PlayerInfo.GetStrengthArmor,	--设置强化护甲
 	[EQUIP_ATTR_DAO] = PlayerInfo.GetDao,	--设置境界
+	
+	[EQUIP_ATTR_PVP_DAMAGE_AMPLIFY_RATE] = PlayerInfo.GetPvpDamageAmplifyRate,	--设置PVP伤害增加
+	[EQUIP_ATTR_PVP_DAMAGE_RESIST_RATE] = PlayerInfo.GetPvpDamageResistRate,	--设置减少PVP伤害
+	[EQUIP_ATTR_PVE_DAMAGE_AMPLIFY_RATE] = PlayerInfo.GetPveDamageAmplifyRate,	--设置增加PVE伤害
+	[EQUIP_ATTR_DAMAGE_RESIST_VALUE] = PlayerInfo.GetDamageResistValue,	--设置减少伤害
 }
 
 local PlayerInfo_Set_Attr_Func = {
@@ -398,6 +445,11 @@ local PlayerInfo_Set_Attr_Func = {
 	[EQUIP_ATTR_CONTROL_RESIST_RATE] = PlayerInfo.SetControlResistRate,	--设置控制减免
 	[EQUIP_ATTR_STRENGTH_ARMOR] = PlayerInfo.SetStrengthArmor,	--设置强化护甲
 	[EQUIP_ATTR_DAO] = PlayerInfo.SetDao,	--设置境界
+	
+	[EQUIP_ATTR_PVP_DAMAGE_AMPLIFY_RATE] = PlayerInfo.SetPvpDamageAmplifyRate,	--设置PVP伤害增加
+	[EQUIP_ATTR_PVP_DAMAGE_RESIST_RATE] = PlayerInfo.SetPvpDamageResistRate,	--设置减少PVP伤害
+	[EQUIP_ATTR_PVE_DAMAGE_AMPLIFY_RATE] = PlayerInfo.SetPveDamageAmplifyRate,	--设置增加PVE伤害
+	[EQUIP_ATTR_DAMAGE_RESIST_VALUE] = PlayerInfo.SetDamageResistValue,	--设置减少伤害
 }
 
 
@@ -436,6 +488,65 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	battleForce = battleForce + skillForce
 	outFmtDebug("base skill force %d", battleForce)
 	
+	--神剑技能战力
+	local adventureForce = 0
+	for spellId ,info in pairs(tb_adventure_skill_base) do
+		--等级
+		local level = spellMgr:getSpellLevel(spellId)
+		if level > 0 then
+			local bp = self:GetSkillBattlePoint(spellId, level)
+			adventureForce = adventureForce + bp
+		end
+		
+	end
+	
+	self:SetAdventureSkillForce(adventureForce)
+	
+	battleForce = battleForce + adventureForce
+	outFmtDebug("adventure skill force %d", adventureForce)
+	
+	--家族技能战力
+	
+	local factionSkillForce = 0
+	for spellId ,info in pairs(tb_faction_skill_base) do
+		--等级
+		local level = spellMgr:getSpellLevel(info.skill_id)
+		if level > 0 then
+			local bp = self:GetSkillBattlePoint(info.skill_id, level)
+			factionSkillForce = factionSkillForce + bp
+		end
+		
+	end
+	
+	--self:SetAdventureSkillForce(adventureForce)
+	
+	battleForce = battleForce + factionSkillForce
+	outFmtDebug("factionSkillForce skill force %d", factionSkillForce)
+	
+	--法宝技能战力
+	
+	local talismanSkillForce = 0
+	for index = 0 ,PLAYER_TALISMAN_SLOT_COUNT - 1 do
+		local id = spellMgr:GetTalismanSlotId(index)
+		if id > 0 then
+			local config = tb_talisman_base[id] or {}
+			for _,v in pairs(config.passiveskill) do
+				local skill_id = v[1]
+				local level = v[2]
+				if level > 0 then
+					local bp = self:GetSkillBattlePoint(skill_id, level)
+					talismanSkillForce = talismanSkillForce + bp
+				end
+			end
+		end
+		
+	end
+	
+	--self:SetAdventureSkillForce(adventureForce)
+	
+	battleForce = battleForce + talismanSkillForce
+	outFmtDebug("talismanSkillForce skill force %d", talismanSkillForce)
+	
 	-- 装备
 	local suitBaseForce = 0
 	local suitBaseAttribute = {}
@@ -446,7 +557,8 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	
 	battleForce = battleForce + suitBaseForce
 	
-	printAttr("suit ", attrs)
+	printAttr("suit attrs", attrs)
+	printAttr("suit suitBaseAttribute", suitBaseAttribute)
 
 	-- 坐骑
 	local mountNonprosForce = spellMgr:calculMountAttr(attrs)
@@ -480,14 +592,16 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	printAttr("title ", attrs)
 	
 	--境界突破
-	self:calculRealmbreakAttr(attrs)
+	local realmbreakBaseForce = self:calculRealmbreakAttr(suitBaseAttribute)
 	
+	battleForce = battleForce + realmbreakBaseForce
+	outFmtDebug("realmbreak force %d", realmbreakBaseForce)
 	printAttr("realmbreak ", attrs)
 	
 	-- 被动技能属性
 	self:PassiveSpellAttr(suitBaseAttribute)
 	
-	--printAttr("passive attr ", attrs)
+	printAttr("passive attr ", suitBaseAttribute)
 	
 	-- 获得玩家速度
 	local speed = GetPlayerSpeed(self:GetLevel(), spellMgr:getMountLevel(), self:GetCurrIllusionId(), self:isRide(), self:GetGender())
@@ -516,10 +630,10 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	if config then
 		local baseprop = config["prop"..jobIndx]
 		for _, val in ipairs(baseprop) do
-			local indx = val[ 1 ]
+			local attrId = val[ 1 ]
 			-- 不是速度属性 或者 是速度属性 但是未骑乘
-			if indx ~= EQUIP_ATTR_MOVE_SPEED then
-				attrs[indx] = attrs[indx] + val[ 2 ]
+			if attrId ~= EQUIP_ATTR_MOVE_SPEED then
+				attrs[attrId] = attrs[attrId] + val[ 2 ]
 			end
 		end
 		battleForce = battleForce + config["battlePoint"..jobIndx]
@@ -548,7 +662,9 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 		local func = PlayerInfo_Set_Attr_Func[attrId]
 		if func then
 			local index = attrId - 1
-			func(self, val)
+			if attrId ~= EQUIP_ATTR_MOVE_SPEED or self:GetMoveSpeed() == 0 then
+				func(self, val)
+			end
 		end
 	end
 	
@@ -559,31 +675,44 @@ function PlayerInfo:DoCalculAttr  ( attr_binlog)
 	binLogLib.SetDouble(attr_binlog, 0, battleForce)
 	
 	self:SendAttrChanged(prevlist)
+	self:SetDouble(PLAYER_FIELD_FORCE, battleForce)
+	
+	DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_FORCE,self})
 end
 
 function PlayerInfo:PassiveSpellAttr(attrs)
-	for i = PLAYER_INT_FIELD_PASSIVE_SPELL_START, PLAYER_INT_FIELD_PASSIVE_SPELL_END-1 do
+	self:passiveSpellAttrInRange(attrs, PLAYER_INT_FIELD_PASSIVE_SPELL_START, PLAYER_INT_FIELD_PASSIVE_SPELL_END-1)
+	self:passiveSpellAttrInRange(attrs, PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_START, PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_END-1)
+end
+
+function PlayerInfo:passiveSpellAttrInRange(attrs, a, b)
+	for i = a, b do
 		local spellID	= self:GetUInt16(i, 0)
 		local level		= self:GetUInt16(i, 1)
 		if spellID > 0 then
-			local index		= tb_skill_base[spellID].uplevel_id[ 1 ] + level - 1
-			local config	= tb_skill_uplevel[index]
-			-- 加固定属性的
-			if config and config.dispatch_condition[ 1 ] == PASSIVE_DISPATCH_TYPE_FOREVER then
-				for _, passiveInfo in ipairs(config.passive_type) do
-					if passiveInfo[ 1 ] == PASSIVE_EFFECT_TYPE_PLAYER_ATTR then
-						local attrId = passiveInfo[ 2 ]
-						local values = passiveInfo[ 3 ]
-						if not attrs[attrId] then
-							attrs[attrId] = 0
-						end
-						attrs[attrId] = attrs[attrId] + values
-					end
+			self:passiveSpellAttr(attrs, spellID, level)
+		end
+	end
+end
+
+function PlayerInfo:passiveSpellAttr(attrs, spellID, level)
+	local index		= tb_skill_base[spellID].uplevel_id[ 1 ] + level - 1
+	local config	= tb_skill_uplevel[index]
+	-- 加固定属性的
+	if config and config.dispatch_condition[ 1 ] == PASSIVE_DISPATCH_TYPE_FOREVER then
+		for _, passiveInfo in ipairs(config.passive_type) do
+			if passiveInfo[ 1 ] == PASSIVE_EFFECT_TYPE_PLAYER_ATTR then
+				local attrId = passiveInfo[ 2 ]
+				local values = passiveInfo[ 3 ]
+				if not attrs[attrId] then
+					attrs[attrId] = 0
 				end
+				attrs[attrId] = attrs[attrId] + values
 			end
 		end
 	end
 end
+
 
 -- 发送修改的属性
 function PlayerInfo:SendAttrChanged(prevlist)

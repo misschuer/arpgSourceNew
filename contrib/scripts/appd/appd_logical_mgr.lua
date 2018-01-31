@@ -10,7 +10,7 @@ end
 -- 设置强化等级
 function  AppLogicalMgr:setStrengthLevel (part, level)
 	local index = self:getStrengthLevelIndex(part)
-	outFmtInfo("player %s set strengthLevel, index = %d, level = %d", self:getPlayerGuid(), index, level)
+	outFmtDebug("player %s set strengthLevel, index = %d, level = %d", self:getPlayerGuid(), index, level)
 	self:SetUInt32(index, level)
 end
 
@@ -30,7 +30,7 @@ end
 -- 设置宝石等级
 function AppLogicalMgr:setGemLevel(part, gemIndex, level)
 	local index = self:getGemLevelIndex(part, gemIndex)
-	outFmtInfo("player %s set setGemLevel, index = %d, level = %d", self:getPlayerGuid(), index, level)
+	outFmtDebug("player %s set setGemLevel, index = %d, level = %d", self:getPlayerGuid(), index, level)
 	self:SetUInt32(index, level)
 end
 
@@ -43,7 +43,7 @@ end
 -- 设置宝石经验
 function AppLogicalMgr:setGemExp(part, gemIndex, exp)
 	local index = self:getGemExpIndex(part, gemIndex)
-	outFmtInfo("player %s set setGemExp, index = %d, exp = %d", self:getPlayerGuid(), index, exp)
+	outFmtDebug("player %s set setGemExp, index = %d, exp = %d", self:getPlayerGuid(), index, exp)
 	self:SetUInt32(index, exp)
 end
 

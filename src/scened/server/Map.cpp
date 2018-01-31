@@ -223,23 +223,24 @@ void Map::CheckWaitJoingVec(uint32 /*diff*/)
 	uint32 now = (uint32)time(NULL);
 	for (auto it = wait_joing_vec.begin(); it != wait_joing_vec.end();)
 	{
+		wait_joining *waitJoining = &it->second;
 		//TODO: 场景服获得p对象
-		auto *context = dynamic_cast<ScenedContext*>(ObjMgr.Get(it->player_guid));
+		auto *context = dynamic_cast<ScenedContext*>(ObjMgr.Get(waitJoining->player_guid));
 		//如果副本实例ID与回调序号相等说明数据已经到达,反之
-		if(context && context->GetTeleportSign() == it->teleport_sign)
+		if(context && context->GetTeleportSign() == waitJoining->teleport_sign)
 		{
-			tea_pdebug("player %s join map [%u] BEGIN",it->player_guid, it->to_map_id);
-			context->On_Teleport_OK(it->connection_id, it->to_map_id, it->to_instance_id, it->to_x, it->to_y);
+			tea_pdebug("player %s join map [%u] BEGIN",waitJoining->player_guid, waitJoining->to_map_id);
+			context->On_Teleport_OK(waitJoining->connection_id, waitJoining->to_map_id, waitJoining->to_instance_id, waitJoining->to_x, waitJoining->to_y);
 			//通知网关服
-			ScenedApp::g_app->RegSessionOpts(it->connection_id);
-			tea_pdebug("player %s join map [%u]END",it->player_guid, it->to_map_id);				
+			ScenedApp::g_app->RegSessionOpts(waitJoining->connection_id);
+			tea_pdebug("player %s join map [%u]END",waitJoining->player_guid, waitJoining->to_map_id);				
 
 			it = wait_joing_vec.erase(it);
 		}
-		else if(now - it->create_tm > 60)
+		else if(now - waitJoining->create_tm > 60)
 		{
 			//如果相应传送超过1分钟,则让其传送失效
-			tea_pwarn("CheckWaitJoingVec timeout, guid:%s, fd:%u, mapid:%d instanceid:%u",it->player_guid, it->connection_id, it->to_map_id, it->to_instance_id);
+			tea_pwarn("CheckWaitJoingVec timeout, guid:%s, fd:%u, mapid:%d instanceid:%u",waitJoining->player_guid, waitJoining->connection_id, waitJoining->to_map_id, waitJoining->to_instance_id);
 			if(context){
 				context->Close(PLAYER_CLOSE_OPERTE_SCREND_ONE38,"");
 			}
@@ -848,6 +849,9 @@ void Map::JoinPlayer(Player *player)
 	player->SetInstanceId(GetInstanceID());
 	player->GetSession()->SetInstanceId(GetInstanceID());
 	player->SetMap(this);
+	if(player->GetSession())
+		SendCreateBlock(player->GetSession());
+
 	m_grids->AddPlayer(player);
 	m_players.insert(make_pair(player->GetGuid(), player));
 
@@ -858,14 +862,10 @@ void Map::JoinPlayer(Player *player)
 	if(!m_state_script.empty())
 		OnJoinPlayer(this,player);
 	
-
 	player->OnJoinMap();		//调用任务脚本
 
 	if(!m_state_script.empty())
 		OnAfterJoinPlayer(this, player);
-
-	if(player->GetSession())
-		SendCreateBlock(player->GetSession());
 }
 
 void Map::AddGameObject(GameObject *go)
@@ -962,6 +962,7 @@ Creature *Map::AddCreature(uint32 templateid,float x,float y,float toward/* = 0*
 	new_creature->SetBornPos(x,y);
 	new_creature->SetPosition(x,y);
 	new_creature->SetOrientation((float)toward);
+	new_creature->SetBodyMissTime(temp->body_miss);
 
 	if(alias_name != NULL && strlen(alias_name) != 0)
 		new_creature->SetAliasName(alias_name);
@@ -1363,8 +1364,8 @@ int Map::LuaAddBossDamage(lua_State *scriptL) {
 
 	// 这里判断如果是全民boss的外面观看处理
 	if (DoIsMassBossMap(_m->GetMapId())) {
-		uint32 id = _m->m_parent_map_info->GetUInt32(MAP_MASS_BOSS_INT_FIELD_ID);
-		addMassBossDamage(id, player, dam, maxHP, level, vip);
+		/*uint32 id = _m->m_parent_map_info->GetUInt32(MAP_MASS_BOSS_INT_FIELD_ID);
+		addMassBossDamage(id, player, dam, maxHP, level, vip);*/
 	}
 
 	return 0;
@@ -1390,8 +1391,8 @@ int Map::LuaResetBossDamageRank(lua_State *scriptL) {
 
 	// 这里判断如果是全民boss的外面观看处理
 	if (DoIsMassBossMap(_m->GetMapId())) {
-		uint32 id = _m->m_parent_map_info->GetUInt32(MAP_MASS_BOSS_INT_FIELD_ID);
-		resetMassBossDamage(id);
+		//uint32 id = _m->m_parent_map_info->GetUInt32(MAP_MASS_BOSS_INT_FIELD_ID);
+		//resetMassBossDamage(id);
 	}
 
 	return 0;
@@ -4125,13 +4126,20 @@ int Map::LuaGetPlayerByPlayerGuid(lua_State *scriptL) {
 
 	string playerGuid = (string)LUA_TOSTRING(scriptL, 2);
 
-	Player* player = map->FindPlayer(playerGuid.c_str());
+	PlayerMap players = map->GetPlayers();
 
-	if (player) {
-		lua_pushlightuserdata(scriptL, player);
-	} else {
-		lua_pushnil(scriptL);
+	for (PlayerMap::iterator iter = players.begin();iter != players.end();++iter)
+	{
+		Player* player = iter->second;
+		if (!player)
+			continue;
+		if (player->GetSession()->GetGuid() == playerGuid) {
+			lua_pushlightuserdata(scriptL, player);
+			return 1;
+		}
 	}
+
+	lua_pushnil(scriptL);
 
 	return 1;
 }

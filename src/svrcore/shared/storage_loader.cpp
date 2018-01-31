@@ -19,6 +19,8 @@ MemoryDB< quest_loot_item >  quest_loot_item_db;
 MemoryDB< goods >  goods_db;
 MemoryDB< creature_template >  creature_template_db;
 MemoryDB< grade_up >  grade_up_db;
+MemoryDB< recharge_info >  recharge_info_db;
+MemoryDB< giftcode_info >  giftcode_info_db;
 
 
 bool Load_buff_template (lua_State *L)
@@ -1065,6 +1067,11 @@ bool Load_creature_template (lua_State *L)
 		info->exp = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
 
+		
+		lua_getfield(L, -1, "recure");
+		info->recure = (int)LUA_TONUMBER(L, -1);
+		lua_pop(L,1);
+
 		lua_getfield(L, -1, "rebornTime");
 		info->rebornTime = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
@@ -1088,7 +1095,10 @@ bool Load_creature_template (lua_State *L)
 		lua_getfield(L, -1, "move_type");
 		info->move_type = (int)LUA_TONUMBER(L, -1);
 		lua_pop(L,1);
-		
+
+		lua_getfield(L, -1, "body_miss");
+		info->body_miss = (int)LUA_TONUMBER(L, -1);
+		lua_pop(L,1);
 		/**
 		lua_getfield(L, -1, "dialogue");
 		strncpy(info->dialogue ,LUA_TOSTRING(L, -1),50);

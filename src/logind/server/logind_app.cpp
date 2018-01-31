@@ -699,7 +699,8 @@ void LogindApp::CallCentdCreateIndex()
 	ObjMgr.CallCreateIndex(REGEX_PLAYER);
 	ObjMgr.CallCreateIndex(REGEX_MAPPLAYERINFO);
 	ObjMgr.CallCreateIndex(REGEX_LIMIT);
-	ObjMgr.CallCreateIndex(REGEX_FACRION);
+	ObjMgr.CallCreateIndex(REGEX_FACTION);
+	ObjMgr.CallCreateIndex(REGEX_GROUP);
 }
 
 //检查一些变量是否存在，不存在则创建

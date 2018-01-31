@@ -72,10 +72,12 @@ function InstanceRemind0:OnSetState(fromstate,tostate)
 		-- 直接传出去
 		local allPlayers = mapLib.GetAllPlayer(self.ptr)
 		local player_ptr = allPlayers[ 1 ]
-		local prevMapId = self:GetUInt32(MAP_INT_FIELD_RESERVE1)
-		local lineNo = self:GetUInt32(MAP_INT_FIELD_RESERVE2)
-		local toX, toY = unitLib.GetPos(player_ptr)
-		playerLib.Teleport(player_ptr, prevMapId, toX, toY, lineNo)
+		if player_ptr then
+			local prevMapId = self:GetUInt32(MAP_INT_FIELD_RESERVE1)
+			local lineNo = self:GetUInt32(MAP_INT_FIELD_RESERVE2)
+			local toX, toY = unitLib.GetPos(player_ptr)
+			playerLib.Teleport(player_ptr, prevMapId, toX, toY, lineNo)
+		end
 	end
 end
 

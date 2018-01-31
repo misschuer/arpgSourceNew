@@ -14,38 +14,6 @@ struct InitLogHandler
 	InitLogHandler()
 	{
 
-		m_heal.insert(3);
-		m_heal.insert(4);
-		m_heal.insert(28);
-		m_heal.insert(29);
-		m_heal.insert(30);
-		m_heal.insert(31);
-		m_heal.insert(32);
-		m_heal.insert(33);
-		m_heal.insert(34);
-		m_heal.insert(35);
-		m_heal.insert(36);
-		m_heal.insert(37);
-		m_heal.insert(38);
-		m_heal.insert(39);
-		m_heal.insert(40);
-		m_heal.insert(41);
-		m_heal.insert(1919);
-		m_heal.insert(1920);
-		m_heal.insert(1921);
-		m_heal.insert(1922);
-		m_heal.insert(1923);
-		m_heal.insert(1924);
-
-		m_loot.insert(1095);
-		m_loot.insert(1096);
-		m_loot.insert(1100);
-		m_loot.insert(1101);
-		m_loot.insert(1102);
-		m_loot.insert(1103);
-		m_loot.insert(1104);
-		m_loot.insert(1105);
-		m_loot.insert(1106);
 	}	
 } __InitLogHandler;
 
@@ -124,39 +92,45 @@ void WriteYbIncome(const string & account, const string &player_id, double amoun
 }
 
 //记录额外的元宝消费
-void WrtieYbExpend(const string & account, const string &player_id, double amount, double balance, uint32 level, uint32 reason, double old_value, const string &trace_id, uint32 p1, uint32 p2,
-				   double unit_price,uint16 item_bind, uint16 item_del, uint32 quest)
+void WrtiePay(const string& account, const string& player_id, uint32 operTime, uint32 isCost, uint32 reason, double modifyValue,
+				string& relateItemIds, string& relateItemNums, uint32 level)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
-	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_YB_EXPEND, account, player_id);
-	_pkt << amount << balance << level << reason << old_value << trace_id << p1 << p2 << unit_price << item_bind << item_del << quest;
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_PAY, account, player_id);
+
+	_pkt << operTime << isCost << reason << modifyValue << relateItemIds << relateItemNums << level;
 	fp_send_to_policed(_pkt);	
 }
 
 //记录用户登录行为
-void WriteLogin(const string & account, const string &player_id, uint32 level, const char *ip, uint32 map, const char *group, double power)
+void WriteLogin(const string & account, const string &player_id, uint32 level, const char *ip, uint32 map, double force, double currGold)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_LOGIN, account, player_id);	
-	_pkt << level << ip << map << group << power;
+
+	_pkt << (uint32)time(NULL) << level << ip << map << force << currGold;
 	fp_send_to_policed(_pkt);
 }
 
 //记录用户登出行为
-void WriteLogout(const string & account, const string &player_id, uint32 level, const char *ip, uint32 map, const char *group)
+void WriteLogout(const string & account, const string &player_id, uint32 createTime, uint32 logoutTime, uint32 onlineLast,
+				const char *ip,	uint32 gender, uint32 level, double force, uint32 activityValue, uint32 mapId, uint32 mainQuestId,
+				double rechargeGoldSum, double currGold, double currBindGold, double gameMoney, double gameBindMoney)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_LOGOUT, account, player_id);	
-	_pkt << level << ip << map << group;
+	
+	_pkt << createTime << logoutTime << onlineLast << ip <<	gender << level << force << activityValue << mapId << mainQuestId << rechargeGoldSum << currGold << currBindGold << gameMoney << gameBindMoney;
+
 	fp_send_to_policed(_pkt);
 }
 
 //记录用户创建角色行为
-void WriteCreateRole(const string & account, const string &player_id, const char *rolename, string ip)
+void WriteCreateRole(const string & account, const string &player_id, const char *rolename, string ip, uint32 gender)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_CREATE_ROLE, account, player_id);	
-	_pkt << rolename << ip;
+	_pkt << rolename << ip << gender;
 	fp_send_to_policed(_pkt);
 }
 
@@ -170,22 +144,70 @@ void WriteDeath(const string & account, const string &player_id, const char *rea
 }
 
 //记录用户接受任务的行为
-void WriteAcceptTask(const string & account, const string &player_id, uint32 taskid, uint32 type, uint32 map)
+// void WriteAcceptTask(const string & account, const string &player_id, uint32 taskid, uint32 type, uint32 map)
+// {
+// 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
+// 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_ACCEPT_TASK, account, player_id);	
+// 	_pkt << taskid << type << map;
+// 	fp_send_to_policed(_pkt);
+// }
+
+void WriteAcceptTask(const string & account, const string &player_id, uint32 time_stamp, uint32 taskid, uint32 type, const string &remain)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_ACCEPT_TASK, account, player_id);	
-	_pkt << taskid << type << map;
+	_pkt << time_stamp << taskid << type << remain;
 	fp_send_to_policed(_pkt);
 }
 
+//lua记录用户接受任务的行为
+int LuaWriteAcceptTask(lua_State *scriptL)
+{
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+// 	ASSERT(n >= 5);
+// 	const string &player_id = LUA_TOSTRING(scriptL, 1);
+// 	uint32 time_stamp = (uint32)LUA_TONUMBER(scriptL, 2);
+// 	uint32 taskid = (uint32)LUA_TONUMBER(scriptL, 3);
+// 	uint32 type = (uint32)LUA_TONUMBER(scriptL, 4);
+// 	const string &remain = LUA_TOSTRING(scriptL, 5);
+// 
+// 	WriteAcceptTask("", player_id, time_stamp, taskid, type, remain);
+	return 0;
+}
+
 //记录用户完成任务的行为
-void WriteTask(const string & account, const string &player_id, uint32 taskid, uint32 map_id, uint32 result)
+// void WriteTask(const string & account, const string &player_id, uint32 taskid, uint32 map_id, uint32 result)
+// {
+// 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
+// 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_TASK, account, player_id);	
+// 	_pkt << taskid << map_id << result;
+// 	fp_send_to_policed(_pkt);
+// }
+
+void WriteMainTask(const string & account, const string &player_id, uint32 time_stamp, uint32 taskid, uint32 type, const string &remain)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
-	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_TASK, account, player_id);	
-	_pkt << taskid << map_id << result;
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_MAIN_TASK, account, player_id);	
+	_pkt << time_stamp << taskid << type << remain;
 	fp_send_to_policed(_pkt);
 }
+
+int LuaWriteTask(lua_State *scriptL)
+{
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+// 	ASSERT(n >= 5);
+// 	const string &player_id = LUA_TOSTRING(scriptL, 1);
+// 	uint32 time_stamp = (uint32)LUA_TONUMBER(scriptL, 2);
+// 	uint32 taskid = (uint32)LUA_TONUMBER(scriptL, 3);
+// 	uint32 type = (uint32)LUA_TONUMBER(scriptL, 4);
+// 	const string &remain = LUA_TOSTRING(scriptL, 5);
+// 
+// 	WriteTask("", player_id, time_stamp, taskid, type, remain);
+	return 0;
+}
+
 
 //记录用户复活
 void WriteRelive(const string & account, const string &player_id, uint32 type, uint32 map)
@@ -198,33 +220,34 @@ void WriteRelive(const string & account, const string &player_id, uint32 type, u
 
 
 //记录用户升级事件
-void WriteUpgrade(const string & account, const string &player_id, uint32 level, uint32 map, double power)
+void WriteLvup(const string & account, const string &player_id, uint32 createTime, uint32 lvUpTime, uint32 level, uint32 levelDiffTime)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
-	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_UPGRADE, account, player_id);	
-	_pkt << level << map << power;
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_LV_UP, account, player_id);	
+	_pkt << createTime << lvUpTime << level << levelDiffTime;
 	fp_send_to_policed(_pkt);
 }
 
 //记录用户金币所得行为
-void WriteSilver(const string & account, const string &player_id, double sum, uint32 status, uint32 map, double old_value, double new_value, double warehouse_value,
-				 const string &trace_id, uint32 p1, uint32 p2,double unit_price,uint16 item_bind, uint16 item_del, uint32 quest,uint32 level)
+void WriteYxb(const string & account, const string &player_id, uint32 operTime, uint32 isCost, uint32 reason, double modifyValue,
+				 string& relateItemIds, string& relateItemNums, uint32 level)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
-	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_GOLD, account, player_id);	
-	_pkt << sum << status << map << old_value << new_value << warehouse_value << trace_id << p1 << p2 << unit_price << item_bind << item_del << quest << level;
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_YXB, account, player_id);	
+	_pkt << operTime << isCost << reason << modifyValue << relateItemIds << relateItemNums << level;
+
 	fp_send_to_policed(_pkt);
 }
 
 //记录用户的绑定元宝行为
-void WriteBindGold(const string & account, const string &player_id, uint16 oper_type, double v,double old_value, double new_value, 
-				   const string &trace_id, uint32 item_id, uint32 count, uint32 level, uint32 map_id,
-				   double unit_price,uint16 item_bind, uint16 item_del, uint32 quest)
+void WriteBindGold(const string& account, const string& player_id, uint32 operTime, uint32 isCost, uint32 reason, double modifyValue,
+				   string& relateItemIds, string& relateItemNums, uint32 level)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
-	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_BIND_GOLD, account, player_id);	
-	_pkt << oper_type << v << old_value << new_value << trace_id << item_id << count << level << map_id << unit_price << item_bind << item_del << quest;
-	fp_send_to_policed(_pkt);
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_BIND_GOLD, account, player_id);
+
+	_pkt << operTime << isCost << reason << modifyValue << relateItemIds << relateItemNums << level;
+	fp_send_to_policed(_pkt);	
 }
 
 //记录用户领取新手卡的行为
@@ -255,17 +278,21 @@ void WritePacket(const string & account, const string &player_id, packet *pkt)
 }
 
 //记录所有物品日志
-void WriteItemLog(const string & account, const string &player_id, uint32 itemid, uint32 amount, uint32 new_amount, uint32 opid, uint32 level, int32 bind_mode, double balance, double money, uint32 map)
+void WriteItemLog(const string & account, const string &player_id, uint32 operTime, uint32 itemid, uint32 isUse, uint32 reason,
+				  uint32 count, uint32 level)
 {
 	//药品不写
-	if(opid == LOG_ITEM_OPER_TYPE_USE && m_heal.find(itemid) != m_heal.end())
+	if(reason == LOG_ITEM_OPER_TYPE_USE && m_heal.find(itemid) != m_heal.end())
 		return;
+
 	//战利品披风不写
-	if(opid == LOG_ITEM_OPER_TYPE_LOOT && m_loot.find(itemid) != m_loot.end())
+	if(reason == LOG_ITEM_OPER_TYPE_LOOT && m_loot.find(itemid) != m_loot.end())
 		return;
+
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
-	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_ITEM_LOG, account, player_id);	
-	_pkt << itemid << amount << new_amount << opid << level << bind_mode << balance << money << map;
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_ITEM_LOG, account, player_id);
+
+	_pkt << operTime << itemid << isUse << reason << count << level;
 	fp_send_to_policed(_pkt);
 }
 
@@ -279,11 +306,20 @@ void WriteMap(const string & account, const string &player_id, uint32 level, uin
 }
 
 //记录在线人数
-void WriteOnline(uint32 account_count, uint32 player_count)
+// void WriteOnline(uint32 account_count, uint32 player_count)
+// {
+// 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
+// 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_ONLINE, "", "");
+// 	_pkt << account_count << player_count;
+// 	fp_send_to_policed(_pkt);
+// }
+
+
+void WriteOnline(uint32 time_stamp, uint32 account_count, uint32 player_count, uint32 ip_count, uint32 old_player_count)
 {
 	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
 	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_ONLINE, "", "");
-	_pkt << account_count << player_count;
+	_pkt << time_stamp << account_count << player_count << ip_count << old_player_count;
 	fp_send_to_policed(_pkt);
 }
 
@@ -587,4 +623,70 @@ void WriteTXMoneyLog(const string &account,const string &player_id,const string 
 	pkt << player_name << rootid << type_id << old_value << new_value << gold << gold_ticke << goods_id << num << create_time << platform;
 
 	fp_send_to_policed(pkt);
+}
+
+
+//0点在线日志
+void WriteOnlineUser24th(const string &account, const string &player_id, const string &name, uint32 create_time, uint32 last_login_time, uint32 from_last_time,
+						 const string &ip, uint32 gender, uint32 level, double force, uint32 active_value, uint32 map_id,uint32 main_quest_id,
+						 uint32 history_recharge, double gold,double bind_gold,double money,double bind_money)
+{
+	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_ONLINE_USER_24TH, account, player_id);
+	_pkt << name << create_time << last_login_time << from_last_time << ip << gender << level << force << active_value << map_id << main_quest_id << history_recharge << gold << bind_gold << money << bind_money;
+	fp_send_to_policed(_pkt);
+}
+
+
+int LuaWriteOnlineUser24th(lua_State *scriptL)
+{
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+// 	ASSERT(n >= 17);
+// 	const string &player_id = LUA_TOSTRING(scriptL, 1);
+// 	const string &name = LUA_TOSTRING(scriptL, 2);
+// 	uint32 create_time = (uint32)LUA_TONUMBER(scriptL, 3);
+// 	uint32 last_login_time = (uint32)LUA_TONUMBER(scriptL, 4);
+// 	uint32 from_last_time = (uint32)LUA_TONUMBER(scriptL, 5);
+// 	const string &ip = LUA_TOSTRING(scriptL, 6);
+// 	uint32 gender = (uint32)LUA_TONUMBER(scriptL, 7);
+// 	uint32 level = (uint32)LUA_TONUMBER(scriptL, 8);
+// 	double force = (double)LUA_TONUMBER (scriptL, 9);
+// 	uint32 active_value = (uint32)LUA_TONUMBER(scriptL, 10);
+// 	uint32 map_id = (uint32)LUA_TONUMBER(scriptL, 11);
+// 	uint32 main_quest_id = (uint32)LUA_TONUMBER(scriptL, 12);
+// 	uint32 history_recharge = (uint32)LUA_TONUMBER(scriptL, 13);
+// 	uint32 gold = (uint32)LUA_TONUMBER(scriptL, 14);
+// 	uint32 bind_gold = (uint32)LUA_TONUMBER(scriptL, 15);
+// 	double money = (double)LUA_TONUMBER(scriptL, 16);
+// 	double bind_money = (double)LUA_TONUMBER(scriptL, 17);
+// 
+// 
+// 	WriteOnlineUser24th("", player_id, name, create_time, last_login_time, from_last_time, ip, gender, level, force, active_value, map_id, main_quest_id, history_recharge, gold, bind_gold ,money, bind_money);
+	return 0;
+}
+
+//帮派日志
+void WriteUnion(const string &account, const string &player_id, uint32 time_stemp, const string &faction_id, const string &faction_name, uint32 type, const string &remain)
+{
+	WorldPacket _pkt(INTERNAL_OPT_WRITE_LOG);
+	InitLogPacket(_pkt, (uint32)LOG_FILE_TYPE_UNION, account, player_id);
+	_pkt << time_stemp << faction_id << faction_name << type << remain;
+	fp_send_to_policed(_pkt);
+}
+
+int LuaWriteUnion(lua_State *scriptL)
+{
+	CHECK_LUA_NIL_PARAMETER(scriptL);
+	int n = lua_gettop(scriptL);
+// 	ASSERT(n >= 5);
+// 	const string &player_id = LUA_TOSTRING(scriptL, 1);
+// 	uint32 time_stemp = (uint32)LUA_TONUMBER(scriptL, 3);
+// 	const string &faction_id = LUA_TOSTRING(scriptL, 6);
+// 	const string &faction_name = LUA_TOSTRING(scriptL, 6);
+// 	uint32 type = (uint32)LUA_TONUMBER(scriptL, 7);
+// 	const string &remain = LUA_TOSTRING(scriptL, 6);
+// 
+// 	WriteUnion("", player_id, time_stemp, faction_id, faction_name, type, remain);
+	return 0;
 }

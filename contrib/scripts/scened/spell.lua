@@ -27,6 +27,11 @@ function DoHandleSpellStart(caster, map_ptr, spell_slot, tar_x, tar_y, target, n
 		return false, 0
 	end
 	
+	-- 自己处于观察模式
+	if unitLib.HasBuff(caster, tb_buff_base[ 1 ].obverse) then
+		return false, 0
+	end
+	
 	-- 本地图是否允许施法
 	local mapid = mapLib.GetMapID(map_ptr)
 	if tb_map[mapid].is_cast == 0 then
@@ -94,22 +99,22 @@ function DoHandleSpellStart(caster, map_ptr, spell_slot, tar_x, tar_y, target, n
 	
 	--被限制施法
 	if(not casterInfo:IsCanCast(current_id))then
-		casterInfo:CallOptResult(OPRATE_TYPE_SPELL_LOSE, LOST_RESON_CAN_NOT_CAST)		
+		casterInfo:CallOptResult(OPRATE_TYPE_SPELL_LOSE, LOST_RESON_CAN_NOT_CAST)
 		return false, 0
 	end
 	
 	-- [[
-	-- outFmtInfo("show GetCurSpellTime = %d, now = %d", casterInfo:GetCurSpellTime(), nowtime)
+	-- outFmtDebug("show GetCurSpellTime = %d, now = %d", casterInfo:GetCurSpellTime(), nowtime)
 	-- 技能正在施法
 	if casterInfo:GetCurSpellTime() >= nowtime then
-		casterInfo:CallOptResult(OPRATE_TYPE_SPELL_LOSE, LOST_RESON_ALREADY_CAST)
+		--casterInfo:CallOptResult(OPRATE_TYPE_SPELL_LOSE, LOST_RESON_ALREADY_CAST)
 		return false, 0
 	end
 	--]]
 	
 	--此技能已经在施法
 	if(unitLib.GetCurSpell(caster) ~= 0 and unitLib.GetCurSpell(caster) == current_id)then
-		casterInfo:CallOptResult(OPRATE_TYPE_SPELL_LOSE, LOST_RESON_ALREADY_CAST)		
+		--casterInfo:CallOptResult(OPRATE_TYPE_SPELL_LOSE, LOST_RESON_ALREADY_CAST)
 		return false, 0
 	end
 	
@@ -170,6 +175,11 @@ function DoHandleSpellStart(caster, map_ptr, spell_slot, tar_x, tar_y, target, n
 	if(unitLib.HasUnitState(caster, UNIT_STAT_CAST_SPELL) or unitLib.HasUnitState(caster, UNIT_STAT_SPELL_PROCESS))then
 		--已经在施法，则停止施法
 		unitLib.SpellStop(caster)
+	end
+	
+	if casterInfo:rideFlag() > 0 then	--下坐骑
+		casterInfo:MountUnride()
+		casterInfo:CalSpeed(0)
 	end
 	
 
@@ -320,7 +330,7 @@ function handle_cast_add_unit_effect_blade_storm(caster, target, spell_id, spell
 	creatureInfo:SetCurSpellTime(getMsTime() + loadedTime)
 	creatureInfo:SetCurSpellCount(count)
 	--加吟唱buff
-	SpelladdBuff(caster, BUFF_YINCHANG, caster, 0, math.ceil((loadedTime)/1000))
+	SpelladdBuff(caster, BUFF_YINCHANG, caster, 0, math.floor((loadedTime)/1000))
 	
 	local angle = unitLib.GetOrientation(caster)
 	if target then
@@ -335,6 +345,9 @@ function handle_cast_add_unit_effect_blade_storm(caster, target, spell_id, spell
 	end
 	unitLib.AddUnitState(caster, UNIT_STAT_SPELL_PROCESS)
 	casterInfo:CallCastSpellStart(casterInfo:GetIntGuid(),0,spell_id, {angle,alarmX,alarmY}, true)
+	if casterInfo:GetTypeID() == TYPEID_PLAYER then
+		casterInfo:call_show_cast_remain_skill(spell_id)
+	end
 end
 
 --剑刃风暴技能
@@ -365,7 +378,7 @@ function handle_cast_add_unit_effect_loaded(caster, target, spell_id, spell_lv,d
 	casterInfo:SetCurSpellId(spell_id)
 	casterInfo:SetCurSpellTime(getMsTime() + loadedTime)
 	--加吟唱buff
-	SpelladdBuff(caster, BUFF_YINCHANG, caster, 0, math.ceil((loadedTime)/1000))
+	SpelladdBuff(caster, BUFF_YINCHANG, caster, 0, math.floor((loadedTime)/1000))
 	
 	local angle = unitLib.GetOrientation(caster)
 	if target then
@@ -380,6 +393,9 @@ function handle_cast_add_unit_effect_loaded(caster, target, spell_id, spell_lv,d
 	end
 	unitLib.AddUnitState(caster, UNIT_STAT_SPELL_PROCESS)
 	casterInfo:CallCastSpellStart(casterInfo:GetIntGuid(),0,spell_id, {angle,alarmX,alarmY}, true)
+	if casterInfo:GetTypeID() == TYPEID_PLAYER then
+		casterInfo:call_show_cast_remain_skill(spell_id)
+	end
 end
 
 --蓄力技能
@@ -410,17 +426,22 @@ function handle_cast_add_unit_effect_heal(caster, target, spell_id, spell_lv,dst
 	if map_ptr == nil then return end
 	
 	casterInfo:CallCastSpellStart(casterInfo:GetIntGuid(),0,spell_id, {}, true)
+	if casterInfo:GetTypeID() == TYPEID_PLAYER then
+		casterInfo:call_show_cast_remain_skill(spell_id)
+	end
 	local ix, iy = unitLib.GetPos(caster)
 	local creature = mapLib.AddCreature(map_ptr, {templateid = entry, x = ix, y = iy, ainame = 'AI_guaiwu', active_grid = true, npcflag = {UNIT_NPC_FLAG_GOSSIP}})
 	if creature then
 		creatureLib.MonsterMove(creature, DEADLINE_MOTION_TYPE, 0, loadedTime)
-		creatureLib.SetMonsterHost(creature, caster)
+		if casterInfo:GetTypeID() == TYPEID_PLAYER then
+			creatureLib.SetMonsterHost(creature, caster)
+		end
 		local sec = math.floor(loadedTime / 1000) + 1
 		unitLib.AddBuff(creature, BUFF_INVINCIBLE, creature, 0, sec)
 		local creatureInfo = UnitInfo:new{ptr = creature}
 		creatureInfo:SetUnitFlags(UNIT_FIELD_FLAGS_IS_INVISIBLE_SPELL)
+		unitLib.AddSpellTrigger(creature, "", dst_x, dst_y, spell_id, spell_lv, diff, count, "")
 	end
-	unitLib.AddSpellTrigger(creature, "", dst_x, dst_y, spell_id, spell_lv, diff, count, "")
 end
 
 --治疗之泉技能
@@ -430,12 +451,16 @@ function handle_cast_spell_heal(caster,target,spell_id,spell_lv,dst_x,dst_y, all
 	local cast_x , cast_y  = unitLib.GetPos(caster)
 	local shifa_x, shifa_y = cast_x, cast_y
 	
+	local map_ptr = unitLib.GetMap(caster)
+	local mapid = unitLib.GetMapID(caster)
+	local mapInfo = Select_Instance_Script(mapid):new {ptr = map_ptr}
+	
 	local index = tb_skill_base[spell_id].uplevel_id[ 1 ] + spell_lv - 1
 	local upLevelConfig = tb_skill_uplevel[index]
 	--1,5,200,1000,17000
 	local attrId	= upLevelConfig.skillEffectParams[ 1 ]
 	local percent	= upLevelConfig.skillEffectParams[ 2 ]
-	local fixValue	= upLevelConfig.skillEffectParams[ 3 ]
+	local fixValue	= upLevelConfig.skillEffectParams[ 3 ] * 100
 	local binlogIndx = GetAttrUnitBinlogIndex(attrId)
 	
 	local _m_count = 0
@@ -458,6 +483,7 @@ function handle_cast_spell_heal(caster,target,spell_id,spell_lv,dst_x,dst_y, all
 				local maxValue = binLogLib.GetUInt32(attack_target, binlogIndx)
 				local added = math.floor(maxValue * percent / 100) + fixValue
 				unitLib.ModifyHealth(attack_target, added)
+				mapInfo:OnPlayerHurt(attack_target, attack_target, -added)
 				_m_count = _m_count + 1
 				if(_m_count >= max_count)then
 					break
@@ -473,7 +499,10 @@ function canCure(killer_ptr, target_ptr)
 		return true
 	end
 	
-	local killerMode = unitGetBattleMode(killer_ptr)
+	local killerMode = PEACE_MODE
+	if killer_ptr then
+		killerMode = unitGetBattleMode(killer_ptr)
+	end
 	if killerMode == PEACE_MODE then
 		return false
 	end
@@ -693,7 +722,7 @@ function handle_cast_add_unit_effect_boss(caster, target, spell_id, spell_lv,dst
 	creatureInfo:SetCurSpellId(sing_time[1])
 	creatureInfo:SetCurSpellTime(getMsTime() + sing_time[2])
 	--加吟唱buff
-	SpelladdBuff(caster, BUFF_YINCHANG, caster, 1, math.ceil((sing_time[2] + tb_skill_base[spell_id].groupCD)/1000))
+	SpelladdBuff(caster, BUFF_YINCHANG, caster, 1, math.floor((sing_time[2] + tb_skill_base[spell_id].groupCD)/1000))
 end 
 
 --boss技能
@@ -1112,7 +1141,7 @@ function PassiveRealEffect(caster_ptr, target_ptr, passiveInfo, params)
 	local config	= tb_skill_uplevel[index]
 	
 	local ac = false
-	outFmtInfo("dispatch spellId = %d", spellID)
+--	outFmtDebug("dispatch spellId = %d", spellID)
 	for _, passiveEffect in ipairs(config.passive_type) do 
 		-- 受到伤害前: params = {spellId, spelllv, skillDamFactor, skillDamValue}
 		-- 受到伤害后: params = {spellId, spelllv}
@@ -1133,19 +1162,15 @@ function PassiveRealEffect(caster_ptr, target_ptr, passiveInfo, params)
 		elseif passiveEffect[ 1 ] == PASSIVE_EFFECT_TYPE_ADD_BUFF then
 			-- 只会在受到伤害后有效
 			-- 时机不对判断
-			if not params or #params ~= 2 then
-				return
-			end
 			-- 命中
-			if OnPassiveAvailableCheck(passiveEffect[ 2 ], params[ 1 ], config.effect_spells) then
-				local buffId = passiveEffect[ 4 ]
-				local lv	 = passiveEffect[ 5 ]
-				local duration = tb_buff_template[buffId].duration
+			if OnPassiveAvailableCheck(passiveEffect[ 2 ], 0, {0}) then
+				local buffEffectId = passiveEffect[ 4 ]
 				local buffUnit = caster_ptr
 				if passiveEffect[ 3 ] == 1 then
 					buffUnit = target_ptr
 				end
-				SpelladdBuff(buffUnit, buffId, caster_ptr, lv, duration)
+				local buffEffectConfig = tb_buff_effect[buffEffectId]
+				SpelladdBuff(buffUnit, buffEffectConfig.buff_id, caster_ptr, buffEffectId, buffEffectConfig.duration)
 				ac = true
 			end
 			
@@ -1168,7 +1193,7 @@ function PassiveRealEffect(caster_ptr, target_ptr, passiveInfo, params)
 		elseif  passiveEffect[ 1 ] == PASSIVE_EFFECT_TYPE_PLAYER_ATTR then
 			local attrId = passiveEffect[ 2 ]
 			local values = passiveEffect[ 3 ]
---			outFmtInfo("#######################PASSIVE_EFFECT_TYPE_PLAYER_ATTR attrId = %d, value = %d", attrId, values)
+--			outFmtDebug("#######################PASSIVE_EFFECT_TYPE_PLAYER_ATTR attrId = %d, value = %d", attrId, values)
 			local binlogIndx = GetAttrUnitBinlogIndex(attrId)
 			binLogLib.AddUInt32(caster_ptr, binlogIndx, values)
 							
@@ -1180,7 +1205,7 @@ function PassiveRealEffect(caster_ptr, target_ptr, passiveInfo, params)
 			--{6,参照物(0:自己,1:敌方),参照物属性id,获得属性id,获得属性百分比}
 			local binlogIndx = GetAttrUnitBinlogIndex(passiveEffect[ 3 ])
 			local valueO = binLogLib.GetUInt32(unit_ptr, binlogIndx)
-			local added = math.floor(valueO * passiveEffect[ 5 ] / 100)
+			local added = math.floor(valueO * passiveEffect[ 5 ] / 10000)
 			if added > 0 then
 				if passiveEffect[ 4 ] == EQUIP_ATTR_MAX_HEALTH then
 					unitLib.ModifyHealth(caster_ptr, added)
@@ -1232,6 +1257,15 @@ end
 function isInProtected(killer, target)
 	local map_ptr = unitLib.GetMap(killer)
 	local mapid = unitLib.GetMapID(killer)
+	
+	-- 如果有不能攻击boss的buff
+	if GetUnitTypeID(killer) == TYPEID_PLAYER and GetUnitTypeID(target) == TYPEID_UNIT then
+		local buffEffectId = tb_mass_boss_base[ 1 ].monsterForbid
+		local buffEffectConfig = tb_buff_effect[buffEffectId]
+		if unitLib.HasBuff(killer, buffEffectConfig.buff_id) then
+			return true
+		end
+	end
 			
 	if GetUnitTypeID(killer) ~= TYPEID_PLAYER or GetUnitTypeID(target) ~= TYPEID_PLAYER then
 		if GetUnitTypeID(killer) ~= TYPEID_PLAYER then
@@ -1242,8 +1276,25 @@ function isInProtected(killer, target)
 		return false
 	end
 	
+	-- 安全区的判断
+	local safeAreas = tb_map[mapid].safeAreas
+	if GetUnitTypeID(killer) == TYPEID_PLAYER and GetUnitTypeID(target) == TYPEID_PLAYER then
+		local kx, ky = unitLib.GetPos(killer)
+		local tx, ty = unitLib.GetPos(target)
+		for _, rec in ipairs(safeAreas) do
+			if isInRectange(kx, ky, rec) or isInRectange(tx, ty, rec) then
+				return true
+			end
+		end
+	end
+	
 	--对方无敌
 	if unitLib.HasBuff(target, BUFF_INVINCIBLE) then
+		return true
+	end
+	
+	-- 对方处于观察模式
+	if unitLib.HasBuff(target, tb_buff_base[ 1 ].obverse) then
 		return true
 	end
 	
@@ -1352,7 +1403,17 @@ function handle_cast_monomer_spell(caster, target, spell_id, spell_lv, allTarget
 	local additiveDam = tb_realmbreak_dailyquest_base[ 1 ].additionDam
 	local xs = casterInfo:GetDao() - targetInfo:GetDao()
 	dam = dam + xs * additiveDam
+
+	if targetInfo:GetTypeID() == TYPEID_PLAYER or tb_creature_template[targetInfo:GetEntry()].robot == 1 then
+		local addPVP = casterInfo:GetPvpDamageAmplifyRate() / 10000
+		local subPVP = targetInfo:GetPvpDamageResistRate() / 10000
+		dam = dam * (1 + addPVP - subPVP)
+	else
+		local addPVE = casterInfo:GetPveDamageAmplifyRate() / 10000
+		dam = dam * (1 + addPVE)
+	end
 	
+	dam = math.floor(dam - targetInfo:GetDamageResistValue())
 	dam = math.max(1, dam)
 	dam = dam * 100
 	

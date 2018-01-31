@@ -49,7 +49,7 @@ function GlobalCounter:activityInit()
 			endTime = getTheFirstTimestampOfDay(endTime)-1
 			if os.time() < endTime then
 				tb_activity_real_time[ id ] = {startTime, endTime}
-				outFmtInfo("####### activityInit id = %d st = %d, et = %d", id, startTime, endTime)
+				outFmtDebug("####### activityInit id = %d st = %d, et = %d", id, startTime, endTime)
 			else
 				if globalValue:IsActivityRunning(id) then
 					self:SetActivityFinished(id)
@@ -67,7 +67,7 @@ function GlobalCounter:activityUpdate()
 	-- 有无活动结束
 	for id, timeInfo in pairs(tb_activity_real_time) do
 		if now >= timeInfo[ 2 ] and not self:IsActivityFinished(id) then
-			outFmtInfo("================ need to be delete %d", id)
+			outFmtDebug("================ need to be delete %d", id)
 			table.insert(removeSet, id)
 		end
 	end
@@ -77,10 +77,21 @@ function GlobalCounter:activityUpdate()
 	end
 	
 	-- 有无活动开始
+	local changed = false
 	for id, timeInfo in pairs(tb_activity_real_time) do
 		if now >= timeInfo[ 1 ] and now <= timeInfo[ 2 ] and not globalValue:IsActivityRunning(id) then
 			globalValue:SetActivityRunning(id)
+			changed = true
 		end
+	end
+	
+	if changed then
+		app.objMgr:foreachAllPlayer(
+			function(player)	
+				DoActivityDataInitOnLogin(player)
+			end
+		)
+		
 	end
 end
 
@@ -554,6 +565,282 @@ function GlobalCounter:findSelfRankIndx(name)
 		end
 	end
 	return MAX_RISK_RANK_SWAPED_COUNT -1
+end
+
+
+--------------------------------------------------------------------------------------
+--家族战
+
+function GlobalCounter:SetFactionMatchInfoGuid(index,value)
+	
+	self:SetStr(GLOBALCOUNTER_STRING_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_STRING_COUNT + FACTION_MATCH_INFO_STRING_GUID,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchInfoGuid(index)
+	
+	return self:GetStr(GLOBALCOUNTER_STRING_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_STRING_COUNT + FACTION_MATCH_INFO_STRING_GUID)
+	
+end
+
+function GlobalCounter:SetFactionMatchInfoName(index,value)
+	
+	self:SetStr(GLOBALCOUNTER_STRING_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_STRING_COUNT + FACTION_MATCH_INFO_STRING_NAME,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchInfoName(index)
+	
+	return self:GetStr(GLOBALCOUNTER_STRING_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_STRING_COUNT + FACTION_MATCH_INFO_STRING_NAME)
+	
+end
+
+function GlobalCounter:SetFactionMatchInfoFirstDetailId(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_INT_COUNT + FACTION_MATCH_INFO_INT_FIRST_DETAIL_ID,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchInfoFirstDetailId(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_INT_COUNT + FACTION_MATCH_INFO_INT_FIRST_DETAIL_ID)
+	
+end
+
+function GlobalCounter:SetFactionMatchInfoSecondDetailId(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_INT_COUNT + FACTION_MATCH_INFO_INT_SECOND_DETAIL_ID,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchInfoSecondDetailId(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_INT_COUNT + FACTION_MATCH_INFO_INT_SECOND_DETAIL_ID)
+	
+end
+
+function GlobalCounter:SetFactionMatchInfoResultRank(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_INT_COUNT + FACTION_MATCH_INFO_INT_RESULT_RANK,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchInfoResultRank(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_INFO_START + index * MAX_FACTION_MATCH_INFO_INT_COUNT + FACTION_MATCH_INFO_INT_RESULT_RANK)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoMatchId1(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_INDEX_1,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoMatchId1(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_INDEX_1)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoMatchResult1(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_RESULT_1,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoMatchResult1(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_RESULT_1)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoMemberCount1(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MEMBER_COUNT_1,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoMemberCount1(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MEMBER_COUNT_1)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoScore1(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_SCORE_1,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoScore1(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_SCORE_1)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoFlag1(index,offset)
+	
+	self:SetBit(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_FLAG_1,offset)
+	
+end
+
+function GlobalCounter:UnSetFactionMatchDetailInfoFlag1(index,offset)
+	
+	self:UnSetBit(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_FLAG_1,offset)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoFlag1(index,offset)
+	
+	return self:GetBit(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_FLAG_1,offset)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoMatchId2(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_INDEX_2,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoMatchId2(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_INDEX_2)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoMatchResult2(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_RESULT_2,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoMatchResult2(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MATCH_RESULT_2)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoMemberCount2(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MEMBER_COUNT_2,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoMemberCount2(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_MEMBER_COUNT_2)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoScore2(index,value)
+	
+	self:SetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_SCORE_2,value)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoScore2(index)
+	
+	return self:GetUInt32(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_SCORE_2)
+	
+end
+
+function GlobalCounter:SetFactionMatchDetailInfoFlag2(index,offset)
+	
+	self:SetBit(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_FLAG_2,offset)
+	
+end
+
+function GlobalCounter:UnSetFactionMatchDetailInfoFlag2(index,offset)
+	
+	self:UnSetBit(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_FLAG_2,offset)
+	
+end
+
+function GlobalCounter:GetFactionMatchDetailInfoFlag2(index,offset)
+	
+	return self:GetBit(GLOBALCOUNTER_INT_FIELD_FACTION_MATCH_DETAIL_INFO_START + index * MAX_FACTION_MATCH_DETAIL_INFO_COUNT + FACTION_MATCH_DETAIL_INFO_FLAG_2,offset)
+	
+end
+
+function GlobalCounter:ClearFactionMatchInfo()
+	for index = 0, MAX_FACTION_MATCH_COUNT - 1 do
+		self:SetFactionMatchInfoGuid(index,'')
+		self:SetFactionMatchInfoName(index,'')
+		self:SetFactionMatchInfoFirstDetailId(index,0) 
+		self:SetFactionMatchInfoSecondDetailId(index,0)
+		self:SetFactionMatchInfoResultRank(index,0)
+	end
+end
+
+function GlobalCounter:ClearFactionMatchDetailInfo()
+	for index = 0, MAX_FACTION_MATCH_DETAIL_COUNT - 1 do
+		self:SetFactionMatchDetailInfoMatchId1(index,0) 
+		self:SetFactionMatchDetailInfoMatchResult1(index,0)
+		self:SetFactionMatchDetailInfoMemberCount1(index,0)
+		self:SetFactionMatchDetailInfoScore1(index,0)
+		self:UnSetFactionMatchDetailInfoFlag1(index,0)
+		self:UnSetFactionMatchDetailInfoFlag1(index,1)
+		self:UnSetFactionMatchDetailInfoFlag1(index,2)
+		self:UnSetFactionMatchDetailInfoFlag1(index,3)
+		self:UnSetFactionMatchDetailInfoFlag1(index,4)
+		
+		self:SetFactionMatchDetailInfoMatchId2(index,0)
+		self:SetFactionMatchDetailInfoMatchResult2(index,0)
+		self:SetFactionMatchDetailInfoMemberCount2(index,0)
+		self:SetFactionMatchDetailInfoScore2(index,0)
+		self:UnSetFactionMatchDetailInfoFlag2(index,0)
+		self:UnSetFactionMatchDetailInfoFlag2(index,1)
+		self:UnSetFactionMatchDetailInfoFlag2(index,2)
+		self:UnSetFactionMatchDetailInfoFlag2(index,3)
+		self:UnSetFactionMatchDetailInfoFlag2(index,4)
+	end
+end
+
+function GlobalCounter:GetFactionMatchFactionGuidByDetailIndex(index)
+	local matchId_1 = self:GetFactionMatchDetailInfoMatchId1(index)
+	local matchId_2 = self:GetFactionMatchDetailInfoMatchId2(index)
+	
+	local guid_1 = self:GetFactionMatchInfoGuid(matchId_1)
+	local guid_2 = self:GetFactionMatchInfoGuid(matchId_2)
+	
+	return guid_1 ,guid_2
+end
+
+function GlobalCounter:AddFactionMatchDetailInfo(index,team,matchId)
+	if team == 1 then
+		self:SetFactionMatchDetailInfoMatchId1(index,matchId)
+		self:SetFactionMatchDetailInfoMatchResult1(index,0)
+		self:SetFactionMatchDetailInfoMemberCount1(index,0)
+		self:SetFactionMatchDetailInfoScore1(index,0)
+		self:UnSetFactionMatchDetailInfoFlag1(index,0)
+		self:UnSetFactionMatchDetailInfoFlag1(index,1)
+		self:UnSetFactionMatchDetailInfoFlag1(index,2)
+		self:UnSetFactionMatchDetailInfoFlag1(index,3)
+		self:UnSetFactionMatchDetailInfoFlag1(index,4)
+		if index < 10 then
+			self:SetFactionMatchInfoFirstDetailId(matchId,index )
+		else
+			self:SetFactionMatchInfoSecondDetailId(matchId,index )
+		end
+	elseif team == 2 then
+		self:SetFactionMatchDetailInfoMatchId2(index,matchId)
+		self:SetFactionMatchDetailInfoMatchResult2(index,0)
+		self:SetFactionMatchDetailInfoMemberCount2(index,0)
+		self:SetFactionMatchDetailInfoScore2(index,0)
+		self:UnSetFactionMatchDetailInfoFlag2(index,0)
+		self:UnSetFactionMatchDetailInfoFlag2(index,1)
+		self:UnSetFactionMatchDetailInfoFlag2(index,2)
+		self:UnSetFactionMatchDetailInfoFlag2(index,3)
+		self:UnSetFactionMatchDetailInfoFlag2(index,4)
+		
+		if index < 10 then
+			self:SetFactionMatchInfoFirstDetailId(matchId ,index)
+		else
+			self:SetFactionMatchInfoSecondDetailId(matchId ,index)
+		end
+	end
+	
 end
 
 return GlobalCounter

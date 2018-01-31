@@ -108,11 +108,9 @@ end
 
 -- 发送喇叭消息
 function PlayerInfo:SendHornChat(content)
-	if self:GetMoney(MONEY_TYPE_GOLD_INGOT) < config.laba_use_need_money then
-		return
-	end
+	local costTable = {{MONEY_TYPE_GOLD_INGOT, config.laba_use_need_money}}
 	-- 扣元宝
-	if not self:SubMoney(MONEY_TYPE_GOLD_INGOT, MONEY_CHANGE_USE_LABA, config.laba_use_need_money) then
+	if not self:costMoneys(MONEY_CHANGE_USE_LABA, costTable) then
 		return
 	end
 	--屏蔽词
@@ -400,7 +398,7 @@ function PlayerInfo:GmCommand(str)
 			local itemMgr = self:getItemMgr()
 			local item = itemMgr:getBagItemByPos(BAG_TYPE_EQUIP,pkt.reserve_int1)
 			if item then
-				outFmtInfo("#################### %s",item:getGuid())
+				outFmtDebug("#################### %s",item:getGuid())
 				pkt.reserve_str1 = item:getGuid()
 			end
 			self:Handle_Equipdevelop_Operate(pkt)
@@ -442,7 +440,7 @@ function PlayerInfo:GmCommand(str)
 		faction:ResetAllBossDenfense()
 		--self:DailyReset()
 	elseif(gm_key == 998)then		-- @整理接口
-		outFmtInfo("test sort: ")
+		outFmtDebug("test sort: ")
 		SortItem(self)
 	elseif(gm_key == 999)then		-- @测试接口
 		--[[
@@ -542,7 +540,7 @@ function PlayerInfo:GmCommand(str)
 		--self:getItemMgr().itemMgr:ForEachBagItem(BAG_TYPE_EQUIP
 --, function(ptr)
 			--local item = require("appd.appd_item").new(ptr)
-			--outFmtInfo("=======================  %s, %s",tostring(item:getId()),item:toString())	
+			--outFmtDebug("=======================  %s, %s",tostring(item:getId()),item:toString())	
 		--end)
 		
 		--DoActivityDataUpdate (self, 1, {1,1})
@@ -558,13 +556,22 @@ function PlayerInfo:GmCommand(str)
 			return
 		end
 		]]
-		--outFmtInfo("DoGMScripts")
+		--outFmtDebug("DoGMScripts")
 		DoGMScripts(self.ptr, str)
 	end
 end
 
+local secList = {
+	[CHAT_TYPE_WORLD] = 60,		-- 世界
+	[CHAT_TYPE_FACTION] = 10,	-- 帮派
+	[CHAT_TYPE_CURRENT] = 5,	-- 当前(场景)
+	[CHAT_TYPE_HORM] = 1,		-- 喇叭
+	[CHAT_TYPE_GROUP] = 1,		-- 队伍
+	[CHAT_TYPE_WHISPER] = 1,	-- 私聊
+}
+
 -- 检测聊天限制
-function PlayerInfo:CheckChatLimit(c_type, content)
+function PlayerInfo:CheckChatLimit(channel, content)
 	--gm很屌！！！
 	if self:GetGmNum() > 0 then
 		return true
@@ -577,55 +584,49 @@ function PlayerInfo:CheckChatLimit(c_type, content)
 	if content == "" then
 		return false
 	end
-	--[[
+
 	--是否被禁言
 	if self:IsGag() then
 		self:CallOptResult(OPRATE_TYPE_CHAT, CHAT_RESULT_IS_GAG)
 		return false
 	end
-	--]]
+	
 	--聊天长度不能超过120
 	if string.len(content) > 120 then
 		return false
 	end
-	
+
 	-- 等级限制
 	local level = self:GetLevel()
-	if(c_type == CHAT_TYPE_WHISPER and level < config.player_chat_whisper_level)then
+	if(channel == CHAT_TYPE_WHISPER and level < config.player_chat_whisper_level)then
 		self:CallOptResult(OPRATE_TYPE_CHAT, CHAT_LEVEL_WHISPER_LEVEL_NO)
 		return false
-	elseif(c_type == CHAT_TYPE_WORLD and level < config.player_chat_world_level)then
+	elseif(channel == CHAT_TYPE_WORLD and level < config.player_chat_world_level)then
 		self:CallOptResult(OPRATE_TYPE_CHAT, CHAT_LEVEL_WORLD_LEVEL_NO)
 		return false
 	end
-	
+
 	--频率限制
 	local guid = self:GetGuid()
 	local t = os.time()
-	local seconds = 1
-	local last_time = last_chat_time[guid] or 0
+	local seconds = secList[channel] or 1
+	local last_time = self:GetLastChatTime(channel) --last_chat_time[guid][channel] or 0 
+	
 	if(last_time + seconds > t)then
 		self:CallOptResult(OPRATE_TYPE_CHAT, CHAT_RESULT_CHECK_LIMIT)
 		return false
 	end
-	last_chat_time[guid] = t
-	
-	-- 等级次数限制
-	if(t > limit_t)then
-		limit_t = t - math.fmod(t,3600) + 3600
-		chat_limit = {}
-	end
-	
-	local chat_num = chat_limit[guid] or 0
-	local result = true
-	local max_num = LIMIT_LEVEL_COUNT_CONFIG[math.floor(level/10)]
-	if(max_num)then
-		result = chat_num < max_num
-	end
-	if result then
-		chat_limit[guid] = chat_num + 1
-	else
-		self:CallOptResult(OPRATE_TYPE_CHAT, CHAT_RESULT_CHECK_LIMIT)
-	end
-	return result
+
+	--last_chat_time[guid][channel] = t
+	self:SetLastChatTime(channel,t)
+	return true
+end
+
+
+function PlayerInfo:GetLastChatTime(type)
+	return self:GetUInt32(PLAYER_INT_FIELD_CHAT_CD_START + type)
+end
+
+function PlayerInfo:SetLastChatTime(type,val)
+	self:SetUInt32(PLAYER_INT_FIELD_CHAT_CD_START + type,val)
 end

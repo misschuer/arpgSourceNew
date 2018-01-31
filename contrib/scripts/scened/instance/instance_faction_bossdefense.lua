@@ -3,6 +3,8 @@ InstanceFactionBossDefense = class("InstanceFactionBossDefense", InstanceInstBas
 InstanceFactionBossDefense.Name = "InstanceFactionBossDefense"
 InstanceFactionBossDefense.FACTION_BOSS_NAME = "faction_bossdefense"	--boss名字
 InstanceFactionBossDefense.exit_time = 10
+InstanceFactionBossDefense.start_time = 5
+
 
 --大厅等级
 function InstanceFactionBossDefense:GetBuildingLv()
@@ -112,13 +114,17 @@ function InstanceFactionBossDefense:parseGeneralId()
 	
 	bossUnit:SetUnitFlags(UNIT_FIELD_FLAGS_IS_BOSS_CREATURE)
 	
-	self:SetMapEndTime(os.time() + point_config.time_limit + InstanceFactionBossDefense.exit_time)
 	
-	self:SetMapQuestEndTime(os.time() + point_config.time_limit)
+	local start_stamp = os.time() + InstanceFactionBossDefense.start_time
+	self:SetMapStartTime(start_stamp)
+	
+	self:SetMapEndTime(start_stamp + point_config.time_limit + InstanceFactionBossDefense.exit_time)
+	
+	self:SetMapQuestEndTime(start_stamp + point_config.time_limit)
 	-- 副本时间超时回调
-	self:AddTimeOutCallback(self.Time_Out_Fail_Callback, os.time() + point_config.time_limit)
+	self:AddTimeOutCallback(self.Time_Out_Fail_Callback, start_stamp + point_config.time_limit)
 	self:AddTimeOutCallback('OnMosterReset', os.time() + 1)
-	--outFmtInfo('============================= %s', tostring(guid))
+	--outFmtDebug('============================= %s', tostring(guid))
 	--self:SetFactionGuid(guid)
 	
 	-- 刷新任务
@@ -137,7 +143,11 @@ function InstanceFactionBossDefense:DoMapBuffBonus(unit)
 		SpelladdBuff(unit, buff_id, unit, buffEffectId, 65535)
 	end
 end
-	
+
+function InstanceFactionBossDefense:instanceFail()
+	self:SetMapState(self.STATE_NOTPASS)
+end
+
 --当副本状态发生变化时间触发
 function InstanceFactionBossDefense:OnSetState(fromstate,tostate)
 	if tostate == self.STATE_FINISH or tostate == self.STATE_NOTPASS then
@@ -155,7 +165,7 @@ function InstanceFactionBossDefense:OnSetState(fromstate,tostate)
 		local timestamp = os.time() + InstanceFactionBossDefense.exit_time
 		
 		self:AddTimeOutCallback(self.Leave_Callback, timestamp)
-		self:SetMapEndTime(timestamp)
+		self:SetMapEndTime(os.time())
 	end
 end
 
@@ -182,7 +192,7 @@ function InstanceFactionBossDefense:OnMosterReset()
 		--outFmtDebug("========boss hp1 %d",bossUnit:GetHealth())
 		bossUnit:ModifyHealth(self:GetHp()- bossUnit:GetMaxHealth())
 		--outFmtDebug("========boss hp2 %d",bossUnit:GetHealth())
-		bossUnit:SetUInt32(UNIT_FIELD_DAMAGE,1000)
+		--bossUnit:SetUInt32(UNIT_FIELD_DAMAGE,1000)
 		
 		
 	end

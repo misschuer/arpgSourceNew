@@ -83,7 +83,7 @@ end
 function PlayerInfo:gem (pkt)
 	local part = pkt.part
 
-	--outFmtInfo("gem message %d",part)
+	--outFmtDebug("gem message %d",part)
 
 
 	--部位数据是否非法
@@ -105,7 +105,7 @@ function PlayerInfo:gem (pkt)
 		return
 	end
 
-	--outFmtInfo("gem type %d",gemtype)
+	--outFmtDebug("gem type %d",gemtype)
 
 	local gemCurBless = spellMgr:getGemCurBless(part)
 	--local config = tb_gem_base[(gemtype-1)*maxLev + gemCurLev + 1]
@@ -125,7 +125,7 @@ function PlayerInfo:gem (pkt)
 		bless = bless * mul
 		local now = gemCurBless + bless
 		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_GEM_EXP, {bless})
-		--outFmtInfo("gem %d,%d",bless,costConfig.maxexp)
+		--outFmtDebug("gem %d,%d",bless,costConfig.maxexp)
 
 		if now >= costConfig.maxexp then 
 			-- 设置等级 祝福值 切换id 宝石加成
@@ -163,13 +163,13 @@ function PlayerInfo:setGemMul()
 	local spellMgr = self:getSpellMgr()
 	for i = 1, EQUIPMENT_COUNT do
 		local lev = spellMgr:getGemMinLev(i)
-		outFmtInfo("gem clev %d",lev)
+		outFmtDebug("gem clev %d",lev)
 		if lev < minLev then
 			minLev = lev
 		end
 	end
 
-	--outFmtInfo("gem mul %d",minLev)
+	--outFmtDebug("gem mul %d",minLev)
 	
 	local allmulID = 0
 	for _, gemmul in ipairs(tb_gem_mul) do
@@ -178,7 +178,7 @@ function PlayerInfo:setGemMul()
 		end
 	end
 
-	--outFmtInfo("gem mul -- %d",allmulID)
+	--outFmtDebug("gem mul -- %d",allmulID)
 
 	local curMul = spellMgr:getGemMul()
 	if curMul ~= allmulID then

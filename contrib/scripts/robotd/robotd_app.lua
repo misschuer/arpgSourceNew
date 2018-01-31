@@ -147,4 +147,15 @@ function RobotdApp:GetRobotStack(account)
 	return robot:OutDebugInfo()
 end
 
+--设置技能cd
+function RobotdApp:SetSkillNowCD(account, skillId)
+	local robot = robot_map[account]
+	robot:SetSkillCDInfo(skillId)
+end
+
+function RobotdApp:SetReaminSkillNowCD(account, skillId)
+	local robot = robot_map[account]
+	robot:SetReaminSkillCDInfo(skillId)
+end
+
 return RobotdApp

@@ -9,7 +9,7 @@
 //#define UPDATE_OWNERSHIP_TIME 1500	//更新怪物所有者的间隔sp
 
 Creature::Creature() : m_threat_move_type(0),m_reactState(REACT_PASSIVE),	m_move_type(0),evade_state(false),
-	m_timer_say(-1),m_timer_threat(UPDATE_THREAT_TIMER),
+	m_timer_say(-1),m_timer_threat(UPDATE_THREAT_TIMER),body_miss(0),
 	m_update_ownership_timer(g_Config.update_ownership_time),
 	m_bornX(0.0f),m_bronY(0.0f),m_respawn_time(-1),nextSpellCD(0),
 	m_clear_timer(0),m_motion_timer_diff(0),m_motion_timer(250)
@@ -176,7 +176,7 @@ void Creature::UpdateLiveStatus(uint32 diff)
 		else
 		{			
 			SetDeathState(DEATH_STATE_DEAD);
-			m_live_timer.Reset(m_respawn_time*1000);
+			m_live_timer.Reset(m_respawn_time);
 		}		
 	}
 	else if(GetDeathState() == DEATH_STATE_DEAD)	//复活
@@ -329,14 +329,14 @@ void Creature::OnKilled(Unit* killer, uint16 id)
 {
 	Unit::OnKilled(killer);	
 
-	uint32 deadtime = 0;	
+	uint32 deadtime = this->body_miss;	
 	if(killer)	
 		this->AI_JustDied(killer, deadtime);
 	if (deadtime > 0)
 		m_live_timer.Reset(deadtime);	//尸体存在时间
-	else
-		m_live_timer.Reset(2 * 1000);	//尸体存在时间
-
+	else {
+		m_live_timer.Reset(1000);	//尸体存在时间
+	}
 	//处理经验和战利品,
 	if(killer)
 		LootManager::LootAllot(killer, this, isOneOne());
@@ -349,8 +349,10 @@ void Creature::Calcul_Attr()
 {
 	Unit::Calcul_Attr();
 	uint32 cur_health = GetHealth(); //保存怪物当前血量（其他属性全部恢复初始值）
+	/*
 	if (GetMap())
-		DoInitCreatureInfo(this, GetMap(), true);
+	DoInitCreatureInfo(this, GetMap(), true);
+	*/
 	//血
 	SetHealth(cur_health);
 	

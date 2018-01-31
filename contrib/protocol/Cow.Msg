@@ -355,8 +355,7 @@ combat_state_update,s2c,75,/*进入战斗*/,STATUS_NEVER,False
 #
 exp_update,s2c,76,/*经验更新*/,STATUS_NEVER,False
 	exp,int32,False,/*改变的经验*/
-	type,uint8,False,/*获得经验的类型*/
-	vip_exp,int32,False,/*VIP的经验显示*/
+	added,uint8,False,/*加成*/
 
 #
 spell_start,both,77,/*客户端释放技能*/,STATUS_NEVER,False
@@ -712,7 +711,8 @@ illusion_mount,c2s,151,/*申请幻化坐骑*/,STATUS_NEVER,False
 	illuId,uint16,False,/*幻化坐骑ID*/
 
 #
-ride_mount,c2s,152,/*申请骑乘*/,STATUS_NEVER,False
+ride_mount,c2s,152,/*坐骑骑乘操作*/,STATUS_NEVER,False
+	oper,uint8,False,/*1:上,0:下*/
 
 #
 grid_unit_jump,s2c,153,/*grid中的unit跳跃*/,STATUS_NEVER,True
@@ -1042,6 +1042,7 @@ pick_quest_chapter_reward,c2s,233,/*领取任务章节奖励*/,STATUS_NEVER,False
 
 #
 kuafu_3v3_match,c2s,234,/*3v3跨服匹配*/,STATUS_NEVER,False
+	
 
 #
 kuafu_match_start,s2c,235,/*跨服开始匹配*/,STATUS_NEVER,False
@@ -1277,6 +1278,7 @@ offline_reward_result,s2c,326,/*离线奖励结果*/,STATUS_NEVER,False
 	reserve2,uint32,False,/*备用2*/
 	reserve3,uint32,False,/*备用3*/
 	reserve4,uint32,False,/*备用4*/
+	reserve5,uint32,False,/*备用5*/
 	list,item_reward_info,True,/奖励道具列表/
 	
 #
@@ -1384,6 +1386,7 @@ buy_mass_boss_times,c2s,357,/*购买挑战全民boss次数*/,STATUS_NEVER,False
 #
 group_instance_match,c2s,358,/*组队副本跨服匹配*/,STATUS_NEVER,False
 	indx,uint8,False,/*组队副本类型*/
+	isGroup,uint8,False,/*是否组队进入*/
 	
 #
 buy_group_instance_times,c2s,359,/*组队副本跨服次数购买*/,STATUS_NEVER,False
@@ -1617,7 +1620,12 @@ pick_realmbreak_daily_reward,c2s,417,/*领取境界每日奖励*/,STATUS_NEVER,False
 
 #
 group_create,c2s,418,/*创建队伍*/,STATUS_NEVER,False
-
+	type,uint32,False,/*队伍类型*/
+	min_lev,uint32,False,/*队伍最低等级*/
+	max_lev,uint32,False,/*队伍最大等级*/
+	auto_flag,uint32,False,/*队伍自动接受申请 0 关闭 1 打开*/
+	
+	
 #
 group_join_request,c2s,419,/*申请加入队伍*/,STATUS_NEVER,False
 	guid,String,False,/*队伍guid*/
@@ -1631,11 +1639,11 @@ group_quit,c2s,421,/*退出队伍*/,STATUS_NEVER,False
 
 #
 group_give_captain,c2s,422,/*移交队伍队长*/,STATUS_NEVER,False
-	guid,String,False,/*玩家guid*/
+	index,uint32,False,/*玩家index*/
 	
 #
 group_kick,c2s,423,/*踢队员*/,STATUS_NEVER,False
-	guid,String,False,/*玩家guid*/
+	index,uint32,False,/*玩家index*/
 
 #
 show_loot_animate,s2c,424,/*显示掉落东西*/,STATUS_NEVER,False
@@ -1649,4 +1657,182 @@ enter_stage_instance,c2s,425,/*进入闯关副本*/,STATUS_NEVER,False
 pick_stage_instance_bonus,c2s,426,/*领取闯关副本奖励*/,STATUS_NEVER,False
 	id,uint32,False,/*宝箱下标*/
 
+#
+enter_group_exp,c2s,427,/*进入组队副本*/,STATUS_NEVER,False
+	isGroup,uint8,False,/*是否组队进入*/
 
+#
+check_for_group_enter,s2c,428,/*队长通知进入某副本*/,STATUS_NEVER,False
+	instSubType,uint32,False,/*副本子类型*/
+
+#
+select_group_enter,c2s,429,/*队伍成员选择AorD*/,STATUS_NEVER,False
+	choise,uint8,False,/*结果*/
+
+#
+buy_group_exp_times,c2s,430,/*经验副本次数购买*/,STATUS_NEVER,False
+	count,uint8,False,/*数量*/
+	
+#
+buy_inspiration,c2s,431,/*购买鼓舞*/,STATUS_NEVER,False
+	category,uint8,False,/*购买类型*/
+	
+#
+enter_faction_match_map,c2s,440,/*家族战进入*/,STATUS_NEVER,False
+
+#
+pick_faction_match_champion_daily_reward,c2s,441,/*领取家族战盟主每日奖励*/,STATUS_NEVER,False
+
+#
+query_faction_match_info,c2s,442,/*请求家族战榜单*/,STATUS_NEVER,False
+
+#
+show_faction_match_info_list,s2c,443,/*返回家族战榜单*/,STATUS_NEVER,False
+	list,faction_match_info,True,/*排行列表*/
+
+#
+pick_res_instance_first_reward,c2s,444,/*领取资源副本首次通关奖励*/,STATUS_NEVER,False
+	id,uint32,False,/*副本id*/
+	
+
+#
+group_send_invite,c2s,445,/*发送组队邀请*/,STATUS_NEVER,False
+	guid,String,False,/*玩家guid*/
+	
+#
+show_group_invite,s2c,446,/*显示组队邀请*/,STATUS_NEVER,False
+	guid,String,False,/*队伍guid*/
+	name,String,False,/*邀请者名称*/
+	type,uint32,False,/*队伍类型*/
+	level,uint32,False,/*邀请者等级*/
+	force,double,False,/*邀请者战力*/
+	sender_guid,String,False,/*邀请者guid*/
+	
+#
+group_agree_invite,c2s,447,/*同意组队邀请*/,STATUS_NEVER,False
+	guid,String,False,/*队伍guid*/
+	sendGuid,String,False,/*邀请者guid*/
+	
+#
+get_group_search_info_list,c2s,448,/*便捷组队队伍列表*/,STATUS_NEVER,False
+	type,uint32,False,/*队伍类型*/
+
+#
+show_group_search_info_list,s2c,449,/*返回便捷组队队伍列表*/,STATUS_NEVER,False
+	list,group_search_info,True,/*队伍信息*/	
+	
+#
+group_change_config,c2s,450,/*修改组队设置*/,STATUS_NEVER,False
+	type,uint32,False,/*队伍类型*/
+	min_lev,uint32,False,/*队伍最低等级*/
+	max_lev,uint32,False,/*队伍最大等级*/
+	auto_flag,uint32,False,/*队伍自动接受申请 0 关闭 1 打开*/
+
+#
+show_group_join_request,s2c,451,/*显示玩家入队申请*/,STATUS_NEVER,False
+	guid,String,False,/*玩家guid*/
+	name,String,False,/*玩家名称*/
+	gender,uint32,False,/*玩家职业*/
+	level,uint32,False,/*玩家等级*/
+	vip,uint32,False,/*玩家vip等级*/
+	force,double,False,/*玩家战力*/
+	
+#
+group_join_denied,c2s,452,/*拒绝加入队伍*/,STATUS_NEVER,False
+	guid,String,False,/*玩家guid*/
+	
+#
+group_invite_denied,c2s,453,/*拒绝邀请*/,STATUS_NEVER,False
+	guid,String,False,/*队伍guid*/
+	
+#
+talisman_equip,c2s,454,/*装备法宝*/,STATUS_NEVER,False
+	id,uint32,False,/*法宝id*/
+	
+#
+talisman_unequip,c2s,455,/*卸下法宝*/,STATUS_NEVER,False
+	slot_id,uint32,False,/*槽位id*/
+
+#
+fullize_hp,s2c,460,/*回满血*/,STATUS_NEVER,False
+	guid,String,False,/*地图id*/
+
+#
+auto_group_match,c2s,461,/*自动匹配*/,STATUS_NEVER,False
+	targetType,uint32,False,/*目标类型*/
+
+#
+cancel_auto_group_match,c2s,462,/*取消自动匹配*/,STATUS_NEVER,False
+	
+
+#
+kuafu_3v3_group_match,c2s,463,/*组队3v3跨服匹配*/,STATUS_NEVER,False
+	
+#
+booking_money,c2s,470,/*记录购买订单*/,STATUS_NEVER,False
+	orderid,String,False,/*订单号*/
+	goodsname,String,False,/*商品名称*/
+	money1,String,False,/*金额*/
+	goodsnum,uint32,False,/*元宝数量*/
+
+#
+booking_money_result,s2c,471,/*记录购买订单成功*/,STATUS_NEVER,False
+	orderid,String,False,/*订单号*/
+	result,uint8,False,/*成功或者失败*/
+	
+#
+one_step_robot_up,c2s,472,/*一键机器人强化*/,STATUS_NEVER,False
+	id,uint32,False,/*参数*/
+
+#
+get_seven_day_recharge_extra_reward,c2s,473,/*领取7日充值额外奖励*/,STATUS_NEVER,False
+	id,uint32,False,/*奖励id*/
+	
+#
+use_giftcode,c2s,474,/*使用兑换码*/,STATUS_NEVER,False
+	giftcode,String,False,/*兑换码*/	
+	
+#
+show_giftcode_reward_list,s2c,475,/*显示兑换结果*/,STATUS_NEVER,False
+	list,item_reward_info,True,/*道具*/
+
+	
+#
+lottery_recharge,c2s,480,/*转盘抽奖*/,STATUS_NEVER,False
+	
+
+#
+lottery_recharge_result,s2c,481,/*转盘抽奖结果*/,STATUS_NEVER,False
+	indx,uint8,False,/*抽奖indx*/
+	
+#
+show_cast_remain_skill,s2c,482,/*通知前端释放了持续技能*/,STATUS_NEVER,False
+	id,uint32,False,/*技能id*/
+	
+# 角色创建完
+after_create_role,s2c,483,/*角色创建完*/,STATUS_NEVER,False
+	serverId,String,False,/*服务器id*/
+	guid,String,False,/*角色id*/
+	nickname,String,False,/*玩家名称*/
+
+#
+booking_game2_money,c2s,484,/*记录购买订单*/,STATUS_NEVER,False
+	serverName,String,False,/*游戏名称*/
+	cpOrderId,String,False,/*订单号*/
+	productName,String,False,/*商品名称*/
+	productId,String,False,/*商品id*/
+	productDesc,String,False,/*商品描述*/
+
+#
+booking_game2_money_result,s2c,485,/*记录购买订单成功*/,STATUS_NEVER,False
+	result,uint8,False,/*成功或者失败*/
+	serverId,uint32,False,/*游戏id*/
+	serverName,String,False,/*游戏名称*/
+	cpOrderId,String,False,/*订单号*/
+	productName,String,False,/*商品名称*/
+	productId,String,False,/*商品id*/
+	productDesc,String,False,/*商品描述*/
+	amount,String,False,/*金额*/
+	extend,String,False,/*额外描述*/
+	time,String,False,/*linux时间戳*/
+	sign,String,False,/*数字签名*/

@@ -5,11 +5,12 @@
 
 tb_map_gameobject = {
 	--  id:int 地图编号
-	--  gameobjects:array 采集物列表
+	--  gameobjects:array 采集物列表序号ID
 	[1] = {id = 1, gameobjects = {}},
-	[1001] = {id = 1001, gameobjects = {4,5,6,7,13}},
+	[1001] = {id = 1001, gameobjects = {5,6,7,13}},
 	[1002] = {id = 1002, gameobjects = {20,21,22}},
-	[1003] = {id = 1003, gameobjects = {23,24,25,26,27,28}},
-	[1004] = {id = 1004, gameobjects = {29,30,31,32}},
+	[1003] = {id = 1003, gameobjects = {25,28,24}},
+	[1004] = {id = 1004, gameobjects = {33,34,35,43}},
+	[1005] = {id = 1005, gameobjects = {44,45,46}},
 	[5001] = {id = 5001, gameobjects = {8,9}},
 }

@@ -381,7 +381,7 @@ void Player::OnJoinMap()
 	m_live_timer.Reset(GetMap()->GetPlayerAutoRespanTime());
 	if (this->isAlive() && this->GetHealth() == 0) {
 		SetUInt32(UNIT_FIELD_HEALTH, this->GetMaxHealth());
-		printf("============================alived but why health == 0\n");
+		tea_pdebug("============================alived but why health == 0");
 	}
 
 	if (!m_pets.empty())
@@ -514,14 +514,14 @@ void Player::GainExp(double exp,uint8 type,double vip_exp)
 		m_player_exp = cur_exp;
 		GetSession()->SetExp();
 
-		if (exp)
-		{
-			//更新经验
-			packet *pkt;
-			pack_exp_update(&pkt,(int32)exp,type,(int32)vip_exp);
-			GetSession()->SendPacket(*pkt);
-			external_protocol_free_packet(pkt);	
-		}
+		//if (exp)
+		//{
+		//	//更新经验
+		//	packet *pkt;
+		//	pack_exp_update(&pkt,(int32)exp,type,(int32)vip_exp);
+		//	GetSession()->SendPacket(*pkt);
+		//	external_protocol_free_packet(pkt);	
+		//}
 
 		if (bCalcul)
 		{
@@ -624,7 +624,11 @@ void Player::Upgrade_Calculate(uint32 prevLevel)
 	}
 	if (GetSession())
 	{
-		WriteUpgrade(GetSession()->GetAccount(), GetSession()->GetGuid(), GetLevel(), GetMapId(), GetSession()->GetForce());
+		uint32 now = (uint32)time(NULL);
+		uint32 prevTime = GetSession()->GetUInt32(PLAYER_INT_FIELD_LV_UP_TIMESTAMP);
+		GetSession()->SetUInt32(PLAYER_INT_FIELD_LV_UP_TIMESTAMP, now);
+		WriteLvup(GetSession()->GetAccount(), GetSession()->GetGuid(), GetSession()->GetCreateTime(), now,
+			GetLevel(), now - prevTime);
 	}
 }
 
@@ -708,7 +712,7 @@ void Player::lostExp(uint16 rate) {
 
 	// 通知
 	if (gf > 0) {
-		Call_exp_update(this->GetSession()->m_delegate_sendpkt, (int32)-gf, (uint8)0, (int32)0);
+		Call_exp_update(this->GetSession()->m_delegate_sendpkt, (int32)-gf, (uint8)0);
 	}
 
 	m_player_exp -= gf;
@@ -1719,7 +1723,7 @@ int Player::LuaSubExp(lua_State* scriptL)
 
 	// 通知
 	if (sub_exp > 0) {
-		Call_exp_update(player->GetSession()->m_delegate_sendpkt, (int32)-sub_exp, (uint8)0, (int32)0);
+		Call_exp_update(player->GetSession()->m_delegate_sendpkt, (int32)-sub_exp, (uint8)0);
 	}
 	return 1;
 }
@@ -1753,25 +1757,16 @@ int Player::LuaSendAddMoney(lua_State* scriptL)
 	uint8 money_type = (uint8)LUA_TONUMBER(scriptL,2);
 	uint8 opt_type = (uint8)LUA_TONUMBER(scriptL,3);
 	double val = LUA_TONUMBER(scriptL, 4);
-	string p1 = "";
-	if(n >= 5)
-		p1 = LUA_TOSTRING(scriptL, 5);
-	int32 p2 = 0;
-	if(n >= 6)
-		p2 = (int32)LUA_TOINTEGER(scriptL, 6);
-	int32 p3 = 0;
-	if(n >= 7)
-		p3 = (int32)LUA_TOINTEGER(scriptL, 7);
-	uint8 p4 = 0;
-	if(n >= 8)
-		p4 = (int32)LUA_TOINTEGER(scriptL, 8);
-	uint8 p5 = 0;
-	if(n >= 9)
-		p5 = (int32)LUA_TOINTEGER(scriptL, 9);
 
-	if (player && player->GetSession())
-	{
-		ScenedApp::g_app->call_player_addmoney(player->GetSession()->GetGuid(),money_type, opt_type, val, p1, p2, p3, p4, p5);	
+	string relateItemIds = "";
+	string relateItemNums = "";
+	if(n >= 5)
+		relateItemIds = LUA_TOSTRING(scriptL, 5);
+	if(n >= 6)
+		relateItemNums = LUA_TOSTRING(scriptL, 6);
+
+	if (player && player->GetSession()) {
+		ScenedApp::g_app->call_player_addmoney(player->GetSession()->GetGuid(),money_type, opt_type, val, relateItemIds, relateItemNums);
 	}
 
 	return 0;
@@ -1787,25 +1782,16 @@ int Player::LuaSendSubMoney(lua_State* scriptL)
 	uint8 money_type = (uint8)LUA_TONUMBER(scriptL,2);
 	uint8 opt_type = (uint8)LUA_TONUMBER(scriptL,3);
 	int val = (int)LUA_TONUMBER(scriptL, 4);
-	string p1 = "";
-	if(n >= 5)
-		p1 = LUA_TOSTRING(scriptL, 5);
-	int32 p2 = 0;
-	if(n >= 6)
-		p2 = (int32)LUA_TOINTEGER(scriptL, 6);
-	int32 p3 = 0;
-	if(n >= 7)
-		p3 = (int32)LUA_TOINTEGER(scriptL, 7);
-	uint8 p4 = 0;
-	if(n >= 8)
-		p4 = (int32)LUA_TOINTEGER(scriptL, 8);
-	uint8 p5 = 0;
-	if(n >= 9)
-		p5 = (int32)LUA_TOINTEGER(scriptL, 9);
 
-	if (player && player->GetSession())
-	{
-		ScenedApp::g_app->call_player_submoney(player->GetSession()->GetGuid(),money_type, opt_type, val, p1, p2, p3, p4, p5);	
+	string relateItemIds = "";
+	string relateItemNums = "";
+	if(n >= 5)
+		relateItemIds = LUA_TOSTRING(scriptL, 5);
+	if(n >= 6)
+		relateItemNums = LUA_TOSTRING(scriptL, 6);
+
+	if (player && player->GetSession()) {
+		ScenedApp::g_app->call_player_submoney(player->GetSession()->GetGuid(),money_type, opt_type, val, relateItemIds, relateItemNums);
 	}
 
 	return 0;

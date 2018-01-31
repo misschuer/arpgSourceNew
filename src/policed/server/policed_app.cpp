@@ -59,6 +59,8 @@ PolicedApp::PolicedApp(SvrCoreParams &params, SvrCoreConfig &config): base(param
 	m_netgd_request_map[INTERNAL_OPT_LOGIND_MERGE_SERVER]	= &on_logind_merge_server;//登陆服通知合服
 	m_netgd_request_map[INTERNAL_OPT_UPDATE_GAG_STATUS]		= &on_update_gag_status;//更新禁言状态
 	m_netgd_request_map[INTERNAL_OPT_UPDATE_LOCK_STATUS]	= &on_update_lock_status;//更新封号状态
+	m_netgd_request_map[INTERNAL_OPT_MONGO_RECHARGE]		= &on_mongo_recharge;	//充值记录
+	
 
 	m_netgd_request_map[INTERNAL_OPT_ADD_GOLD_LOG]			= &on_add_gold_log;
 	m_command_hanlders.insert(std::make_pair("reload_script",	&PolicedApp::on_command_reload_scripts));	
@@ -626,5 +628,17 @@ int PolicedApp::on_update_lock_status(tcp_connection* coon, server_packet* pkt)
 	*pkt >> account >> end_time;
 	g_LOG.UpdatePlayerLockStatus(account, end_time);	
 
+	return 0;
+}
+
+int PolicedApp::on_mongo_recharge(tcp_connection* coon, server_packet* pkt) {
+	string uid, player_id, playerName;
+	string payid, paytime, goodsname, money;
+	uint32 pid, sid;
+
+	*pkt >> uid >> player_id >> pid >> sid >> playerName >> payid >> paytime >> goodsname >> money;
+	uint32 now = (uint32)time(NULL);
+
+	g_LOG.SaveRechargeLog(pid, uid, sid, player_id, playerName, payid, paytime, goodsname, money, now);
 	return 0;
 }

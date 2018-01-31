@@ -6,5 +6,5 @@
 tb_private_boss_base = {
 	--  id:int 序号
 	--  timeLimit:int 挑战时间 秒
-	[1] = {id = 1, timeLimit = 90},
+	[1] = {id = 1, timeLimit = 120},
 }

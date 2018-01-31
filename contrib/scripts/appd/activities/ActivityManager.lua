@@ -49,7 +49,7 @@ end
 
 -- 活动开始初始化
 function activityManagerRunning(actId)
-	outFmtInfo("@@@@@@@@@@@ act %d is active", actId)
+	outFmtDebug("@@@@@@@@@@@ act %d is active", actId)
 	local scriptId = getScriptIdByActId(actId)
 	ACT_SCRIPT_MAP[scriptId]:init(actId)
 	
@@ -60,7 +60,7 @@ end
 
 -- 活动结束
 function activityManagerFinished(actId)
-	outFmtInfo("########## act %d is finish", actId)
+	outFmtDebug("########## act %d is finish", actId)
 	local scriptId = getScriptIdByActId(actId)
 	ACT_SCRIPT_MAP[scriptId]:finish(actId)
 end

@@ -129,6 +129,8 @@ hanlders[CMSG_WELFARE_GETALL_GETBACK] = PlayerInfo.Handle_Welfare_All_Getback
 hanlders[CMSG_WELFARE_GET_RECHARGE_REWARD] = PlayerInfo.Handle_Welfare_Get_Recharge_Reward
 hanlders[CMSG_WELFARE_GET_CONSUME_REWARD] = PlayerInfo.Handle_Welfare_Get_Consume_Reward
 hanlders[CMSG_WELFARE_GET_SEVENDAY_REWARD] = PlayerInfo.Handle_Welfare_Get_Sevenday_Reward
+
+hanlders[CMSG_USE_GIFTCODE] = PlayerInfo.Handle_Use_Giftcode
 --------------------------------
 hanlders[CMSG_PICK_QUEST_REWARD] = PlayerInfo.Handle_Pick_Quest
 
@@ -136,18 +138,23 @@ hanlders[CMSG_PICK_QUEST_CHAPTER_REWARD] = PlayerInfo.Handle_Pick_Quest_Chapter_
 
 hanlders[MSG_KUAFU_3V3_CANCEL_MATCH]	= PlayerInfo.Handle_Kuafu_3v3_Cancel_Match
 
---[[hanlders[CMSG_KUAFU_3V3_MATCH]	= PlayerInfo.Handle_Kuafu_3v3_Match
+hanlders[CMSG_KUAFU_3V3_MATCH]	= PlayerInfo.Handle_Kuafu_3v3_Match
 
 hanlders[CMSG_KUAFU_3V3_MATCH_OPER]	= PlayerInfo.Handle_Kuafu_3v3_Match_Oper
 
+hanlders[CMSG_KUAFU_3V3_DAYREWARD]	= PlayerInfo.Handle_Kuafu_3v3Day_Reward
 
+hanlders[CMSG_BOOKING_GAME2_MONEY] = PlayerInfo.Handle_Booking_Game2_Money
+
+--[[
 hanlders[CMSG_KUAFU_3V3_BUYTIMES]	= PlayerInfo.Handle_Kuafu_3v3_BuyTimes
 
-hanlders[CMSG_KUAFU_3V3_DAYREWARD]	= PlayerInfo.Handle_Kuafu_3v3Day_Reward
+
 
 hanlders[CMSG_KUAFU_3V3_GETRANLIST]	= PlayerInfo.Handle_Kuafu_3v3_RankList
 
-hanlders[CMSG_KUAFU_3V3_GETMYRANK]	= PlayerInfo.Handle_Kuafu_3v3_My_Rank--]]
+hanlders[CMSG_KUAFU_3V3_GETMYRANK]	= PlayerInfo.Handle_Kuafu_3v3_My_Rank
+--]]
 
 hanlders[CMSG_USE_VIRTUAL_ITEM] = PlayerInfo.Handle_Use_Virtual_Item
 
@@ -216,6 +223,9 @@ hanlders[CMSG_BUY_MASS_BOSS_TIMES] = PlayerInfo.Handle_Buy_Mass_Boss_Times
 --法宝
 hanlders[CMSG_TALISMAN_ACTIVE] = PlayerInfo.Handle_Talisman_Active
 hanlders[CMSG_TALISMAN_LVUP] = PlayerInfo.Handle_Talisman_Lvup
+
+hanlders[CMSG_TALISMAN_EQUIP] = PlayerInfo.Handle_Talisman_Equip		-- 装备法宝
+hanlders[CMSG_TALISMAN_UNEQUIP] = PlayerInfo.Handle_Talisman_Unequip	-- 卸下法宝
 --
 
 --神羽
@@ -228,7 +238,7 @@ hanlders[CMSG_WINGS_STRENGTH] = PlayerInfo.Handle_Wings_Strength
 hanlders[CMSG_EQUIPDEVELOP_OPERATE] = PlayerInfo.Handle_Equipdevelop_Operate
 
 --
-hanlders[CMSG_GROUP_INSTANCE_MATCH] = PlayerInfo.Handle_Group_Instance_Match
+--hanlders[CMSG_GROUP_INSTANCE_MATCH] = PlayerInfo.Handle_Group_Instance_Match
 hanlders[CMSG_BUY_GROUP_INSTANCE_TIMES] = PlayerInfo.Handle_Buy_Group_Instance_Times
 
 -- 经脉
@@ -273,5 +283,45 @@ hanlders[CMSG_PICK_REALMBREAK_DAILY_REWARD] = PlayerInfo.Handle_Pick_Realmbreak_
 --hanlders[CMSG_ENTER_PRIVATE_BOSS] = PlayerInfo.Handle_Enter_Private_Boss
 hanlders[CMSG_PICK_STAGE_INSTANCE_BONUS] = PlayerInfo.Handle_Pick_Stage_Instance_Bonus
 
+hanlders[CMSG_GROUP_CREATE] = PlayerInfo.Handle_Group_Create	-- /*创建队伍*/	
+hanlders[CMSG_GROUP_JOIN_REQUEST] = PlayerInfo.Handle_Group_Join_Request	-- /*申请加入队伍*/	
+hanlders[CMSG_GROUP_JOIN_ACCEPT] = PlayerInfo.Handle_Group_Join_Accept		-- /*同意加入队伍*/	
+hanlders[CMSG_GROUP_QUIT] = PlayerInfo.Handle_Group_Quit			-- /*退出队伍*/	
+
+hanlders[CMSG_GROUP_GIVE_CAPTAIN] = PlayerInfo.Handle_Group_Give_Captain
+
+hanlders[CMSG_GROUP_KICK] = PlayerInfo.Handle_Group_Kick
+hanlders[CMSG_GROUP_SEND_INVITE] = PlayerInfo.Handle_Group_Send_Invite
+hanlders[CMSG_GROUP_AGREE_INVITE] = PlayerInfo.Handle_Group_Agree_Invite
+hanlders[CMSG_GET_GROUP_SEARCH_INFO_LIST] = PlayerInfo.Handle_Get_Group_Search_Info_List
+hanlders[CMSG_GROUP_CHANGE_CONFIG] = PlayerInfo.Handle_Group_Change_Config
+hanlders[CMSG_GROUP_JOIN_DENIED] = PlayerInfo.Handle_Group_Join_Denied
+hanlders[CMSG_GROUP_INVITE_DENIED] = PlayerInfo.Handle_Group_Invite_Denied
+
+
+
+
+
+
+hanlders[CMSG_SELECT_GROUP_ENTER] = PlayerInfo.msgGroupSelect		-- 队伍决定
+hanlders[CMSG_BUY_GROUP_EXP_TIMES] = PlayerInfo.Handle_Buy_Group_Exp_Times		-- 购买次数
+
+hanlders[CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD] = PlayerInfo.Handle_Pick_Faction_Match_Champion_Daily_Reward		-- 领取家族战盟主每日奖励
+hanlders[CMSG_QUERY_FACTION_MATCH_INFO] = PlayerInfo.Handle_Query_Faction_Match_Info		-- 请求家族战榜单
+
+hanlders[CMSG_PICK_RES_INSTANCE_FIRST_REWARD] = PlayerInfo.Handle_Pick_Res_Instance_First_Reward		-- 领取资源副本首次通关奖励
+
+hanlders[CMSG_AUTO_GROUP_MATCH] = PlayerInfo.Handle_Auto_Group_Match				-- 自动匹配队伍
+hanlders[CMSG_CANCEL_AUTO_GROUP_MATCH] = PlayerInfo.Handle_Cancel_Auto_Group_Match	-- 取消自动匹配队伍
+
+hanlders[CMSG_KUAFU_3V3_GROUP_MATCH] 		= PlayerInfo.Handle_Kuafu_3v3_Group_Match			-- 组队3v3匹配
+
+
+hanlders[CMSG_ONE_STEP_ROBOT_UP] 		= PlayerInfo.Handle_One_Step_Robot_Up			-- 机器人自动变强操作
+
+hanlders[CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD] 		= PlayerInfo.Handle_Get_Seven_Day_Recharge_Extra_Reward			-- 7日充值奖励
+
+hanlders[CMSG_LOTTERY_RECHARGE]	= PlayerInfo.Handle_Lottery_Recharge		-- 转盘抽奖
+hanlders[MSG_PING_PONG]	= PlayerInfo.Handle_Ping_Pong		-- 测试连接
 
 return hanlders

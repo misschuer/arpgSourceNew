@@ -145,8 +145,8 @@ public:
 	void call_user_killed(const string &guid, const string &killer_id, uint32 silver);
 	void call_loot_select(const string &guid,uint32 entry,uint32 strong,uint32 count,uint32 fail_time = 0);	//通知玩家拾取物品
 	void call_del_map(uint32 instanceid);								//删除实例
-	void call_player_addmoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string &p1, int32 p2, int32 p3, uint8 p4, uint8 p5);//通知应用服增加money
-	void call_player_submoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string &p1, int32 p2, int32 p3, uint8 p4, uint8 p5);//通知应用服扣money	
+	void call_player_addmoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string& relateItemIds, string& relateItemNums);//通知应用服增加money
+	void call_player_submoney(const string& player_id, const uint8 money_type, const uint8 opt_type, const double val, string& relateItemIds, string& relateItemNums);//通知应用服扣money
 	void call_player_do_something(const string& player_id, uint32 type, uint32 id, string& str);//通知应用服做什些事情
 	void call_add_offline_mail(const string& player_id, string& str);//通知应用服增加离线邮件
 	void call_recalculate(const string& player_id);	//通知应用服重算属性

@@ -78,5 +78,11 @@ require("appd.quest.QuestFactionTowerFloor")
 require("appd.quest.QuestTrialTowerFloor")
 require("appd.quest.QuestEquipdevelopStrengthMultiLevel")
 
+require("appd.quest.QuestRealmbreakLevel")
+require("appd.quest.QuestInstanceExpTimes")
+require("appd.quest.QuestInstanceGroupTimes")
+require("appd.quest.QuestEquipdevelopRefineMultiLevel")
+require("appd.quest.QuestVIPLevel")
+
 -- 这个一定要放到最后
 require("appd.quest.QuestManager")

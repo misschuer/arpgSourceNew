@@ -61,6 +61,8 @@ extern int LuaClearRankTask(lua_State *scriptL);
 extern int LuaUpdateRankList(lua_State *scriptL);
 //获取排行榜GuidList
 extern int LuaGetRankGuidTable(lua_State *scriptL);
+
+extern int LuaGetRankName(lua_State *scriptL);
 //排行榜是否有某个GUID
 extern int LuaRankHasGuid(lua_State *scriptL);
 //更新排行榜like数
@@ -99,5 +101,39 @@ extern int LuaSetMatchingKuafuType(lua_State *scriptL);
 extern int LuaGetMatchingKuafuType(lua_State *scriptL);
 extern int LuaIsKuafuTypeMatching(lua_State *scriptL);
 extern int LuaGetKuafuTypeMatchingArg(lua_State *scriptL);
+
+
+extern int LuaGroupMatchPush(lua_State *scriptL);
+extern int LuaGroupMatchRemove(lua_State *scriptL);
+extern int LuaGetGroupMatchList(lua_State *scriptL);
+
+extern int LuaLocal3v3MatchPush(lua_State *scriptL);
+extern int LuaLocal3v3MatchRemove(lua_State *scriptL);
+extern int LuaGetLocal3v3MatchList(lua_State *scriptL);
+
+extern int LuaInstancePreparePush(lua_State *scriptL);
+extern int LuaInstancePrepareCancel(lua_State *scriptL);
+extern int LuaGetInstancePrepareInfo(lua_State *scriptL);
+
+extern int LuaLocal3v3PreparePush(lua_State *scriptL);
+extern int LuaLocal3v3PrepareCancel(lua_State *scriptL);
+extern int LuaGetLocal3v3PrepareCuInfo(lua_State *scriptL);
+extern int LuaGetLocal3v3PrepareList(lua_State *scriptL);
+
+extern int LuaGetPlayerGuidByOrderId(lua_State *scriptL);
+
+extern int LuaUpdatePlayerRechargeInfo(lua_State *scriptL);
+
+extern int LuaGetOrderIdIsDealed(lua_State *scriptL);
+
+extern int LuaGetPlayerAccountByOrderId(lua_State *scriptL);
+
+extern int LuaCheckGiftcodeIsUsed(lua_State *scriptL);
+extern int LuaAddUsedGiftcode(lua_State *scriptL);
+
+extern int LuaModifyGame2BookingInfo(lua_State *scriptL);
+
+extern int LuaGetPlayerNameAndPayTimeByUId(lua_State *scriptL);
+extern int LuaCheckUidIsDealed(lua_State *scriptL);
 
 #endif

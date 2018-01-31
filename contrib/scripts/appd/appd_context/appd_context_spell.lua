@@ -11,15 +11,7 @@ function PlayerInfo:DoHandleRaiseSpell(raiseType, spellId)
 	local spellMgr = self:getSpellMgr()
 	local index = spellMgr:getSpellUpgradeIndex(spellId)
 	local upLevelConfig = tb_skill_uplevel[index]
-	
-	-- 扣除道具
-	if #upLevelConfig.uplevel_item > 0 then
-		if not self:useMulItem(upLevelConfig.uplevel_item) then
-			outFmtError("use item fail")
-			return
-		end
-	end
-	
+		
 	-- 扣除资源
 	if #upLevelConfig.uplevel_cost > 0 then
 		if not self:costMoneys(MONEY_CHANGE_UP_ASSISTSPELL, upLevelConfig.uplevel_cost) then
@@ -170,11 +162,11 @@ function PlayerInfo:DoHandleRaiseSpellAll(raiseType, spellId_list)
 	end
 	
 	if total_uplv == 0 then
-		outFmtError("DoHandleRaiseSpellAll skill can not to lvup")
+		outFmtDebug("DoHandleRaiseSpellAll skill can not to lvup")
 		return
 	end
 	
-	if self:useMulItem(item_cost) and self:costMoneys(MONEY_CHANGE_UP_ASSISTSPELL,tab) then
+	if self:costMoneys(MONEY_CHANGE_UP_ASSISTSPELL,tab) then
 		for index = 1, #uplv_table do
 			if uplv_table[index] > 0 then
 				local spellId = spellId_list[index]
@@ -626,6 +618,7 @@ function PlayerInfo:DoHandleRaiseMount()
 			self:upgraded()
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_MOUNT)
 			self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_MOUNT_RANKUP,{self:GetNoticeName(),self:GetMountLevel()})
+			
 			self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_MOUNT_LEVEL, {})
 		end
 		
@@ -677,6 +670,7 @@ function PlayerInfo:DoHandleUpgradeMount()
 	if ret then--]]
 		self:upgraded()
 		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_MOUNT)
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_MOUNT_LEVEL, {})
 --[[		
 		now = 0
 	end
@@ -709,7 +703,7 @@ function PlayerInfo:DoHandleUpgradeMountOneStep(useItem)
 				break
 			end
 		else
-			local ret, _, _ = checkItemEnoughIfCostMoneyEnabled(costItemTable, multiple)
+			local ret, _, _ = self:checkItemEnoughIfCostMoneyEnabled(costItemTable, multiple)
 			if not ret then
 				break
 			end
@@ -730,7 +724,7 @@ function PlayerInfo:DoHandleUpgradeMountOneStep(useItem)
 	
 	-- 扣道具
 	
-	if not self:useMulItemIfCostMoneyEnabled(cost) then
+	if not self:useMulItemIfCostMoneyEnabled(nil, cost) then
 		outFmtError("one step upgrade alarm!!!!!!!!!!!!!!!!")
 		return
 	end
@@ -779,6 +773,7 @@ function PlayerInfo:activeMount()
 	self:upgraded()
 	local spellMgr = self:getSpellMgr()
 	spellMgr:addMountLevelBase()
+	self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_MOUNT_LEVEL, {})
 end
 
 -- 进阶
@@ -851,7 +846,7 @@ function PlayerInfo:onActiveIllusion(illuId)
 	local spellMgr = self:getSpellMgr()
 	
 	if config.condition == ILLUSION_ITEM_ACTIVE then
-		if not self:useMulItem(config.costItem) then
+		if not self:useMulItem(LOG_ITEM_OPER_TYPE_MOUNT_ILLUSION,config.costItem) then
 			outFmtError("onActiveIllusion item not enough")
 			return
 		end
@@ -899,7 +894,7 @@ function PlayerInfo:raiseMountLevelBase()
 	local spellMgr = self:getSpellMgr()
 	local levelBase = spellMgr:getMountLevelBase()
 	if tb_mount_raise_level[levelBase+1] then
-		if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, tb_mount_raise_level[levelBase].cost) then
+		if not self:useAllItems(MONEY_CHANGE_RAISE_MOUNT, nil, tb_mount_raise_level[levelBase].cost) then
 			return
 		end
 		spellMgr:addMountLevelBase()
@@ -1306,11 +1301,11 @@ function PlayerInfo:TalismanActive(id)
 	end
 	
 	if config.avtivetype == 1 then --材料激活
-		if self:useMulItem(config.avtivedata) then
+		if self:useMulItem(LOG_ITEM_OPER_TYPE_TALISMAN_ACTIVE,config.avtivedata) then
 			spellMgr:AddTalisman(id)
-			for _,v in pairs(config.passiveskill) do
+			--[[for _,v in pairs(config.passiveskill) do
 				self:updatePassive(v[1], v[2])
-			end
+			end--]]
 			spellMgr:calculTalismanForce(id)
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_TALISMAN_ACTIVE)
 			self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_TALISMAN_ACTIVE,{self:GetNoticeName(),config.name})
@@ -1346,14 +1341,14 @@ function PlayerInfo:TalismanLvUp(id)
 		return
 	end
 	
-	--消耗跟随法宝品质
+	--[[--消耗跟随法宝品质
 	local money = config.money_cost[1]
 	if not money then
 		outFmtError("talisman up lev money_cost not exist")
 		return
 	end
 	
-	local tf,tab = self:checkMoneyEnoughIfUseGoldIngot({money})
+	local tf,tab = self:checkMoneyEnoughIfUseGoldIngot({money})--]]
 	
 	--是否有足够的道具
 	local item = config.item_cost[1]
@@ -1362,12 +1357,12 @@ function PlayerInfo:TalismanLvUp(id)
 		return
 	end
 
-	if not tf or not self:hasMulItem({item}) then
+	if --[[not tf or--]] not self:hasMulItem({item}) then
 		outFmtError("talisman up lev resouce not enough")
 		return
 	end
 	
-	if self:useMulItem({item}) and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_TALISMAN_LVUP,{item}) --[[and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) --]]then
 		local nowLev = curlev + 1
 	 	spellMgr:SetTalismanLv(index,nowLev)
 		spellMgr:calculTalismanForce(id)
@@ -1391,6 +1386,101 @@ function PlayerInfo:TalismanLvUp(id)
 	
 end
 
+
+--法宝槽位激活
+function PlayerInfo:UnlockTalismanSlotByRealmbreakLv(level)
+	local spellMgr = self:getSpellMgr()
+	for id,config in ipairs(tb_talisman_slot) do
+		if config.realmbreak_lev == level then
+			spellMgr:OpenTalismanSlot(id)
+		end
+	end
+end
+
+--法宝装备 id
+function PlayerInfo:EquipTalismanToSlot(id)
+	if tb_talisman_base[id] == nil then
+		outFmtDebug("talisman id: %d not exist",id)
+		return
+	end
+	local spellMgr = self:getSpellMgr()
+	local index = spellMgr:GetTalismanIndex(id)
+	if index == 0 then
+		outFmtDebug("talisman id: %d not active",id)
+		return
+	end
+	
+	if spellMgr:GetTalismanSlotIndexById(id) ~= - 1 then
+		outFmtDebug("EquipTalismanToSlot already equip id %d",id)
+		return
+	end
+	
+	local slot_index = spellMgr:GetAvailableTalismanSlotIndex()
+	if slot_index == -1 then
+		outFmtDebug("EquipTalismanToSlot no slot avaliable")
+		return
+	end
+	
+	spellMgr:SetTalismanSlotId(slot_index,id)
+	
+	--激活技能
+	local config = tb_talisman_base[id]
+	for _,v in pairs(config.passiveskill) do
+		--self:updatePassive(v[1], v[2])
+		self:SetTalismanSkill(slot_index,v[1],v[2])
+		if tb_fabaoskill[v[1]] then
+			local now = os.time()
+			local indx = tb_fabaoskill[v[1]].indx
+			local last = self:GetUInt32(PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_CD_START + indx)
+			if last < now then
+				self:SetUInt32(PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_CD_START + indx, now)
+			end
+		end
+		-- 计算时间
+		outFmtDebug("EquipTalismanToSlot skill %d %d active",v[1],v[2])
+		break
+	end
+	self:RecalcAttrAndBattlePoint()
+	
+	outFmtDebug("EquipTalismanToSlot id %s equip to slot_index %d",id,slot_index)
+end
+
+--法宝卸下 slot_id
+function PlayerInfo:UnEquipTalismanFromSlot(slot_id)
+	local spellMgr = self:getSpellMgr()
+	local open ,id, slot_index = spellMgr:GetTalismanSlotInfo(slot_id)
+	if not open then
+		outFmtDebug("UnEquipTalismanFromSlot slot id %d not open",slot_id)
+		return 
+	end
+	
+	--移除技能
+	local config = tb_talisman_base[id]
+	if not config then
+		outFmtDebug("UnEquipTalismanFromSlot talisman id %d not exist",id)
+		return
+	end
+	
+--	self:updatePassive(v[1], 0)
+	self:SetTalismanSkill(slot_index,0,0)
+	
+	spellMgr:SetTalismanSlotId(slot_index,0)
+	
+	self:RecalcAttrAndBattlePoint()
+	
+	outFmtDebug("UnEquipTalismanFromSlot id %s unequip from slot_index %d",id,slot_index)
+end
+
+
+function PlayerInfo:SetTalismanSkill(index,id,level)
+	if index < 0 or index >= PLAYER_TALISMAN_SLOT_COUNT then
+		return
+	end
+	self:SetUInt16(PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_START + index,0,id)
+	self:SetUInt16(PLAYER_INT_FIELD_FABAO_PASSIVE_SPELL_START + index,1,level)
+end
+
+
 --神羽激活
 function PlayerInfo:WingsActive()
 	local spellMgr = self:getSpellMgr()
@@ -1404,9 +1494,34 @@ function PlayerInfo:WingsActive()
 		--更新开服排行
 		DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_WING,self})
 		
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_WINGS_UPGRADE_LEVEL, {})
+		
 		rankInsertTask(self:GetGuid(),RANK_TYPE_WINGS)
 	end
 end
+
+--神羽直升
+function PlayerInfo:WingsOneStepUpgrade()
+	local spellMgr = self:getSpellMgr()
+	local rank = 4
+	if spellMgr:GetWingsId() < rank * 100 then
+		spellMgr:SetWingsId(rank * 100) --初始阶数1 星级0
+		
+		--self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_WINGS_ACTIVE)
+		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_WINGS_RANKUP)
+		self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_WING_RANKUP,{self:GetNoticeName(),rank})
+		--重算战斗力
+		self:RecalcAttrAndBattlePoint()
+		
+		--更新开服排行
+		DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_WING,self})
+		
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_WINGS_UPGRADE_LEVEL, {})
+		
+		rankInsertTask(self:GetGuid(),RANK_TYPE_WINGS)
+	end
+end
+
 --神羽祝福
 function PlayerInfo:WingsBless()
 	local spellMgr = self:getSpellMgr()
@@ -1428,7 +1543,7 @@ function PlayerInfo:WingsBless()
 			return
 		end
 		
-		if self:useMulItem(config.item_cost) and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) then
+		if self:useMulItem(LOG_ITEM_OPER_TYPE_WING_BLESS,config.item_cost) and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) then
 			local cur_exp = spellMgr:GetWingsBlessExp()
 			outFmtDebug("wings cur exp:%d",cur_exp)
 			if cur_exp + config.bless_exp >= config.need_exp then
@@ -1483,7 +1598,7 @@ function PlayerInfo:WingsRankUp()
 			return
 		end
 		
-		if self:useMulItem(config.item_cost) and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) then
+		if self:useMulItem(LOG_ITEM_OPER_TYPE_WING_BLESS,config.item_cost) and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) then
 			spellMgr:SetWingsId((config.rank + 1)*100)
 			
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_WINGS_RANKUP)
@@ -1533,23 +1648,26 @@ function PlayerInfo:WingsStrength()
 		return
 	end
 	
-	if self:useMulItem(config.item_cost) and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_WING_STRENGTH,config.item_cost) and self:costMoneys(MONEY_CHANGE_SHENBING_BUY,tab) then
 		local random = randInt(1,10000)
 		if random <= config.possibility then
 			spellMgr:SetWingsLevel(wings_level + 1)
-			outFmtInfo("wings strength success")
+			outFmtDebug("wings strength success")
 			
 			--self:onAddMeridianExpSource(MERIDIAN_EXP_SOURCE_WINGS_STRENGTH)
 			--self:AddActiveItem(VITALITY_TYPE_GROUP_INSTANCE)
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_WINGS_STRENGTH_SUCESS)
-			self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_WING_STRENGTH,{self:GetNoticeName(),wings_level + 1})
+			if wings_level + 1 > 0 and (wings_level + 1) %10 == 0 then
+				self:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_WING_STRENGTH,{self:GetNoticeName(),wings_level + 1})
+			end
+			
 			-- 重算战斗力(当前和属性绑定在一起)
 			self:RecalcAttrAndBattlePoint()
 			
 			self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_WINGS_STRENGTH_LEVEL, {spellMgr:GetWingsLevel()})
 			
 		else
-			outFmtInfo("wings strength fail")
+			outFmtDebug("wings strength fail")
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_WINGS_STRENGTH_FAIL)
 		end
 		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_WINGS_STRENGTH_TIMES, {})
@@ -1569,7 +1687,7 @@ function PlayerInfo:onAddMeridianExpItem(id)
 	local config = tb_meridian_item[ id ]
 	
 	local count = self:CountItem(config.itemId)
-	if not self:useMulItem({{config.itemId, count}}) then
+	if not self:useMulItem(LOG_ITEM_OPER_TYPE_MERIDIAN, {{config.itemId, count}}) then
 		return
 	end
 	
@@ -1647,10 +1765,11 @@ function PlayerInfo:EquipDevelopStrength(pos,count)
 	
 	local playerLv = self:GetLevel()
 	
-	if currLv >= playerLv then
+--[[	if currLv >= playerLv then
+		
 		outFmtDebug("EquipDevelopStrength reach player level %d can not lvup",currLv)
 		return
-	end
+	end--]]
 	
 	local item_cost = {}
 	local money_cost = {}
@@ -1662,15 +1781,23 @@ function PlayerInfo:EquipDevelopStrength(pos,count)
 	local tab = {}
 		
 	for i = 1,count do
-		if currLv + i > playerLv then
+		--[[if currLv + i > playerLv then
 			outFmtDebug("EquipDevelopStrength reach player level %d can not lvup",currLv + i)
 			break
-		end
+		end--]]
+		
+		
 		local config = tb_equipdevelop_strength[pos * 1000 + currLv + i]
 		if not config then
-			outFmtDebug("EquipDevelopStrength reach top level %d can not lvup",currLv + i - 1)
+			outFmtDebug("EquipDevelopStrength reach top level %d can not lvup pos %d",currLv + i - 1,pos)
 			break
 		end
+		
+		if config.rank > math.floor(playerLv / 10) - 1 then
+			outFmtDebug("EquipDevelopStrength reach player level not reach rank %d can not lvup",config.rank)
+			break
+		end
+		
 		
 		local item_list = {}
 		local money_list = {}
@@ -1716,13 +1843,13 @@ function PlayerInfo:EquipDevelopStrength(pos,count)
 	end
 	
 	if up_level == 0 then
-		outFmtError("EquipDevelopStrength strength can not to lvup")
+		outFmtDebug("EquipDevelopStrength strength can not to lvup")
 		return
 	end
 	
-	if self:useMulItem(item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab) then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_STRENGTH, item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab) then
 		spellMgr:SetEquipDevelopStrengthLv(index,currLv + up_level)
-		outFmtInfo("EquipDevelopStrength strength success")
+		outFmtDebug("EquipDevelopStrength strength success")
 		
 		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_STRENGTH_SUCCESS)
 		
@@ -1784,7 +1911,11 @@ function PlayerInfo:EquipDevelopStrengthAll()
 	local loop_flag = true
 	
 	while loop_flag do
-		if min_lv == playerLv then
+		--[[if min_lv == playerLv then
+			break
+		end--]]
+		if tb_equipdevelop_strength[1000 + min_lv + 1] and tb_equipdevelop_strength[1000 + min_lv + 1].rank > math.floor(playerLv / 10 ) - 1 then
+			outFmtDebug("EquipDevelopStrengthAll player level not reach rank %d can not lvup",tb_equipdevelop_strength[1000 + min_lv + 1].rank)
 			break
 		end
 		
@@ -1833,18 +1964,18 @@ function PlayerInfo:EquipDevelopStrengthAll()
 	end
 	
 	if total_uplv == 0 then
-		outFmtError("EquipDevelopStrength strength can not to lvup")
+		outFmtDebug("EquipDevelopStrength strength can not to lvup")
 		return
 	end
 	
-	if self:useMulItem(item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab) then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_STRENGTH, item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab) then
 		for pos = 1, EQUIPMENT_COUNT do
 			if uplv_table[pos] > 0 then
 				spellMgr:SetEquipDevelopStrengthLv(pos - 1,lv_table[pos] + uplv_table[pos])
 				self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_STRENGTH_SUIT, {pos,uplv_table[pos]})
 			end
 		end
-		outFmtInfo("EquipDevelopStrength strength success")
+		outFmtDebug("EquipDevelopStrength strength success")
 		
 		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_STRENGTH_SUCCESS)
 		
@@ -1858,12 +1989,14 @@ function PlayerInfo:EquipDevelopStrengthAll()
 		--更新开服排行
 		DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_STRENGTH,self})
 		
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_EQUIPDEVELOP_STRENGTH_MULTI_LEVEL, {})
 		self:AddActiveItem(VITALITY_TYPE_EQUIPDEVELOP_STRENGTH)
 	end
 end
 
 --精炼升星 (pos)
-function PlayerInfo:EquipDevelopRefineStarUp(pos)
+function PlayerInfo:EquipDevelopRefineStarUp(pos,advance)
+	local advance = advance or 0
 	local spellMgr = self:getSpellMgr()
 	local index = pos - 1
 	local currRank = spellMgr:GetEquipDevelopRefineRank(index)
@@ -1887,27 +2020,59 @@ function PlayerInfo:EquipDevelopRefineStarUp(pos)
 		return
 	end
 	
-	local tf1,tab = self:checkMoneyEnoughIfUseGoldIngot(next_config.money_cost)
+	local item_cost = {}
+	local money_cost = {}
+	for _,info in ipairs(next_config.item_cost) do
+		table.insert(item_cost,{info[1],info[2]})
+		
+	end
+	
+	for _,info in ipairs(next_config.money_cost) do
+		table.insert(money_cost,{info[1],info[2]})
+		
+	end
+	local add_chance = 0
+	if advance == 1 then
+		
+		for _,info in ipairs(next_config.advance_cost) do
+			table.insert(item_cost,{info[1],info[2]})
+			add_chance = add_chance + next_config.advance_chance
+		end
+	elseif advance == 2 then
+		for _,info in ipairs(next_config.advance_by_money) do
+			table.insert(money_cost,{info[1],info[2]})
+			add_chance = add_chance + next_config.advance_chance
+		end
+	end
+	
+	local tf1,tab = self:checkMoneyEnoughIfUseGoldIngot(money_cost)
 	--是否有足够的道具
-	local tf2 = self:hasMulItem(next_config.item_cost)
+	local tf2 = self:hasMulItem(item_cost)
 		
 	if not tf1 or not tf2 then
-		outFmtError("EquipDevelopRefineStarUp resouce not enough")
+		outFmtError("EquipDevelopRefineStarUp resouce not enough tf1 %s  tf2 %s  advance %d %s",tf1,tf2,advance,item_cost)
 		return
 	end
 	
-	if self:useMulItem(next_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
-		local random = randInt(1,100)
-		if random <= next_config.chance then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_REFINE, item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
+		local random = randInt(1,10000)
+		
+		if random <= next_config.chance + add_chance then
 			spellMgr:SetEquipDevelopRefineStar(index,currStar + 1)
-			outFmtInfo("EquipDevelopRefineStarUp refine success")
+			outFmtDebug("EquipDevelopRefineStarUp refine success")
 			
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_REFINE_STAR_SUCCESS)
+			
+			if currStar + 1 >= 7 then
+				app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_REFINE_LVUP,{self:GetNoticeName(),getPosName(pos),currStar + 1})
+			end
 			
 			-- 重算战斗力(当前和属性绑定在一起)
 			self:RecalcAttrAndBattlePoint()
 			
 			--检测装备养成 奖励
+			--检测装备养成 奖励
+			self:UpdateEquipDevelopRefineBonus(currRank + 1)
 			
 			--更新开服排行
 			DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_DEFINE,self})
@@ -1915,10 +2080,24 @@ function PlayerInfo:EquipDevelopRefineStarUp(pos)
 			
 			
 		else
-			outFmtInfo("EquipDevelopRefineStarUp refine fail")
+			outFmtDebug("EquipDevelopRefineStarUp refine fail")
+			spellMgr:SetEquipDevelopRefineStar(index,next_config.fail_to_star)
+			
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_REFINE_STAR_FAIL)
+			
+			
+			-- 重算战斗力(当前和属性绑定在一起)
+			self:RecalcAttrAndBattlePoint()
+			
+			--检测装备养成 奖励
+			self:UpdateEquipDevelopRefineBonus(next_config.fail_to_star)
+			
+			--更新开服排行
+			DoActivitySystemDataUpdateByScriptId(ACT_RANK,{ACT_RANK_TYPE_DEFINE,self})
+			
 		end
 		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_REFINE_SUIT, {pos})
+		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_EQUIPDEVELOP_REFINE_MULTI_LEVEL, {})
 		self:AddActiveItem(VITALITY_TYPE_EQUIPDEVELOP_REFINE)
 	end
 end
@@ -1957,12 +2136,12 @@ function PlayerInfo:EquipDevelopRefineRankUp(pos)
 		return
 	end
 	
-	if self:useMulItem(next_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_REFINE, next_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
 		local random = randInt(1,100)
 		if random <= next_config.chance then
 			spellMgr:SetEquipDevelopRefineStar(index,1)
 			spellMgr:SetEquipDevelopRefineRank(index,currRank + 1)
-			outFmtInfo("EquipDevelopRefineRankUp refine rank success")
+			outFmtDebug("EquipDevelopRefineRankUp refine rank success")
 			
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_REFINE_STAR_SUCCESS)
 			
@@ -1978,7 +2157,7 @@ function PlayerInfo:EquipDevelopRefineRankUp(pos)
 			
 			
 		else
-			outFmtInfo("EquipDevelopRefineRankUp refine  rank fail")
+			outFmtDebug("EquipDevelopRefineRankUp refine  rank fail")
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_REFINE_STAR_FAIL)
 		end
 		self:onUpdatePlayerQuest(QUEST_TARGET_TYPE_REFINE_SUIT, {pos})
@@ -2022,9 +2201,9 @@ function PlayerInfo:EquipDevelopGemActive(pos,gem_pos)
 			return
 		end
 		
-		if self:useMulItem(next_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
+		if self:useMulItem(LOG_ITEM_OPER_TYPE_GEM_UPGRADE, next_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
 			spellMgr:SetEquipDevelopGemLv(index,gem_pos-1,1)
-			outFmtInfo("EquipDevelopGemActive gem active success")
+			outFmtDebug("EquipDevelopGemActive gem active success")
 			
 			self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_GEM_ACTIVE_SUCCESS)
 			
@@ -2071,12 +2250,18 @@ function PlayerInfo:EquipDevelopGemLvUp(pos,gem_pos)
 		return
 	end
 	
-	if self:useMulItem(next_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_GEM_UPGRADE, next_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
 		
 		spellMgr:SetEquipDevelopGemLv(index,gem_pos-1,currLv + 1)
-		outFmtInfo("EquipDevelopGemLvUp gem lvup success")
+		outFmtDebug("EquipDevelopGemLvUp gem lvup success")
 		
 		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_GEM_LVUP_SUCCESS)
+		
+		if currLv + 1 >= 3 then
+			app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_GEM_LVUP,{self:GetNoticeName(),getPosName(pos),currLv + 1})
+		end
+		
+		
 		
 		-- 重算战斗力(当前和属性绑定在一起)
 		self:RecalcAttrAndBattlePoint()
@@ -2102,7 +2287,7 @@ function PlayerInfo:UpdateEquipDevelopStrengthBonus(new_lv)
 	local curr_bonus_config = tb_equipdevelop_bonus[1*100+curr_bonus_lv]
 	
 	if curr_bonus_lv ~= 0 and curr_bonus_config and new_lv <= curr_bonus_config.need_lv[2] then
-		outFmtInfo("UpdateEquipDevelopStrengthBonus bonus level not change")
+		outFmtDebug("UpdateEquipDevelopStrengthBonus bonus level not change")
 		return
 	end
 	
@@ -2120,7 +2305,7 @@ function PlayerInfo:UpdateEquipDevelopStrengthBonus(new_lv)
 	end
 	
 	if min_lv <= 0 then
-		outFmtInfo("UpdateEquipDevelopStrengthBonus no bonus")
+		outFmtDebug("UpdateEquipDevelopStrengthBonus no bonus")
 		return
 	end
 	
@@ -2129,13 +2314,13 @@ function PlayerInfo:UpdateEquipDevelopStrengthBonus(new_lv)
 			if min_lv >= config.need_lv[1] and min_lv <= config.need_lv[2] then
 				if curr_bonus_lv < config.level then
 					spellMgr:SetEquipDevelopBonusStrengthLv(config.level)
-					outFmtInfo("UpdateEquipDevelopStrengthBonus bonus level change %d",config.level)
+					outFmtDebug("UpdateEquipDevelopStrengthBonus bonus level change %d",config.level)
 					self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_BONUS_STRENGTH,{config.level})
 					-- 重算战斗力(当前和属性绑定在一起)
 					self:RecalcAttrAndBattlePoint()
 					return
 				else
-					outFmtInfo("UpdateEquipDevelopStrengthBonus bonus level not change")
+					outFmtDebug("UpdateEquipDevelopStrengthBonus bonus level not change")
 					return
 				end
 			end
@@ -2148,15 +2333,9 @@ function PlayerInfo:UpdateEquipDevelopRefineBonus(new_lv)
 	local spellMgr = self:getSpellMgr()
 	local min_lv = -1
 	local curr_bonus_lv = spellMgr:GetEquipDevelopBonusRefineLv()
-	local curr_bonus_config = tb_equipdevelop_bonus[2*100+curr_bonus_lv]
-	
-	if curr_bonus_lv ~= 0 and curr_bonus_config and new_lv <= curr_bonus_config.need_lv[2] then
-		outFmtInfo("UpdateEquipDevelopRefineBonus bonus level not change")
-		return
-	end
 	
 	for index = 0,EQUIPMENT_COUNT - 1 do
-		local level = spellMgr:GetEquipDevelopRefineRank(index)
+		local level = spellMgr:GetEquipDevelopRefineStar(index)
 		if min_lv == -1 then
 			min_lv = level
 		else
@@ -2168,8 +2347,18 @@ function PlayerInfo:UpdateEquipDevelopRefineBonus(new_lv)
 		
 	end
 	
+	
+	
+	
 	if min_lv <= 0 then
-		outFmtInfo("UpdateEquipDevelopRefineBonus no bonus")
+		outFmtDebug("UpdateEquipDevelopRefineBonus no bonus")
+		if curr_bonus_lv ~= 0 then
+			spellMgr:SetEquipDevelopBonusRefineLv(0)
+			outFmtDebug("UpdateEquipDevelopRefineBonus bonus level change %d",0)
+			--self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_BONUS_REFINE,{0})
+			-- 重算战斗力(当前和属性绑定在一起)
+			self:RecalcAttrAndBattlePoint()
+		end
 		return
 	end
 	
@@ -2177,14 +2366,25 @@ function PlayerInfo:UpdateEquipDevelopRefineBonus(new_lv)
 		if config.type == 2 then
 			if min_lv >= config.need_lv[1] and min_lv <= config.need_lv[2] then
 				if curr_bonus_lv < config.level then
+					
+					--升级了
 					spellMgr:SetEquipDevelopBonusRefineLv(config.level)
-					outFmtInfo("UpdateEquipDevelopRefineBonus bonus level change %d",config.level)
+					outFmtDebug("UpdateEquipDevelopRefineBonus bonus level change %d",config.level)
 					self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_BONUS_REFINE,{config.level})
 					-- 重算战斗力(当前和属性绑定在一起)
 					self:RecalcAttrAndBattlePoint()
 					return
+				elseif curr_bonus_lv > config.level then
+					
+					--降级了
+					spellMgr:SetEquipDevelopBonusRefineLv(config.level)
+					outFmtDebug("UpdateEquipDevelopRefineBonus bonus level change %d",config.level)
+					--self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_BONUS_REFINE,{config.level})
+					-- 重算战斗力(当前和属性绑定在一起)
+					self:RecalcAttrAndBattlePoint()
+					return
 				else
-					outFmtInfo("UpdateEquipDevelopRefineBonus bonus level not change")
+					outFmtDebug("UpdateEquipDevelopRefineBonus bonus level not change")
 					return
 				end
 			end
@@ -2201,7 +2401,7 @@ function PlayerInfo:UpdateEquipDevelopGemBonus(new_lv)
 	
 	--[[
 	if curr_bonus_lv ~= 0 and curr_bonus_config and new_lv <= curr_bonus_config.need_lv[2] then
-		outFmtInfo("UpdateEquipDevelopGemBonus bonus level not change")
+		outFmtDebug("UpdateEquipDevelopGemBonus bonus level not change")
 		return
 	end
 	--]]
@@ -2209,7 +2409,7 @@ function PlayerInfo:UpdateEquipDevelopGemBonus(new_lv)
 	count = self:GetGemTotalLevel()
 	
 	if count <= 0 then
-		outFmtInfo("UpdateEquipDevelopGemBonus no bonus")
+		outFmtDebug("UpdateEquipDevelopGemBonus no bonus")
 		return
 	end
 	
@@ -2218,13 +2418,13 @@ function PlayerInfo:UpdateEquipDevelopGemBonus(new_lv)
 			if count >= config.need_lv[1] and count <= config.need_lv[2] then
 				if curr_bonus_lv < config.level then
 					spellMgr:SetEquipDevelopBonusGemLv(config.level)
-					outFmtInfo("UpdateEquipDevelopGemBonus bonus level change %d",config.level)
+					outFmtDebug("UpdateEquipDevelopGemBonus bonus level change %d",config.level)
 					self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_BONUS_GEM,{config.level})
 					-- 重算战斗力(当前和属性绑定在一起)
 					self:RecalcAttrAndBattlePoint()
 					return
 				else
-					outFmtInfo("UpdateEquipDevelopGemBonus bonus level not change")
+					outFmtDebug("UpdateEquipDevelopGemBonus bonus level not change")
 					return
 				end
 			end
@@ -2261,7 +2461,7 @@ function PlayerInfo:EquipDevelopWashAttrsWash(equip_guid)
 		return
 	end
 	
-	if self:useMulItem(washattrs_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
+	if self:useMulItem(LOG_ITEM_OPER_TYPE_WASH_ATTR, washattrs_config.item_cost) and self:costMoneys(MONEY_CHANGE_EQUIPDEVELOP,tab)then
 		local attr_config = item_tempate.forge_pro
 		local attr_length = item_tempate.forge_pro_max[1]
 		
@@ -2284,7 +2484,7 @@ function PlayerInfo:EquipDevelopWashAttrsWash(equip_guid)
 			
 			info = info..'|'..attrId..'|'..val..'|'..qua
 		end
-		outFmtInfo("+++++++++++++++++++++++ %s",info)
+		outFmtDebug("+++++++++++++++++++++++ %s",info)
 		spellMgr:SetEquipDevelopWashAttrsInfo(info)
 		self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_WASHATTRS_WASH)
 		
@@ -2327,13 +2527,13 @@ function PlayerInfo:EquipDevelopWashAttrsSave(equip_guid)
 		
 		if attrId and val and qua then
 			item:addBaseAttr(attrId, val, qua)
-			outFmtInfo("EquipDevelopWashAttrsSave item attrs add %d %d %d ",attrId,val,qua)
+			outFmtDebug("EquipDevelopWashAttrsSave item attrs add %d %d %d ",attrId,val,qua)
 		end
 	end
 	itemMgr:resetItemForce(item)
 	
 	spellMgr:SetEquipDevelopWashAttrsInfo("")
-	outFmtInfo("EquipDevelopWashAttrsSave item attrs changed ")
+	outFmtDebug("EquipDevelopWashAttrsSave item attrs changed ")
 	self:CallOptResult(OPRATE_TYPE_UPGRADE, UPGRADE_OPRATE_EQUIPDEVELOP_WASHATTRS_SAVE)
 	-- 重算战斗力(当前和属性绑定在一起)
 	self:RecalcAttrAndBattlePoint()
@@ -2342,7 +2542,7 @@ end
 function PlayerInfo:EquipDevelopWashAttrsDel()
 	local spellMgr = self:getSpellMgr()
 	spellMgr:SetEquipDevelopWashAttrsInfo("")
-	outFmtInfo("EquipDevelopWashAttrsSave item attrs give up ")
+	outFmtDebug("EquipDevelopWashAttrsSave item attrs give up ")
 end
 
 ------------------------------------装备养成结束----------------------------------------

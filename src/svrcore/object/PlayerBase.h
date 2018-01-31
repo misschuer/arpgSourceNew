@@ -65,6 +65,7 @@ public:
 		}		
 	}
 	double GetMaxHp(){return GetDouble(PLAYER_FIELD_MAX_HEALTH);}
+	uint32 GetIsPickFirstRecharge(){return GetUInt32(PLAYER_INT_FIELD_WELFARE_SHOUCHONG);};
 	/*double GetCurMp(){return GetDouble(PLAYER_FIELD_POWERS + POWER_MANA*2);}
 	void SetCurMp(double val)
 	{
@@ -132,6 +133,10 @@ public:
 	void SetUseFashion(uint16 pos);
 
 	uint32 GetTrialLayers() {return GetUInt32(PLAYER_FIELD_TRIAL_LAYERS);}
+
+	uint32 Get3V3Score() {return GetUInt32(PLAYER_INT_FIELD_WORLD_3V3_SCORE);}
+	uint32 Get3V3Wins() {return GetUInt32(PLAYER_INT_FIELD_WORLD_3V3_WINS);}
+	uint32 Get3V3Count() {return GetUInt32(PLAYER_INT_FIELD_WORLD_3V3_TREND_INFO);}
 
 	//获取角色创建时间
 	uint32 GetCreateTime(){return GetUInt32(PLAYER_EXPAND_INT_CREATE_TIME);}
@@ -372,7 +377,7 @@ public:
 	//设置玩家主线任务ID
 	void SetMainQuestID(uint32 v){}
 	//获取玩家主线任务ID
-	uint32 GetMainQuestID()const{return 0;}
+	uint32 GetMainQuestID()const{return GetUInt32(PLAYER_INT_FIELD_MAIN_QUEST_ID);}
 
 	//获取玩家充值数
 	uint32 GetRechargeSum()const{return GetUInt32(PLAYER_APPD_INT_FIELD_RECHARGE_SUM);}

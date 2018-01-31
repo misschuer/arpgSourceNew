@@ -63,7 +63,7 @@ function ActDailyGift:OnBuyDailyGift(playerInfo,actId,index)
 		return
 	end
 	
-	if playerInfo:useAllItems(MONEY_CHANGE_ACT_DAILYGIFT,config.cost) then
+	if playerInfo:useAllItems(MONEY_CHANGE_ACT_DAILYGIFT, nil, config.cost) then
 		playerInfo:AppdAddItems(config.item, MONEY_CHANGE_ACT_DAILYGIFT,LOG_ITEM_OPER_TYPE_ACT_DAILYGIFT)
 		playerInfo:SetActivityDataUInt32(actId,index - 1,playerInfo:GetActivityDataUInt32(actId,index - 1) + 1)
 	end

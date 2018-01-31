@@ -1,6 +1,6 @@
 require('util.functions')
 local protocols = require('share.protocols')
-
+local security = require("base/Security")
 local AppdApp = class('AppdApp',require('util.app_base'))
 
 function AppdApp:ctor( )
@@ -85,35 +85,131 @@ function AppdApp:InitCorn()
 	
 	--0点重置
 	self.cron:addCron("0点重置",'0 0 * * *',function() 
-		self.objMgr:foreachAllPlayer(function(player)	
-			player:DoResetDaily()
-		end)
-		-- 每日排行奖励
-		self:RankReward()
+		security.call(
+			--try block
+			function()
+				self.objMgr:foreachAllPlayer(function(player)	
+					player:DoResetDaily()
+					
+					local name = player:GetName()
+					local create_time = player:GetCharCreateTime()
+					local last_login_time = player:GetUInt32(PLAYER_EXPAND_INT_LAST_LOGIN_TIME)
+					local from_last_time = os.time() - create_time
+					local ip = player:GetStr(PLAYER_STRING_FIELD_LAST_LOGIN_IP)
+					local gender = player:GetGender()
+					local level = player:GetLevel()
+					local force = player:GetForce()
+					local active_value = player:GetUInt32(PLAYER_INT_FIELD_ACTIVE)
+					local map_id = player:GetMapId()
+					local main_quest_id = player:GetMainQuestID()
+					local history_recharge = player:GetRechageSum()
+					local gold = player:GetMoney(MONEY_TYPE_GOLD_INGOT)
+					local bind_gold = player:GetMoney(MONEY_TYPE_BIND_GOLD)
+					local money = player:GetMoney(MONEY_TYPE_SILVER)
+					local bind_money= 0
+					
+					WriteOnlineUser24th(player, name, create_time, last_login_time, from_last_time, ip, gender, level, force, active_value, map_id,main_quest_id, history_recharge, gold, bind_gold, money, bind_money)
+				end)
+				-- 每日排行奖励
+				self:RankReward()
+				
+				self.objMgr:foreachAllFaction(function(faction)
+					faction:ResetFaction()
+				end)
+				--SendFactionGiftRankReward()
+				
+				globalValue:CheckFactionMatchStart()
+			end
+		)
 		
-		self.objMgr:foreachAllFaction(function(faction)
-			faction:ResetFaction()
-		end)
-		--SendFactionGiftRankReward()
 	end)
 	
 	--12点重置
 	self.cron:addCron("12点重置",'0 12 * * *',function() 
-		self.objMgr:foreachAllFaction(function(faction)
-			faction:ResetAllBossDenfense()
-		end)
+		security.call(
+		
+			function()
+				self.objMgr:foreachAllFaction(function(faction)
+					faction:ResetAllBossDenfense()
+				end)
+				
+				self.objMgr:foreachAllPlayer(function(player)	
+					player:DoResetDaily()
+				end)
+			end
+		)
 	end)
+	
+	--3v3结算时间
+	for _,v in ipairs(tb_kuafu3v3_base[ 1 ].activetime) do
+		local ff = string.format('%d %d * * *', v[ 4 ], v[ 3 ])
+		self.cron:addCron("3v3结算", ff, function()
+			outFmtDebug("==###@@@@@@@@@ 3v3 xxxxxxxxxx")
+			security.call(
+				function()
+					for _, x in ipairs(tb_kuafu3v3_base[ 1 ].day) do
+						if IsTodayWeekX(x) then
+							-- 排行榜里的人没人一份
+							local rankGuidList = GetRankGuidTable(RANK_TYPE_3V3)
+							for rank, playerGuid in ipairs(rankGuidList) do
+								local config = tb_local3v3_daily_reward[#tb_local3v3_daily_reward]
+								for i = 1, #tb_local3v3_daily_reward do
+									local tconfig = tb_local3v3_daily_reward[ i ]
+									if rank >= tconfig.rank[ 1 ] and rank <= tconfig.rank[ 2 ] then
+										config = tconfig
+										break
+									end
+								end
+								
+								if config then
+									local desc = config.maildesc
+									local name = config.mailname
+									local reward = config.reward
+									local giftType = 3
+									AddGiftPacksData(playerGuid,0,giftType,os.time(),os.time() + 86400*30, name, desc, reward, SYSTEM_NAME)
+									if rank >= 1 and rank <=3 then
+										local  player_name = GetRankName(RANK_TYPE_3V3,rank)
+										app:CallOptResult(OPRATE_TYPE_NEED_NOTICE,NEED_NOTICE_TYPE_3V3_RANKUP,{ToShowName(player_name),rank})
+									end
+								end
+							end
+							
+							-- 清空排行榜信息
+							clearRankTask(RANK_TYPE_3V3)
+							
+							-- 给在线的每人发一份参与奖励 (通过积分判断)
+							self.objMgr:foreachAllPlayer(
+								function(player)
+									if player:GetKuafu3v3Score() > 0 then
+										player:SetKuafu3v3Score(0)
+										player:Get3v3JoinReward()
+									end							
+								end
+							)
+							break
+						end
+					end
+	
+				end
+			)
+		end)
+	end
+	
+	
 	
 	-- 每周重置
 	self.cron:addCron("每周重置",'0 0 * * 2',function() 
-		Rank3v3kuafuWeek()
-		
-		self.objMgr:foreachAllFaction(function(faction)
-			faction:ResetFactionWeek()
-		end)
-		
-		-- 重置排位赛的名次
-		clearRankTask(RANK_TYPE_SINGLE_PVP)
+--		Rank3v3kuafuWeek()
+		security.call(
+			function()
+				self.objMgr:foreachAllFaction(function(faction)
+					faction:ResetFactionWeek()
+				end)
+				
+				-- 重置排位赛的名次
+				clearRankTask(RANK_TYPE_SINGLE_PVP)
+			end
+		)
 	end)
 	
 	--[[注释掉野外BOSS
@@ -130,7 +226,15 @@ function AppdApp:InitCorn()
 	
 	-- 世界BOSS
 	local wbconfig = tb_worldboss_time[ 1 ]
-	self:InitWorldBossCorn(wbconfig.time[ 1 ], wbconfig.time[ 2 ], wbconfig.enrolllast, wbconfig.time_last, wbconfig.notice)
+	for _,day in pairs(wbconfig.day) do
+		if day == -1 then
+			self:InitWorldBossCorn(wbconfig.time[ 1 ], wbconfig.time[ 2 ], wbconfig.enrolllast, wbconfig.time_last, wbconfig.notice)
+			break
+		else
+			self:InitWorldBossCornByWeekDay(wbconfig.time[ 1 ], wbconfig.time[ 2 ], wbconfig.enrolllast, wbconfig.time_last, wbconfig.notice,day + 1)
+		end
+	end
+	--self:InitWorldBossCorn(wbconfig.time[ 1 ], wbconfig.time[ 2 ], wbconfig.enrolllast, wbconfig.time_last, wbconfig.notice)
 	
 	--[[
 	--每隔1s检测下修炼场次数回复
@@ -143,38 +247,49 @@ function AppdApp:InitCorn()
 	
 	--每隔1s检测下修家族建筑升级进度
 	self.cron:every("1秒钟检测一次的", 1, function()
-		self.objMgr:foreachAllFaction(function(faction)
-			faction:UpdateBuildingProcess()
-		end)
-		
-		-- 挑战全民boss次数检测
-		self.objMgr:foreachAllPlayer(
-			function(player)	
-				player:CheckAddMassBossTimes()
+		security.call(
+			function()
+				self.objMgr:foreachAllFaction(function(faction)
+					faction:UpdateBuildingProcess()
+				end)
 				
-				player:CheckEscortTimeOut()
+				-- 挑战全民boss次数检测
+				self.objMgr:foreachAllPlayer(
+					function(player)	
+						--player:CheckAddMassBossTimes()
+						
+						player:CheckEscortTimeOut()
+					end
+				)
+						
+				for id = 1, #tb_mass_boss_info do
+					if not globalValue:isMassBossAlive(id) then
+						if globalValue:checkMassBossReborn(id) then
+							globalValue:doMassBossStart(id)
+							NoticeScene(APPD_SCENED_MASS_BOSS_REBORN, id)
+						end
+					end
+				end
+				
+				-- 进行排位赛匹配
+				OnProcessLocalSinglePVPMatch()
+				
+				OnGroupSecondMatch()
+				
+				CheckGroupPrepared()
+				
+				OnLocal3V3Matching()
+				
+				-- 检查活动是否开启
+				globalCounter:activityUpdate()
+				
+				globalValue:UpdateFactionMatch()
 			end
 		)
-				
-		for id = 1, #tb_mass_boss_info do
-			if not globalValue:isMassBossAlive(id) then
-				if globalValue:checkMassBossReborn(id) then
-					globalValue:doMassBossStart(id)
-					NoticeScene(APPD_SCENED_MASS_BOSS_REBORN, id)
-				end
-			end
-		end
-		
-		-- 进行排位赛匹配
-		OnProcessLocalSinglePVPMatch()
-		
-		-- 检查活动是否开启
-		globalCounter:activityUpdate()
-		
-		
 	end)
 	
 	
+	--[[
 	--每隔5s检测下失效物品
 	self.cron:every("失效物品检测",5,function()
 		self.objMgr:foreachAllPlayer(function(player)	
@@ -182,38 +297,81 @@ function AppdApp:InitCorn()
 			if itemMgr then itemMgr:delFailTimeItem() end
 		end)		
 	end)
+	--]]
 	--每隔5min刷新好友信息
 	self.cron:every("好友信息刷新",300,function()
-		self.objMgr:foreachAllPlayer(function(player)	
-			player:RefreshFriendInfo()
+		security.call(function()
+			self.objMgr:foreachAllPlayer(function(player)	
+				player:RefreshFriendInfo()
+			end)
 		end)
 	end)
 
 	-- 每个1800秒刷新排行榜信息
 	self.cron:every("刷新排行榜信息", 1800,function()
-		OnUpdateRankList()
+		security.call(function()
+			OnUpdateRankList()
+		end)
 	end)
 	
 	--每隔60s检测下失效称号
 	self.cron:every("刷新排行榜信息", 60,function()
-		self.objMgr:foreachAllPlayer(function(player)
-			player:removeExpireTitle()
+		security.call(function()
+			self.objMgr:foreachAllPlayer(function(player)
+				player:removeExpireTitle()
+			end)
 		end)
 	end)
 
+	--每隔600s检测下在线人数
+	self.cron:every("刷新在线信息", 600,function()
+		security.call(function()
+			local account_t = {}
+			local account_count = 0
+			local player_count = 0
+			local ip_t = {}
+			local ip_count = 0
+			local old_player_count = 0
+
+			self.objMgr:foreachAllPlayer(function(player)
+				local account = player:GetAccount()
+				local ip = player:GetStr(PLAYER_STRING_FIELD_LAST_LOGIN_IP)
+				local create_time = player:GetCharCreateTime()
+				
+				if not account_t[account] then
+					account_count = account_count + 1
+					account_t[account] = 1
+				end
+				
+				player_count = player_count + 1
+				
+				if not ip_t[ip] then
+					ip_count = ip_count + 1
+					ip_t[ip] = 1
+				end
+				
+				if not checkSameDay(create_time,os.time()) then
+					old_player_count = old_player_count + 1
+				end
+				
+			end)
+			WriteOnline(os.time(),account_count,player_count,ip_count,old_player_count)
+		end)
+	end)
+	--[[
 	--每隔3s查询匹配情况
 	self.cron:every("查询跨服匹配", 1, function()
 		self.objMgr:foreachAllPlayer(function(player)
 			player:QueryKuafuMatchInfo()
 		end)
 	end)
-	
+	--]]
 	--每隔10s跳一次挂机奖励
-	self.cron:every("跳一次挂机奖励", 10, function()
+--[[	self.cron:every("跳一次挂机奖励", 10, function()
 		self.objMgr:foreachAllPlayer(function(player)
 			player:onPickRiskReward()
 		end)
-	end)
+	end)--]]
 	
 	--[[
 	--每隔3600s更新跨服排行榜
@@ -236,7 +394,7 @@ function AppdApp:InitFieldBossCorn(H, M, startTime, bossTime)
 	
 	-- 刷新BOSS
 	local crontab_str = string.format("%d %d * * *", M, H)
-	outFmtInfo("============================born boss crontab_str = %s", crontab_str)
+	outFmtDebug("============================born boss crontab_str = %s", crontab_str)
 	self.cron:addCron("通知全服野外BOSS刷新", crontab_str, function() 
 		-- 通知场景服刷BOSS
 		self:CallOptResult(OPERTE_TYPE_FIELD_BOSS, FIELD_BOSS_OPERTE_OCCUR, {startTime})
@@ -246,7 +404,7 @@ function AppdApp:InitFieldBossCorn(H, M, startTime, bossTime)
 	-- 即将开始通知
 	local TH, TM = self:ModifyTimeMinutes(H, M, -startTime)
 	local crontab_str1 = string.format("%d %d * * *", TM, TH)
-	outFmtInfo("------------------------------startTime crontab_str = %s", crontab_str1)
+	outFmtDebug("------------------------------startTime crontab_str = %s", crontab_str1)
 	self.cron:addCron("通知全服野外BOSS将要开启", crontab_str1, function() 
 		-- 通知场景服 清理前一个BOSS的数据
 		NoticeScene(APPD_SCENED_CLEAR_FIELD_BOSS)
@@ -257,7 +415,7 @@ function AppdApp:InitFieldBossCorn(H, M, startTime, bossTime)
 	-- 即将刷新通知
 	TH, TM = self:ModifyTimeMinutes(H, M, -bossTime)
 	local crontab_str2 = string.format("%d %d * * *", TM, TH)
-	outFmtInfo("+++++++++++++++++++++++++bossTime crontab_str = %s", crontab_str2)
+	outFmtDebug("+++++++++++++++++++++++++bossTime crontab_str = %s", crontab_str2)
 	self.cron:addCron("通知全服野外BOSS将要刷新", crontab_str2, function() 
 		self:CallOptResult(OPERTE_TYPE_FIELD_BOSS, FIELD_BOSS_OPERTE_WILL_OCCUR, {bossTime})
 	end)
@@ -272,7 +430,7 @@ function AppdApp:InitWorldBossCorn(sh, sm, enrollLast, time_last, noticeTime)
 	H, M = sh, sm
 	-- BOSS报名时间
 	local crontab_str = string.format("%d %d * * *", M, H)
-	outFmtInfo("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss enroll crontab_str = %s", crontab_str)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss enroll crontab_str = %s", crontab_str)
 	self.cron:addCron("通知全服世界BOSS开始报名", crontab_str, function()		
 		OnEnrollWorldBoss()
 		-- 通知全服世界BOSS开始报名
@@ -282,7 +440,7 @@ function AppdApp:InitWorldBossCorn(sh, sm, enrollLast, time_last, noticeTime)
 	-- 世界BOSS即将开始
 	H, M = self:ModifyTimeMinutes(sh, sm, -noticeTime)
 	crontab_str = string.format("%d %d * * *", M, H)
-	outFmtInfo("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss will start crontab_str = %s", crontab_str)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss will start crontab_str = %s", crontab_str)
 	self.cron:addCron("通知全服世界BOSS即将开启", crontab_str, function() 
 		self:CallOptResult(OPERTE_TYPE_WORLD_BOSS, WORLD_BOSS_OPERTE_WILL_START, {})
 	end)
@@ -291,7 +449,7 @@ function AppdApp:InitWorldBossCorn(sh, sm, enrollLast, time_last, noticeTime)
 	-- BOSS挑战时间
 	H, M = self:ModifyTimeMinutes(sh, sm, enrollLast)
 	crontab_str = string.format("%d %d * * *", M, H)
-	outFmtInfo("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss fight crontab_str = %s", crontab_str)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss fight crontab_str = %s", crontab_str)
 	self.cron:addCron("通知全服世界BOSS挑战", crontab_str, function() 
 		-- 分配
 		local playerDict, roomInfo = ArrangeWorldBossRoom()
@@ -301,18 +459,70 @@ function AppdApp:InitWorldBossCorn(sh, sm, enrollLast, time_last, noticeTime)
 		DoWorldBossTeleport(playerDict, roomInfo)
 		
 		-- 通知全服世界BOSS挑战 分好房间, 把所有报名的人传送进去
-		outFmtInfo("InitWorldBossCorn fight===============================")
+		outFmtDebug("InitWorldBossCorn fight===============================")
 	end)
 	
 	-- BOSS结束时间
 	H, M = self:ModifyTimeMinutes(sh, sm, time_last)
 	crontab_str = string.format("%d %d * * *", M, H)
-	outFmtInfo("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss endddddddddddddddd crontab_str = %s", crontab_str)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss endddddddddddddddd crontab_str = %s", crontab_str)
 	self.cron:addCron("通知全服世界BOSS结束", crontab_str, function() 
 		-- 通知场景服 BOSS结束
 		NoticeScene(APPD_SCENED_WORLD_BOSS_END)
 		-- 通知全服世界BOSS挑战 分好房间, 把所有报名的人传送进去
-		outFmtInfo("InitWorldBossCorn end*****************************===============================")
+		outFmtDebug("InitWorldBossCorn end*****************************===============================")
+	end)
+	
+end
+
+function AppdApp:InitWorldBossCornByWeekDay(sh, sm, enrollLast, time_last, noticeTime, weekDay)
+	noticeTime = noticeTime or 1
+	
+	local M, H
+	H, M ,D = sh, sm , weekDay
+	-- BOSS报名时间
+	local crontab_str = string.format("%d %d * * %d", M, H, D)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss enroll crontab_str = %s", crontab_str)
+	self.cron:addCron("通知全服世界BOSS开始报名", crontab_str, function()		
+		OnEnrollWorldBoss()
+		-- 通知全服世界BOSS开始报名
+		self:CallOptResult(OPERTE_TYPE_WORLD_BOSS, WORLD_BOSS_OPERTE_ENROLL, {})
+	end)
+	
+	-- 世界BOSS即将开始
+	H, M = self:ModifyTimeMinutes(sh, sm, -noticeTime)
+	crontab_str = string.format("%d %d * * %d", M, H, D)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss will start crontab_str = %s", crontab_str)
+	self.cron:addCron("通知全服世界BOSS即将开启", crontab_str, function() 
+		self:CallOptResult(OPERTE_TYPE_WORLD_BOSS, WORLD_BOSS_OPERTE_WILL_START, {})
+	end)
+	
+
+	-- BOSS挑战时间
+	H, M = self:ModifyTimeMinutes(sh, sm, enrollLast)
+	crontab_str = string.format("%d %d * * %d", M, H, D)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss fight crontab_str = %s", crontab_str)
+	self.cron:addCron("通知全服世界BOSS挑战", crontab_str, function() 
+		-- 分配
+		local playerDict, roomInfo = ArrangeWorldBossRoom()
+		-- 通知场景服 进行初始化
+		NoticeScene(APPD_SCENED_FIGHT_WORLD_BOSS, #playerDict)
+		-- 进行传送
+		DoWorldBossTeleport(playerDict, roomInfo)
+		
+		-- 通知全服世界BOSS挑战 分好房间, 把所有报名的人传送进去
+		outFmtDebug("InitWorldBossCorn fight===============================")
+	end)
+	
+	-- BOSS结束时间
+	H, M = self:ModifyTimeMinutes(sh, sm, time_last)
+	crontab_str = string.format("%d %d * * %d", M, H, D)
+	outFmtDebug("WWWWWWWWWWWWWWWWWWWWWWWWWWorld boss endddddddddddddddd crontab_str = %s", crontab_str)
+	self.cron:addCron("通知全服世界BOSS结束", crontab_str, function() 
+		-- 通知场景服 BOSS结束
+		NoticeScene(APPD_SCENED_WORLD_BOSS_END)
+		-- 通知全服世界BOSS挑战 分好房间, 把所有报名的人传送进去
+		outFmtDebug("InitWorldBossCorn end*****************************===============================")
 	end)
 	
 end
@@ -344,7 +554,7 @@ function AppdApp:RankReward()
 	
 	--RANK_TYPE_FACTION
 	--FIXME
-	local ranktype = {RANK_TYPE_POWER,RANK_TYPE_LEVEL,RANK_TYPE_MOUNT,RANK_TYPE_WINGS,RANK_TYPE_SINGLE_PVP,RANK_TYPE_FACTION}
+	local ranktype = {}--{RANK_TYPE_POWER,RANK_TYPE_LEVEL,RANK_TYPE_MOUNT,RANK_TYPE_WINGS,RANK_TYPE_SINGLE_PVP,RANK_TYPE_FACTION}
 	local rankname = {"战力","等级","坐骑","翅膀","家族","排位赛"}
 	
 	for i,rt in ipairs(ranktype) do
@@ -398,12 +608,23 @@ end
 
 
 --全服发送通知包
+function AppdApp:CallNoticeAll(noticeId, passed, params)
+	--[[
+	local typ, reason = xxx(noticeId)
+	if need(noticeId, passed) then
+		self:(typ, reason, params)
+	end
+	--]]
+end
+
+
+--全服发送通知包
 function AppdApp:CallOptResult(typ, reason, data)
 	if type(data) == 'table' then
 		data = string.join('|', data)
 	else
 		data = tostring(data) or ''
-	end	
+	end
 	local pkt = protocols.pack_operation_failed(typ, reason, data)
 	self:Broadcast(pkt)
 	pkt:delete()

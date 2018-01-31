@@ -50,7 +50,7 @@ function ActionScenedUseTeleport:Update(diff)
 			self.isClose = true
 			return true
 		end
-
+		--[[
 		if(self.to_mapid > 0)then
 			--访问GO随机点计算
 			local pos_tab = mapLib.RandomPos(self.to_mapid,1,self.to_x, self.to_y,1)
@@ -60,7 +60,7 @@ function ActionScenedUseTeleport:Update(diff)
 				self.to_y = pos_tab[1].y
 			end
 		end
-		
+		--]]
 		-- 到达目的地的callback
 		local closeCallback = function()
 			self.isClose = true

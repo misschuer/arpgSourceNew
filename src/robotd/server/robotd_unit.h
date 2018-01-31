@@ -61,6 +61,8 @@ public:
 	bool IsMainPlayer(){return m_main_player->GetMyUnit() == this;};
 	void StopMoving(uint16 x, uint16 y);
 	void StartMoving(bool client_path, string from);
+
+	RobotdContext* GetPlayerObject() {return m_main_player;}
 protected:
 	virtual bool ReadFrom(int flags,ByteArray& bytes);
 protected:

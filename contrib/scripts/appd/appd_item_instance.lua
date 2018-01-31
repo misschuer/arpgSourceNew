@@ -170,6 +170,7 @@ function AppItemInstance:itemCalculAttr( attrs ,suitBaseAttribute)
 	end
 	
 	--新装备养成 精炼属性 强化属性 宝石属性 全身奖励
+	local developAttr = {}
 	for pos = 1,EQUIPMENT_COUNT do
 		local refine_rank = spellMgr:GetEquipDevelopRefineRank(pos - 1)
 		local refine_star = spellMgr:GetEquipDevelopRefineStar(pos - 1)
@@ -195,6 +196,7 @@ function AppItemInstance:itemCalculAttr( attrs ,suitBaseAttribute)
 		if refine_config then
 			local props = refine_config["props"..getJobIndxByGender(playerInfo:GetGender())]
 			mergeAttrs(attrs, props)
+			mergeAttrs(developAttr, props)
 		end
 		
 		
@@ -203,6 +205,7 @@ function AppItemInstance:itemCalculAttr( attrs ,suitBaseAttribute)
 		if strength_config then
 			local props = strength_config["props"..getJobIndxByGender(playerInfo:GetGender())]
 			mergeAttrs(attrs, props)
+			mergeAttrs(developAttr, props)
 		end
 		
 		
@@ -217,6 +220,7 @@ function AppItemInstance:itemCalculAttr( attrs ,suitBaseAttribute)
 			if gem_config then
 				local props = gem_config.props
 				mergeAttrs(attrs, props)
+				mergeAttrs(developAttr, props)
 			end
 		end
 	end
@@ -225,21 +229,31 @@ function AppItemInstance:itemCalculAttr( attrs ,suitBaseAttribute)
 	if tb_equipdevelop_bonus[1*100 + bonus_strength_lv] then
 		local props = tb_equipdevelop_bonus[1*100 + bonus_strength_lv]["props"..getJobIndxByGender(playerInfo:GetGender())]
 		mergeAttrs(attrs, props)
+		mergeAttrs(developAttr, props)
 	end
 	
 	local bonus_refine_lv = spellMgr:GetEquipDevelopBonusRefineLv()
 	if tb_equipdevelop_bonus[2*100 + bonus_refine_lv] then
 		local props = tb_equipdevelop_bonus[2*100 + bonus_refine_lv]["props"..getJobIndxByGender(playerInfo:GetGender())]
 		mergeAttrs(attrs, props)
+		mergeAttrs(developAttr, props)
 	end
 	
 	local bonus_gem_lv = spellMgr:GetEquipDevelopBonusGemLv()
 	if tb_equipdevelop_bonus[3*100 + bonus_gem_lv] then
 		local props = tb_equipdevelop_bonus[3*100 + bonus_gem_lv]["props"..getJobIndxByGender(playerInfo:GetGender())]
 		mergeAttrs(attrs, props)
+		mergeAttrs(developAttr, props)
 	end
 	
 	outFmtDebug("bonus %d %d %d",bonus_strength_lv,bonus_refine_lv,bonus_gem_lv)
+	
+	playerInfo:SetEquipForce(suitBasePoint)
+	
+	local developPoint = DoAnyOneCalcForce(developAttr, playerInfo:GetGender())
+
+	playerInfo:SetEquipDevelopForce(developPoint)
+	
 	return suitBasePoint
 end
 
@@ -384,7 +398,7 @@ function AppItemInstance:delFailTimeItem()
 		for i = 1, bag_size do
 			local item = self:getBagItemByPos(bag_type, i-1)
 			if item and ( (item:getFailTime() ~= 0 and item:getFailTime() <= timenow) or item:getCount() == 0 ) then
-				WriteItemLog(self:getOwner(), LOG_ITEM_OPER_TYPE_DEL_FAILTIME, item:getEntry(), item:getCount(), item:isBind())
+				WriteItemLog(self:getOwner(), LOG_ITEM_OPER_TYPE_DEL_FAILTIME, item:getEntry(), 1, item:getCount())
 				self:delItemObj(item)
 			end
 		end

@@ -1600,26 +1600,23 @@ int ProtocolUtil::send_combat_state_update (uint8 cur_state)
 }
 
 /*经验更新*/
-int ProtocolUtil::unpack_exp_update (ByteArray &bytes ,int32 &exp,uint8 &type,int32 &vip_exp)
+int ProtocolUtil::unpack_exp_update (ByteArray &bytes ,int32 &exp,uint8 &added)
 {
 	int ret=0;
 	//int32
 	exp = bytes.readInt();
 	//uint8
-	type = bytes.readUnsignedByte();
-	//int32
-	vip_exp = bytes.readInt();
+	added = bytes.readUnsignedByte();
 	return ret;
 }
 
-int ProtocolUtil::send_exp_update (int32 exp,uint8 type,int32 vip_exp)
+int ProtocolUtil::send_exp_update (int32 exp,uint8 added)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(SMSG_EXP_UPDATE);
 	
 	m_bytes.writeBytes((uint8*)&exp, sizeof(int32));
-	m_bytes.writeBytes((uint8*)&type, sizeof(uint8));
-	m_bytes.writeBytes((uint8*)&vip_exp, sizeof(int32));
+	m_bytes.writeBytes((uint8*)&added, sizeof(uint8));
 	SendToServer(m_bytes);
 	return 0;
 }
@@ -3083,18 +3080,21 @@ int ProtocolUtil::send_illusion_mount (uint16 illuId)
 	return 0;
 }
 
-/*申请骑乘*/
-int ProtocolUtil::unpack_ride_mount (ByteArray &bytes )
+/*坐骑骑乘操作*/
+int ProtocolUtil::unpack_ride_mount (ByteArray &bytes ,uint8 &oper)
 {
 	int ret=0;
+	//uint8
+	oper = bytes.readUnsignedByte();
 	return ret;
 }
 
-int ProtocolUtil::send_ride_mount ()
+int ProtocolUtil::send_ride_mount (uint8 oper)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_RIDE_MOUNT);
 	
+	m_bytes.writeBytes((uint8*)&oper, sizeof(uint8));
 	SendToServer(m_bytes);
 	return 0;
 }
@@ -5689,7 +5689,7 @@ int ProtocolUtil::send_pick_offline_reward ()
 }
 
 /*离线奖励结果*/
-int ProtocolUtil::unpack_offline_reward_result (ByteArray &bytes ,uint32 &reserve,uint32 &reserve2,uint32 &reserve3,uint32 &reserve4, vector< item_reward_info > &list)
+int ProtocolUtil::unpack_offline_reward_result (ByteArray &bytes ,uint32 &reserve,uint32 &reserve2,uint32 &reserve3,uint32 &reserve4,uint32 &reserve5, vector< item_reward_info > &list)
 {
 	int ret=0;
 	//uint32
@@ -5700,12 +5700,14 @@ int ProtocolUtil::unpack_offline_reward_result (ByteArray &bytes ,uint32 &reserv
 	reserve3 = bytes.readUnsignedInt();
 	//uint32
 	reserve4 = bytes.readUnsignedInt();
+	//uint32
+	reserve5 = bytes.readUnsignedInt();
 	//item_reward_info
 	ASSERT(false);
 	return ret;
 }
 
-int ProtocolUtil::send_offline_reward_result (uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,const vector< item_reward_info > &list )
+int ProtocolUtil::send_offline_reward_result (uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,uint32 reserve5,const vector< item_reward_info > &list )
 {
 	m_bytes.clear();
 	m_bytes.writeShort(SMSG_OFFLINE_REWARD_RESULT);
@@ -5714,6 +5716,7 @@ int ProtocolUtil::send_offline_reward_result (uint32 reserve,uint32 reserve2,uin
 	m_bytes.writeBytes((uint8*)&reserve2, sizeof(uint32));
 	m_bytes.writeBytes((uint8*)&reserve3, sizeof(uint32));
 	m_bytes.writeBytes((uint8*)&reserve4, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&reserve5, sizeof(uint32));
 	m_bytes.writeShort(list .size());
 	for (auto it:list)
 	{
@@ -6210,20 +6213,23 @@ int ProtocolUtil::send_buy_mass_boss_times (uint8 cnt)
 }
 
 /*组队副本跨服匹配*/
-int ProtocolUtil::unpack_group_instance_match (ByteArray &bytes ,uint8 &indx)
+int ProtocolUtil::unpack_group_instance_match (ByteArray &bytes ,uint8 &indx,uint8 &isGroup)
 {
 	int ret=0;
 	//uint8
 	indx = bytes.readUnsignedByte();
+	//uint8
+	isGroup = bytes.readUnsignedByte();
 	return ret;
 }
 
-int ProtocolUtil::send_group_instance_match (uint8 indx)
+int ProtocolUtil::send_group_instance_match (uint8 indx,uint8 isGroup)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_GROUP_INSTANCE_MATCH);
 	
 	m_bytes.writeBytes((uint8*)&indx, sizeof(uint8));
+	m_bytes.writeBytes((uint8*)&isGroup, sizeof(uint8));
 	SendToServer(m_bytes);
 	return 0;
 }
@@ -7308,17 +7314,29 @@ int ProtocolUtil::send_pick_realmbreak_daily_reward ()
 }
 
 /*创建队伍*/
-int ProtocolUtil::unpack_group_create (ByteArray &bytes )
+int ProtocolUtil::unpack_group_create (ByteArray &bytes ,uint32 &type,uint32 &min_lev,uint32 &max_lev,uint32 &auto_flag)
 {
 	int ret=0;
+	//uint32
+	type = bytes.readUnsignedInt();
+	//uint32
+	min_lev = bytes.readUnsignedInt();
+	//uint32
+	max_lev = bytes.readUnsignedInt();
+	//uint32
+	auto_flag = bytes.readUnsignedInt();
 	return ret;
 }
 
-int ProtocolUtil::send_group_create ()
+int ProtocolUtil::send_group_create (uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_GROUP_CREATE);
 	
+	m_bytes.writeBytes((uint8*)&type, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&min_lev, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&max_lev, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&auto_flag, sizeof(uint32));
 	SendToServer(m_bytes);
 	return 0;
 }
@@ -7378,39 +7396,39 @@ int ProtocolUtil::send_group_quit ()
 }
 
 /*移交队伍队长*/
-int ProtocolUtil::unpack_group_give_captain (ByteArray &bytes ,string &guid)
+int ProtocolUtil::unpack_group_give_captain (ByteArray &bytes ,uint32 &index)
 {
 	int ret=0;
-	//String
-	guid = bytes.readUTF();
+	//uint32
+	index = bytes.readUnsignedInt();
 	return ret;
 }
 
-int ProtocolUtil::send_group_give_captain (char const*guid)
+int ProtocolUtil::send_group_give_captain (uint32 index)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_GROUP_GIVE_CAPTAIN);
 	
-	m_bytes.writeUTF(guid);
+	m_bytes.writeBytes((uint8*)&index, sizeof(uint32));
 	SendToServer(m_bytes);
 	return 0;
 }
 
 /*踢队员*/
-int ProtocolUtil::unpack_group_kick (ByteArray &bytes ,string &guid)
+int ProtocolUtil::unpack_group_kick (ByteArray &bytes ,uint32 &index)
 {
 	int ret=0;
-	//String
-	guid = bytes.readUTF();
+	//uint32
+	index = bytes.readUnsignedInt();
 	return ret;
 }
 
-int ProtocolUtil::send_group_kick (char const*guid)
+int ProtocolUtil::send_group_kick (uint32 index)
 {
 	m_bytes.clear();
 	m_bytes.writeShort(CMSG_GROUP_KICK);
 	
-	m_bytes.writeUTF(guid);
+	m_bytes.writeBytes((uint8*)&index, sizeof(uint32));
 	SendToServer(m_bytes);
 	return 0;
 }
@@ -7465,6 +7483,805 @@ int ProtocolUtil::send_pick_stage_instance_bonus (uint32 id)
 	m_bytes.writeShort(CMSG_PICK_STAGE_INSTANCE_BONUS);
 	
 	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*进入组队副本*/
+int ProtocolUtil::unpack_enter_group_exp (ByteArray &bytes ,uint8 &isGroup)
+{
+	int ret=0;
+	//uint8
+	isGroup = bytes.readUnsignedByte();
+	return ret;
+}
+
+int ProtocolUtil::send_enter_group_exp (uint8 isGroup)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_ENTER_GROUP_EXP);
+	
+	m_bytes.writeBytes((uint8*)&isGroup, sizeof(uint8));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*队长通知进入某副本*/
+int ProtocolUtil::unpack_check_for_group_enter (ByteArray &bytes ,uint32 &instSubType)
+{
+	int ret=0;
+	//uint32
+	instSubType = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_check_for_group_enter (uint32 instSubType)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_CHECK_FOR_GROUP_ENTER);
+	
+	m_bytes.writeBytes((uint8*)&instSubType, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*队伍成员选择AorD*/
+int ProtocolUtil::unpack_select_group_enter (ByteArray &bytes ,uint8 &choise)
+{
+	int ret=0;
+	//uint8
+	choise = bytes.readUnsignedByte();
+	return ret;
+}
+
+int ProtocolUtil::send_select_group_enter (uint8 choise)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_SELECT_GROUP_ENTER);
+	
+	m_bytes.writeBytes((uint8*)&choise, sizeof(uint8));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*经验副本次数购买*/
+int ProtocolUtil::unpack_buy_group_exp_times (ByteArray &bytes ,uint8 &count)
+{
+	int ret=0;
+	//uint8
+	count = bytes.readUnsignedByte();
+	return ret;
+}
+
+int ProtocolUtil::send_buy_group_exp_times (uint8 count)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_BUY_GROUP_EXP_TIMES);
+	
+	m_bytes.writeBytes((uint8*)&count, sizeof(uint8));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*购买鼓舞*/
+int ProtocolUtil::unpack_buy_inspiration (ByteArray &bytes ,uint8 &category)
+{
+	int ret=0;
+	//uint8
+	category = bytes.readUnsignedByte();
+	return ret;
+}
+
+int ProtocolUtil::send_buy_inspiration (uint8 category)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_BUY_INSPIRATION);
+	
+	m_bytes.writeBytes((uint8*)&category, sizeof(uint8));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*家族战进入*/
+int ProtocolUtil::unpack_enter_faction_match_map (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_enter_faction_match_map ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_ENTER_FACTION_MATCH_MAP);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*领取家族战盟主每日奖励*/
+int ProtocolUtil::unpack_pick_faction_match_champion_daily_reward (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_pick_faction_match_champion_daily_reward ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*请求家族战榜单*/
+int ProtocolUtil::unpack_query_faction_match_info (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_query_faction_match_info ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_QUERY_FACTION_MATCH_INFO);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*返回家族战榜单*/
+int ProtocolUtil::unpack_show_faction_match_info_list (ByteArray &bytes , vector< faction_match_info > &list)
+{
+	int ret=0;
+	//faction_match_info
+	ASSERT(false);
+	return ret;
+}
+
+int ProtocolUtil::send_show_faction_match_info_list (const vector< faction_match_info > &list )
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_SHOW_FACTION_MATCH_INFO_LIST);
+	
+	m_bytes.writeShort(list .size());
+	for (auto it:list)
+	{
+		m_bytes.writeT(it);
+	}
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*领取资源副本首次通关奖励*/
+int ProtocolUtil::unpack_pick_res_instance_first_reward (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_pick_res_instance_first_reward (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_PICK_RES_INSTANCE_FIRST_REWARD);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*发送组队邀请*/
+int ProtocolUtil::unpack_group_send_invite (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_send_invite (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_SEND_INVITE);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*显示组队邀请*/
+int ProtocolUtil::unpack_show_group_invite (ByteArray &bytes ,string &guid,string &name,uint32 &type,uint32 &level,double &force,string &sender_guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	//String
+	name = bytes.readUTF();
+	//uint32
+	type = bytes.readUnsignedInt();
+	//uint32
+	level = bytes.readUnsignedInt();
+	//double
+	force = bytes.readDouble();
+	//String
+	sender_guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_show_group_invite (char const*guid,char const*name,uint32 type,uint32 level,double force,char const*sender_guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_SHOW_GROUP_INVITE);
+	
+	m_bytes.writeUTF(guid);
+	m_bytes.writeUTF(name);
+	m_bytes.writeBytes((uint8*)&type, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&level, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&force, sizeof(double));
+	m_bytes.writeUTF(sender_guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*同意组队邀请*/
+int ProtocolUtil::unpack_group_agree_invite (ByteArray &bytes ,string &guid,string &sendGuid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	//String
+	sendGuid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_agree_invite (char const*guid,char const*sendGuid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_AGREE_INVITE);
+	
+	m_bytes.writeUTF(guid);
+	m_bytes.writeUTF(sendGuid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*便捷组队队伍列表*/
+int ProtocolUtil::unpack_get_group_search_info_list (ByteArray &bytes ,uint32 &type)
+{
+	int ret=0;
+	//uint32
+	type = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_get_group_search_info_list (uint32 type)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GET_GROUP_SEARCH_INFO_LIST);
+	
+	m_bytes.writeBytes((uint8*)&type, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*返回便捷组队队伍列表*/
+int ProtocolUtil::unpack_show_group_search_info_list (ByteArray &bytes , vector< group_search_info > &list)
+{
+	int ret=0;
+	//group_search_info
+	ASSERT(false);
+	return ret;
+}
+
+int ProtocolUtil::send_show_group_search_info_list (const vector< group_search_info > &list )
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_SHOW_GROUP_SEARCH_INFO_LIST);
+	
+	m_bytes.writeShort(list .size());
+	for (auto it:list)
+	{
+		m_bytes.writeT(it);
+	}
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*修改组队设置*/
+int ProtocolUtil::unpack_group_change_config (ByteArray &bytes ,uint32 &type,uint32 &min_lev,uint32 &max_lev,uint32 &auto_flag)
+{
+	int ret=0;
+	//uint32
+	type = bytes.readUnsignedInt();
+	//uint32
+	min_lev = bytes.readUnsignedInt();
+	//uint32
+	max_lev = bytes.readUnsignedInt();
+	//uint32
+	auto_flag = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_group_change_config (uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_CHANGE_CONFIG);
+	
+	m_bytes.writeBytes((uint8*)&type, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&min_lev, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&max_lev, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&auto_flag, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*显示玩家入队申请*/
+int ProtocolUtil::unpack_show_group_join_request (ByteArray &bytes ,string &guid,string &name,uint32 &gender,uint32 &level,uint32 &vip,double &force)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	//String
+	name = bytes.readUTF();
+	//uint32
+	gender = bytes.readUnsignedInt();
+	//uint32
+	level = bytes.readUnsignedInt();
+	//uint32
+	vip = bytes.readUnsignedInt();
+	//double
+	force = bytes.readDouble();
+	return ret;
+}
+
+int ProtocolUtil::send_show_group_join_request (char const*guid,char const*name,uint32 gender,uint32 level,uint32 vip,double force)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_SHOW_GROUP_JOIN_REQUEST);
+	
+	m_bytes.writeUTF(guid);
+	m_bytes.writeUTF(name);
+	m_bytes.writeBytes((uint8*)&gender, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&level, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&vip, sizeof(uint32));
+	m_bytes.writeBytes((uint8*)&force, sizeof(double));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*拒绝加入队伍*/
+int ProtocolUtil::unpack_group_join_denied (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_join_denied (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_JOIN_DENIED);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*拒绝邀请*/
+int ProtocolUtil::unpack_group_invite_denied (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_group_invite_denied (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GROUP_INVITE_DENIED);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*装备法宝*/
+int ProtocolUtil::unpack_talisman_equip (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_talisman_equip (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_TALISMAN_EQUIP);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*卸下法宝*/
+int ProtocolUtil::unpack_talisman_unequip (ByteArray &bytes ,uint32 &slot_id)
+{
+	int ret=0;
+	//uint32
+	slot_id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_talisman_unequip (uint32 slot_id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_TALISMAN_UNEQUIP);
+	
+	m_bytes.writeBytes((uint8*)&slot_id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*回满血*/
+int ProtocolUtil::unpack_fullize_hp (ByteArray &bytes ,string &guid)
+{
+	int ret=0;
+	//String
+	guid = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_fullize_hp (char const*guid)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_FULLIZE_HP);
+	
+	m_bytes.writeUTF(guid);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*自动匹配*/
+int ProtocolUtil::unpack_auto_group_match (ByteArray &bytes ,uint32 &targetType)
+{
+	int ret=0;
+	//uint32
+	targetType = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_auto_group_match (uint32 targetType)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_AUTO_GROUP_MATCH);
+	
+	m_bytes.writeBytes((uint8*)&targetType, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*取消自动匹配*/
+int ProtocolUtil::unpack_cancel_auto_group_match (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_cancel_auto_group_match ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_CANCEL_AUTO_GROUP_MATCH);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*组队3v3跨服匹配*/
+int ProtocolUtil::unpack_kuafu_3v3_group_match (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_kuafu_3v3_group_match ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_KUAFU_3V3_GROUP_MATCH);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*记录购买订单*/
+int ProtocolUtil::unpack_booking_money (ByteArray &bytes ,string &orderid,string &goodsname,string &money1,uint32 &goodsnum)
+{
+	int ret=0;
+	//String
+	orderid = bytes.readUTF();
+	//String
+	goodsname = bytes.readUTF();
+	//String
+	money1 = bytes.readUTF();
+	//uint32
+	goodsnum = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_booking_money (char const*orderid,char const*goodsname,char const*money1,uint32 goodsnum)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_BOOKING_MONEY);
+	
+	m_bytes.writeUTF(orderid);
+	m_bytes.writeUTF(goodsname);
+	m_bytes.writeUTF(money1);
+	m_bytes.writeBytes((uint8*)&goodsnum, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*记录购买订单成功*/
+int ProtocolUtil::unpack_booking_money_result (ByteArray &bytes ,string &orderid,uint8 &result)
+{
+	int ret=0;
+	//String
+	orderid = bytes.readUTF();
+	//uint8
+	result = bytes.readUnsignedByte();
+	return ret;
+}
+
+int ProtocolUtil::send_booking_money_result (char const*orderid,uint8 result)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_BOOKING_MONEY_RESULT);
+	
+	m_bytes.writeUTF(orderid);
+	m_bytes.writeBytes((uint8*)&result, sizeof(uint8));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*一键机器人强化*/
+int ProtocolUtil::unpack_one_step_robot_up (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_one_step_robot_up (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_ONE_STEP_ROBOT_UP);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*领取7日充值额外奖励*/
+int ProtocolUtil::unpack_get_seven_day_recharge_extra_reward (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_get_seven_day_recharge_extra_reward (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*使用兑换码*/
+int ProtocolUtil::unpack_use_giftcode (ByteArray &bytes ,string &giftcode)
+{
+	int ret=0;
+	//String
+	giftcode = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_use_giftcode (char const*giftcode)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_USE_GIFTCODE);
+	
+	m_bytes.writeUTF(giftcode);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*显示兑换结果*/
+int ProtocolUtil::unpack_show_giftcode_reward_list (ByteArray &bytes , vector< item_reward_info > &list)
+{
+	int ret=0;
+	//item_reward_info
+	ASSERT(false);
+	return ret;
+}
+
+int ProtocolUtil::send_show_giftcode_reward_list (const vector< item_reward_info > &list )
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_SHOW_GIFTCODE_REWARD_LIST);
+	
+	m_bytes.writeShort(list .size());
+	for (auto it:list)
+	{
+		m_bytes.writeT(it);
+	}
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*转盘抽奖*/
+int ProtocolUtil::unpack_lottery_recharge (ByteArray &bytes )
+{
+	int ret=0;
+	return ret;
+}
+
+int ProtocolUtil::send_lottery_recharge ()
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_LOTTERY_RECHARGE);
+	
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*转盘抽奖结果*/
+int ProtocolUtil::unpack_lottery_recharge_result (ByteArray &bytes ,uint8 &indx)
+{
+	int ret=0;
+	//uint8
+	indx = bytes.readUnsignedByte();
+	return ret;
+}
+
+int ProtocolUtil::send_lottery_recharge_result (uint8 indx)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_LOTTERY_RECHARGE_RESULT);
+	
+	m_bytes.writeBytes((uint8*)&indx, sizeof(uint8));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*通知前端释放了持续技能*/
+int ProtocolUtil::unpack_show_cast_remain_skill (ByteArray &bytes ,uint32 &id)
+{
+	int ret=0;
+	//uint32
+	id = bytes.readUnsignedInt();
+	return ret;
+}
+
+int ProtocolUtil::send_show_cast_remain_skill (uint32 id)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_SHOW_CAST_REMAIN_SKILL);
+	
+	m_bytes.writeBytes((uint8*)&id, sizeof(uint32));
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*角色创建完*/
+int ProtocolUtil::unpack_after_create_role (ByteArray &bytes ,string &serverId,string &guid,string &nickname)
+{
+	int ret=0;
+	//String
+	serverId = bytes.readUTF();
+	//String
+	guid = bytes.readUTF();
+	//String
+	nickname = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_after_create_role (char const*serverId,char const*guid,char const*nickname)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_AFTER_CREATE_ROLE);
+	
+	m_bytes.writeUTF(serverId);
+	m_bytes.writeUTF(guid);
+	m_bytes.writeUTF(nickname);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*记录购买订单*/
+int ProtocolUtil::unpack_booking_game2_money (ByteArray &bytes ,string &serverName,string &cpOrderId,string &productName,string &productId,string &productDesc)
+{
+	int ret=0;
+	//String
+	serverName = bytes.readUTF();
+	//String
+	cpOrderId = bytes.readUTF();
+	//String
+	productName = bytes.readUTF();
+	//String
+	productId = bytes.readUTF();
+	//String
+	productDesc = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_booking_game2_money (char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(CMSG_BOOKING_GAME2_MONEY);
+	
+	m_bytes.writeUTF(serverName);
+	m_bytes.writeUTF(cpOrderId);
+	m_bytes.writeUTF(productName);
+	m_bytes.writeUTF(productId);
+	m_bytes.writeUTF(productDesc);
+	SendToServer(m_bytes);
+	return 0;
+}
+
+/*记录购买订单成功*/
+int ProtocolUtil::unpack_booking_game2_money_result (ByteArray &bytes ,uint8 &result,uint32 &serverId,string &serverName,string &cpOrderId,string &productName,string &productId,string &productDesc,string &amount,string &extend,string &time,string &sign)
+{
+	int ret=0;
+	//uint8
+	result = bytes.readUnsignedByte();
+	//uint32
+	serverId = bytes.readUnsignedInt();
+	//String
+	serverName = bytes.readUTF();
+	//String
+	cpOrderId = bytes.readUTF();
+	//String
+	productName = bytes.readUTF();
+	//String
+	productId = bytes.readUTF();
+	//String
+	productDesc = bytes.readUTF();
+	//String
+	amount = bytes.readUTF();
+	//String
+	extend = bytes.readUTF();
+	//String
+	time = bytes.readUTF();
+	//String
+	sign = bytes.readUTF();
+	return ret;
+}
+
+int ProtocolUtil::send_booking_game2_money_result (uint8 result,uint32 serverId,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc,char const*amount,char const*extend,char const*time,char const*sign)
+{
+	m_bytes.clear();
+	m_bytes.writeShort(SMSG_BOOKING_GAME2_MONEY_RESULT);
+	
+	m_bytes.writeBytes((uint8*)&result, sizeof(uint8));
+	m_bytes.writeBytes((uint8*)&serverId, sizeof(uint32));
+	m_bytes.writeUTF(serverName);
+	m_bytes.writeUTF(cpOrderId);
+	m_bytes.writeUTF(productName);
+	m_bytes.writeUTF(productId);
+	m_bytes.writeUTF(productDesc);
+	m_bytes.writeUTF(amount);
+	m_bytes.writeUTF(extend);
+	m_bytes.writeUTF(time);
+	m_bytes.writeUTF(sign);
 	SendToServer(m_bytes);
 	return 0;
 }

@@ -36,6 +36,8 @@ void RobotdGameConnection::OpcodeHandlerInitor()
 	opcode_handler_[SMSG_FIGHTING_INFO_UPDATE_OBJECT].handler =  &RobotdContext::Handle_Fighting_Info_Update_Object;
 	opcode_handler_[SMSG_FIGHTING_INFO_UPDATE_OBJECT_2].handler =  &RobotdContext::Handle_Fighting_Info_Update_Object_2;
 
+	opcode_handler_[SMSG_SHOW_CAST_REMAIN_SKILL].handler = &RobotdContext::Handle_Cast_Remain_Skill;
+
 	opcode_handler_[MSG_WORLD_WAR_SC_PLAYER_INFO].handler =  &RobotdContext::Handle_World_War_SC_Player_info;
 
 	opcode_handler_[SMSG_STRENGTH_SUCCESS].handler =  &RobotdContext::Handle_Strength_Success;
@@ -365,7 +367,10 @@ bool RobotdGameConnection::LoginUpdate(uint32 diff)
 			Tokens token;
 			StrSplit(token, this->m_context->GetAccount(), '_');	
 			int32 len = token.size();
-			string name = token[len-1];
+			uint32 dd = ((uint32)time(NULL)) % 1000000;
+			char nn[20];
+			sprintf(nn, "%u", dd);
+			string name = string(nn);
 
 			char_create_info info;
 			memset(&info, 0, sizeof(char_create_info));
@@ -516,6 +521,8 @@ void RobotdWarConnection::OpcodeHandlerInitor()
 	opcode_handler_[MSG_SYNC_MSTIME].handler =  &RobotdContext::Handle_Sync_Mstime;
 	opcode_handler_[SMSG_FIGHTING_INFO_UPDATE_OBJECT].handler =  &RobotdContext::Handle_Fighting_Info_Update_Object;
 	opcode_handler_[SMSG_FIGHTING_INFO_UPDATE_OBJECT_2].handler =  &RobotdContext::Handle_Fighting_Info_Update_Object_2;
+
+	opcode_handler_[SMSG_SHOW_CAST_REMAIN_SKILL].handler = &RobotdContext::Handle_Cast_Remain_Skill;
 
 }
 

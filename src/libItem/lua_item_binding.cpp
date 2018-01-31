@@ -1,6 +1,6 @@
 /*
 ** Lua binding: lua_item_binding
-** Generated automatically by tolua++-1.0.92 on 04/14/17 15:36:53.
+** Generated automatically by tolua++-1.0.92 on 01/19/18 11:41:57.
 */
 
 #ifndef __cplusplus
@@ -1257,7 +1257,9 @@ static int tolua_lua_item_binding_ItemManager_CountEntey00(lua_State* tolua_S)
      !tolua_isusertype(tolua_S,1,"ItemManager",0,&tolua_err) ||
      !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
      !tolua_isnumber(tolua_S,3,0,&tolua_err) ||
-     !tolua_isnoobj(tolua_S,4,&tolua_err)
+     !tolua_isnumber(tolua_S,4,1,&tolua_err) ||
+     !tolua_isnumber(tolua_S,5,1,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,6,&tolua_err)
  )
   goto tolua_lerror;
  else
@@ -1266,11 +1268,13 @@ static int tolua_lua_item_binding_ItemManager_CountEntey00(lua_State* tolua_S)
   ItemManager* self = (ItemManager*)  tolua_tousertype(tolua_S,1,0);
   int entry = ((int)  tolua_tonumber(tolua_S,2,0));
   int bag = ((int)  tolua_tonumber(tolua_S,3,0));
+  int isBind = ((int)  tolua_tonumber(tolua_S,4,-1));
+  int failTime = ((int)  tolua_tonumber(tolua_S,5,-1));
 #ifndef TOLUA_RELEASE
   if (!self) tolua_error(tolua_S,"invalid 'self' in function 'CountEntey'", NULL);
 #endif
   {
-   int tolua_ret = (int)  self->CountEntey(entry,bag);
+   int tolua_ret = (int)  self->CountEntey(entry,bag,isBind,failTime);
    tolua_pushnumber(tolua_S,(lua_Number)tolua_ret);
   }
  }
@@ -1278,6 +1282,44 @@ static int tolua_lua_item_binding_ItemManager_CountEntey00(lua_State* tolua_S)
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'CountEntey'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* method: CountAllEntey of class  ItemManager */
+#ifndef TOLUA_DISABLE_tolua_lua_item_binding_ItemManager_CountAllEntey00
+static int tolua_lua_item_binding_ItemManager_CountAllEntey00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isusertype(tolua_S,1,"ItemManager",0,&tolua_err) ||
+     !tolua_isnumber(tolua_S,2,0,&tolua_err) ||
+     !tolua_isnumber(tolua_S,3,1,&tolua_err) ||
+     !tolua_isnumber(tolua_S,4,1,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,5,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  ItemManager* self = (ItemManager*)  tolua_tousertype(tolua_S,1,0);
+  int entry = ((int)  tolua_tonumber(tolua_S,2,0));
+  int isBind = ((int)  tolua_tonumber(tolua_S,3,-1));
+  int failTime = ((int)  tolua_tonumber(tolua_S,4,-1));
+#ifndef TOLUA_RELEASE
+  if (!self) tolua_error(tolua_S,"invalid 'self' in function 'CountAllEntey'", NULL);
+#endif
+  {
+   int tolua_ret = (int)  self->CountAllEntey(entry,isBind,failTime);
+   tolua_pushnumber(tolua_S,(lua_Number)tolua_ret);
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'CountAllEntey'.",&tolua_err);
  return 0;
 #endif
 }
@@ -1479,6 +1521,7 @@ TOLUA_API int tolua_lua_item_binding_open (lua_State* tolua_S)
    tolua_function(tolua_S,"ForEachBagItem",tolua_lua_item_binding_ItemManager_ForEachBagItem00);
    tolua_function(tolua_S,"GetGuid",tolua_lua_item_binding_ItemManager_GetGuid00);
    tolua_function(tolua_S,"CountEntey",tolua_lua_item_binding_ItemManager_CountEntey00);
+   tolua_function(tolua_S,"CountAllEntey",tolua_lua_item_binding_ItemManager_CountAllEntey00);
    tolua_function(tolua_S,"GetEmptyCount",tolua_lua_item_binding_ItemManager_GetEmptyCount00);
    tolua_function(tolua_S,"GetBagSize",tolua_lua_item_binding_ItemManager_GetBagSize00);
    tolua_function(tolua_S,"SetBagSize",tolua_lua_item_binding_ItemManager_SetBagSize00);

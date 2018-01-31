@@ -314,7 +314,7 @@ class Protocols {
 	public static  CMSG_ILLUSION_MOUNT_ACTIVE :number = 150;	//illusion_mount_active
 	/*申请幻化坐骑*/
 	public static  CMSG_ILLUSION_MOUNT :number = 151;	//illusion_mount
-	/*申请骑乘*/
+	/*坐骑骑乘操作*/
 	public static  CMSG_RIDE_MOUNT :number = 152;	//ride_mount
 	/*grid中的unit跳跃*/
 	public static  SMSG_GRID_UNIT_JUMP :number = 153;	//grid_unit_jump
@@ -756,6 +756,80 @@ class Protocols {
 	public static  CMSG_ENTER_STAGE_INSTANCE :number = 425;	//enter_stage_instance
 	/*领取闯关副本奖励*/
 	public static  CMSG_PICK_STAGE_INSTANCE_BONUS :number = 426;	//pick_stage_instance_bonus
+	/*进入组队副本*/
+	public static  CMSG_ENTER_GROUP_EXP :number = 427;	//enter_group_exp
+	/*队长通知进入某副本*/
+	public static  SMSG_CHECK_FOR_GROUP_ENTER :number = 428;	//check_for_group_enter
+	/*队伍成员选择AorD*/
+	public static  CMSG_SELECT_GROUP_ENTER :number = 429;	//select_group_enter
+	/*经验副本次数购买*/
+	public static  CMSG_BUY_GROUP_EXP_TIMES :number = 430;	//buy_group_exp_times
+	/*购买鼓舞*/
+	public static  CMSG_BUY_INSPIRATION :number = 431;	//buy_inspiration
+	/*家族战进入*/
+	public static  CMSG_ENTER_FACTION_MATCH_MAP :number = 440;	//enter_faction_match_map
+	/*领取家族战盟主每日奖励*/
+	public static  CMSG_PICK_FACTION_MATCH_CHAMPION_DAILY_REWARD :number = 441;	//pick_faction_match_champion_daily_reward
+	/*请求家族战榜单*/
+	public static  CMSG_QUERY_FACTION_MATCH_INFO :number = 442;	//query_faction_match_info
+	/*返回家族战榜单*/
+	public static  SMSG_SHOW_FACTION_MATCH_INFO_LIST :number = 443;	//show_faction_match_info_list
+	/*领取资源副本首次通关奖励*/
+	public static  CMSG_PICK_RES_INSTANCE_FIRST_REWARD :number = 444;	//pick_res_instance_first_reward
+	/*发送组队邀请*/
+	public static  CMSG_GROUP_SEND_INVITE :number = 445;	//group_send_invite
+	/*显示组队邀请*/
+	public static  SMSG_SHOW_GROUP_INVITE :number = 446;	//show_group_invite
+	/*同意组队邀请*/
+	public static  CMSG_GROUP_AGREE_INVITE :number = 447;	//group_agree_invite
+	/*便捷组队队伍列表*/
+	public static  CMSG_GET_GROUP_SEARCH_INFO_LIST :number = 448;	//get_group_search_info_list
+	/*返回便捷组队队伍列表*/
+	public static  SMSG_SHOW_GROUP_SEARCH_INFO_LIST :number = 449;	//show_group_search_info_list
+	/*修改组队设置*/
+	public static  CMSG_GROUP_CHANGE_CONFIG :number = 450;	//group_change_config
+	/*显示玩家入队申请*/
+	public static  SMSG_SHOW_GROUP_JOIN_REQUEST :number = 451;	//show_group_join_request
+	/*拒绝加入队伍*/
+	public static  CMSG_GROUP_JOIN_DENIED :number = 452;	//group_join_denied
+	/*拒绝邀请*/
+	public static  CMSG_GROUP_INVITE_DENIED :number = 453;	//group_invite_denied
+	/*装备法宝*/
+	public static  CMSG_TALISMAN_EQUIP :number = 454;	//talisman_equip
+	/*卸下法宝*/
+	public static  CMSG_TALISMAN_UNEQUIP :number = 455;	//talisman_unequip
+	/*回满血*/
+	public static  SMSG_FULLIZE_HP :number = 460;	//fullize_hp
+	/*自动匹配*/
+	public static  CMSG_AUTO_GROUP_MATCH :number = 461;	//auto_group_match
+	/*取消自动匹配*/
+	public static  CMSG_CANCEL_AUTO_GROUP_MATCH :number = 462;	//cancel_auto_group_match
+	/*组队3v3跨服匹配*/
+	public static  CMSG_KUAFU_3V3_GROUP_MATCH :number = 463;	//kuafu_3v3_group_match
+	/*记录购买订单*/
+	public static  CMSG_BOOKING_MONEY :number = 470;	//booking_money
+	/*记录购买订单成功*/
+	public static  SMSG_BOOKING_MONEY_RESULT :number = 471;	//booking_money_result
+	/*一键机器人强化*/
+	public static  CMSG_ONE_STEP_ROBOT_UP :number = 472;	//one_step_robot_up
+	/*领取7日充值额外奖励*/
+	public static  CMSG_GET_SEVEN_DAY_RECHARGE_EXTRA_REWARD :number = 473;	//get_seven_day_recharge_extra_reward
+	/*使用兑换码*/
+	public static  CMSG_USE_GIFTCODE :number = 474;	//use_giftcode
+	/*显示兑换结果*/
+	public static  SMSG_SHOW_GIFTCODE_REWARD_LIST :number = 475;	//show_giftcode_reward_list
+	/*转盘抽奖*/
+	public static  CMSG_LOTTERY_RECHARGE :number = 480;	//lottery_recharge
+	/*转盘抽奖结果*/
+	public static  SMSG_LOTTERY_RECHARGE_RESULT :number = 481;	//lottery_recharge_result
+	/*通知前端释放了持续技能*/
+	public static  SMSG_SHOW_CAST_REMAIN_SKILL :number = 482;	//show_cast_remain_skill
+	/*角色创建完*/
+	public static  SMSG_AFTER_CREATE_ROLE :number = 483;	//after_create_role
+	/*记录购买订单*/
+	public static  CMSG_BOOKING_GAME2_MONEY :number = 484;	//booking_game2_money
+	/*记录购买订单成功*/
+	public static  SMSG_BOOKING_GAME2_MONEY_RESULT :number = 485;	//booking_game2_money_result
 	private _FUNCS:Object = new Object();
 		
 		/**
@@ -1056,6 +1130,31 @@ class Protocols {
 		this._FUNCS[423] = "group_kick";
 		this._FUNCS[425] = "enter_stage_instance";
 		this._FUNCS[426] = "pick_stage_instance_bonus";
+		this._FUNCS[427] = "enter_group_exp";
+		this._FUNCS[429] = "select_group_enter";
+		this._FUNCS[430] = "buy_group_exp_times";
+		this._FUNCS[431] = "buy_inspiration";
+		this._FUNCS[440] = "enter_faction_match_map";
+		this._FUNCS[441] = "pick_faction_match_champion_daily_reward";
+		this._FUNCS[442] = "query_faction_match_info";
+		this._FUNCS[444] = "pick_res_instance_first_reward";
+		this._FUNCS[445] = "group_send_invite";
+		this._FUNCS[447] = "group_agree_invite";
+		this._FUNCS[448] = "get_group_search_info_list";
+		this._FUNCS[450] = "group_change_config";
+		this._FUNCS[452] = "group_join_denied";
+		this._FUNCS[453] = "group_invite_denied";
+		this._FUNCS[454] = "talisman_equip";
+		this._FUNCS[455] = "talisman_unequip";
+		this._FUNCS[461] = "auto_group_match";
+		this._FUNCS[462] = "cancel_auto_group_match";
+		this._FUNCS[463] = "kuafu_3v3_group_match";
+		this._FUNCS[470] = "booking_money";
+		this._FUNCS[472] = "one_step_robot_up";
+		this._FUNCS[473] = "get_seven_day_recharge_extra_reward";
+		this._FUNCS[474] = "use_giftcode";
+		this._FUNCS[480] = "lottery_recharge";
+		this._FUNCS[484] = "booking_game2_money";
 	}
 		
 	public null_action ():void{
@@ -2053,10 +2152,12 @@ class Protocols {
 		this._stream.writeUint16 (illuId);		
 		this._send_func(this._stream);			
 	}
-	public ride_mount ():void{
+	public ride_mount ( oper :number ):void{
 		this._stream.reset();
 		this._stream.optcode = 152;
 		this._stream.writeUint16( 152 );
+			//1:上&0:下
+		this._stream.writeUint8 (oper);		
 		this._send_func(this._stream);			
 	}
 	public gem ( part :number ):void{
@@ -2991,12 +3092,14 @@ class Protocols {
 		this._stream.writeUint8 (cnt);		
 		this._send_func(this._stream);			
 	}
-	public group_instance_match ( indx :number ):void{
+	public group_instance_match ( indx :number  ,isGroup :number ):void{
 		this._stream.reset();
 		this._stream.optcode = 358;
 		this._stream.writeUint16( 358 );
 			//组队副本类型
 		this._stream.writeUint8 (indx);		
+			//是否组队进入
+		this._stream.writeUint8 (isGroup);		
 		this._send_func(this._stream);			
 	}
 	public buy_group_instance_times ( count :number ):void{
@@ -3359,10 +3462,18 @@ class Protocols {
 		this._stream.writeUint16( 417 );
 		this._send_func(this._stream);			
 	}
-	public group_create ():void{
+	public group_create ( type :number  ,min_lev :number  ,max_lev :number  ,auto_flag :number ):void{
 		this._stream.reset();
 		this._stream.optcode = 418;
 		this._stream.writeUint16( 418 );
+			//队伍类型
+		this._stream.writeUint32 (type);		
+			//队伍最低等级
+		this._stream.writeUint32 (min_lev);		
+			//队伍最大等级
+		this._stream.writeUint32 (max_lev);		
+			//队伍自动接受申请 0 关闭 1 打开
+		this._stream.writeUint32 (auto_flag);		
 		this._send_func(this._stream);			
 	}
 	public group_join_request ( guid :string ):void{
@@ -3387,20 +3498,20 @@ class Protocols {
 		this._stream.writeUint16( 421 );
 		this._send_func(this._stream);			
 	}
-	public group_give_captain ( guid :string ):void{
+	public group_give_captain ( index :number ):void{
 		this._stream.reset();
 		this._stream.optcode = 422;
 		this._stream.writeUint16( 422 );
-			//玩家guid
-		this._stream.writeString (guid);		
+			//玩家index
+		this._stream.writeUint32 (index);		
 		this._send_func(this._stream);			
 	}
-	public group_kick ( guid :string ):void{
+	public group_kick ( index :number ):void{
 		this._stream.reset();
 		this._stream.optcode = 423;
 		this._stream.writeUint16( 423 );
-			//玩家guid
-		this._stream.writeString (guid);		
+			//玩家index
+		this._stream.writeUint32 (index);		
 		this._send_func(this._stream);			
 	}
 	public enter_stage_instance ():void{
@@ -3415,6 +3526,216 @@ class Protocols {
 		this._stream.writeUint16( 426 );
 			//宝箱下标
 		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public enter_group_exp ( isGroup :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 427;
+		this._stream.writeUint16( 427 );
+			//是否组队进入
+		this._stream.writeUint8 (isGroup);		
+		this._send_func(this._stream);			
+	}
+	public select_group_enter ( choise :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 429;
+		this._stream.writeUint16( 429 );
+			//结果
+		this._stream.writeUint8 (choise);		
+		this._send_func(this._stream);			
+	}
+	public buy_group_exp_times ( count :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 430;
+		this._stream.writeUint16( 430 );
+			//数量
+		this._stream.writeUint8 (count);		
+		this._send_func(this._stream);			
+	}
+	public buy_inspiration ( category :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 431;
+		this._stream.writeUint16( 431 );
+			//购买类型
+		this._stream.writeUint8 (category);		
+		this._send_func(this._stream);			
+	}
+	public enter_faction_match_map ():void{
+		this._stream.reset();
+		this._stream.optcode = 440;
+		this._stream.writeUint16( 440 );
+		this._send_func(this._stream);			
+	}
+	public pick_faction_match_champion_daily_reward ():void{
+		this._stream.reset();
+		this._stream.optcode = 441;
+		this._stream.writeUint16( 441 );
+		this._send_func(this._stream);			
+	}
+	public query_faction_match_info ():void{
+		this._stream.reset();
+		this._stream.optcode = 442;
+		this._stream.writeUint16( 442 );
+		this._send_func(this._stream);			
+	}
+	public pick_res_instance_first_reward ( id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 444;
+		this._stream.writeUint16( 444 );
+			//副本id
+		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public group_send_invite ( guid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 445;
+		this._stream.writeUint16( 445 );
+			//玩家guid
+		this._stream.writeString (guid);		
+		this._send_func(this._stream);			
+	}
+	public group_agree_invite ( guid :string  ,sendGuid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 447;
+		this._stream.writeUint16( 447 );
+			//队伍guid
+		this._stream.writeString (guid);		
+			//邀请者guid
+		this._stream.writeString (sendGuid);		
+		this._send_func(this._stream);			
+	}
+	public get_group_search_info_list ( type :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 448;
+		this._stream.writeUint16( 448 );
+			//队伍类型
+		this._stream.writeUint32 (type);		
+		this._send_func(this._stream);			
+	}
+	public group_change_config ( type :number  ,min_lev :number  ,max_lev :number  ,auto_flag :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 450;
+		this._stream.writeUint16( 450 );
+			//队伍类型
+		this._stream.writeUint32 (type);		
+			//队伍最低等级
+		this._stream.writeUint32 (min_lev);		
+			//队伍最大等级
+		this._stream.writeUint32 (max_lev);		
+			//队伍自动接受申请 0 关闭 1 打开
+		this._stream.writeUint32 (auto_flag);		
+		this._send_func(this._stream);			
+	}
+	public group_join_denied ( guid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 452;
+		this._stream.writeUint16( 452 );
+			//玩家guid
+		this._stream.writeString (guid);		
+		this._send_func(this._stream);			
+	}
+	public group_invite_denied ( guid :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 453;
+		this._stream.writeUint16( 453 );
+			//队伍guid
+		this._stream.writeString (guid);		
+		this._send_func(this._stream);			
+	}
+	public talisman_equip ( id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 454;
+		this._stream.writeUint16( 454 );
+			//法宝id
+		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public talisman_unequip ( slot_id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 455;
+		this._stream.writeUint16( 455 );
+			//槽位id
+		this._stream.writeUint32 (slot_id);		
+		this._send_func(this._stream);			
+	}
+	public auto_group_match ( targetType :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 461;
+		this._stream.writeUint16( 461 );
+			//目标类型
+		this._stream.writeUint32 (targetType);		
+		this._send_func(this._stream);			
+	}
+	public cancel_auto_group_match ():void{
+		this._stream.reset();
+		this._stream.optcode = 462;
+		this._stream.writeUint16( 462 );
+		this._send_func(this._stream);			
+	}
+	public kuafu_3v3_group_match ():void{
+		this._stream.reset();
+		this._stream.optcode = 463;
+		this._stream.writeUint16( 463 );
+		this._send_func(this._stream);			
+	}
+	public booking_money ( orderid :string  ,goodsname :string  ,money1 :string  ,goodsnum :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 470;
+		this._stream.writeUint16( 470 );
+			//订单号
+		this._stream.writeString (orderid);		
+			//商品名称
+		this._stream.writeString (goodsname);		
+			//金额
+		this._stream.writeString (money1);		
+			//元宝数量
+		this._stream.writeUint32 (goodsnum);		
+		this._send_func(this._stream);			
+	}
+	public one_step_robot_up ( id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 472;
+		this._stream.writeUint16( 472 );
+			//参数
+		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public get_seven_day_recharge_extra_reward ( id :number ):void{
+		this._stream.reset();
+		this._stream.optcode = 473;
+		this._stream.writeUint16( 473 );
+			//奖励id
+		this._stream.writeUint32 (id);		
+		this._send_func(this._stream);			
+	}
+	public use_giftcode ( giftcode :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 474;
+		this._stream.writeUint16( 474 );
+			//兑换码
+		this._stream.writeString (giftcode);		
+		this._send_func(this._stream);			
+	}
+	public lottery_recharge ():void{
+		this._stream.reset();
+		this._stream.optcode = 480;
+		this._stream.writeUint16( 480 );
+		this._send_func(this._stream);			
+	}
+	public booking_game2_money ( serverName :string  ,cpOrderId :string  ,productName :string  ,productId :string  ,productDesc :string ):void{
+		this._stream.reset();
+		this._stream.optcode = 484;
+		this._stream.writeUint16( 484 );
+			//游戏名称
+		this._stream.writeString (serverName);		
+			//订单号
+		this._stream.writeString (cpOrderId);		
+			//商品名称
+		this._stream.writeString (productName);		
+			//商品id
+		this._stream.writeString (productId);		
+			//商品描述
+		this._stream.writeString (productDesc);		
 		this._send_func(this._stream);			
 	}
 }

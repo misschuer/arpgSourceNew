@@ -46,10 +46,10 @@ function PlayerInfo:OnCheckWorldXianfuMatch()
 				app:SetMatchingKuafuType(self:GetGuid(), nil)
 				
 				-- 这时不能扣进入券就不让进
-				local config = tb_kuafu_xianfu_condition[indx]
+				--[[local config = tb_kuafu_xianfu_condition[indx]
 				if not self:useMulItem(config.ticket) then
 					return
-				end
+				end--]]
 				
 				-- 增加进入次数
 				local instMgr = self:getInstanceMgr()
@@ -61,7 +61,7 @@ function PlayerInfo:OnCheckWorldXianfuMatch()
 				local pos = enter_info.pos
 				local war_id = enter_info.war_id
 				local battle_server = enter_info.battle_server
-				outFmtInfo("$$$$ on xianfu matched guid = %s war_id = %s", self:GetGuid(), war_id)
+				outFmtDebug("$$$$ on xianfu matched guid = %s war_id = %s", self:GetGuid(), war_id)
 				call_appd_login_to_send_kuafu_info(login_fd, guid, war_id, indx, battle_server, '', KUAFU_TYPE_XIANFU)
 				-- 设置正在进行跨服标志
 				self:KuafuMarked(KUAFU_TYPE_XIANFU)
@@ -114,7 +114,7 @@ function PlayerInfo:OnWorldXianfuMatch(indx)
 		return false
 	end
 	
-	outFmtInfo("###OnWorldXianfuMatch guid = %s", self:GetGuid())
+	outFmtDebug("###OnWorldXianfuMatch guid = %s", self:GetGuid())
 	local url = string.format("%s%s/match", globalGameConfig:GetExtWebInterface(), sub)
 	local data = {}
 	data.player_guid = self:GetGuid()
@@ -233,7 +233,7 @@ function PlayerInfo:OnSyncMoney()
 				elseif changed < 0 then
 					local arrears = 0
 					local cost = -changed
-					--self:SubMoney(MONEY_TYPE_GOLD_INGOT, origin, cost)
+					
 					if not self:checkMoneyEnough(MONEY_TYPE_GOLD_INGOT, cost) then
 						local realcost = self:GetMoney(MONEY_TYPE_GOLD_INGOT)
 						arrears = cost - realcost

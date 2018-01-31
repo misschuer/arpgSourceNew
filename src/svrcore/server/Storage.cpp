@@ -286,4 +286,10 @@ bool Storage::SaveFile(const string& file_name, const string& file_content)
 	return true;
 }
 
+bool Storage::Rename(const string &from, const string& to)
+{
+	fs::rename(fs::path(work_directory_+"/"+from), fs::path(work_directory_+"/"+to));
+	return true;
+}
+
 }

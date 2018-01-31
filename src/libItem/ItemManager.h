@@ -59,8 +59,11 @@ public:
 	void Move(int id,  int to_bag, int to_pos);	
 	
 
-	//统计指定物品数量
-	int CountEntey(int entry,int bag);
+	// 某个背包统计指定物品数量
+	int CountEntey(int entry, int bag, int isBind=-1, int failTime=-1);
+	// 所有背包统计指定物品数量
+	int CountAllEntey(int entry, int isBind=-1, int failTime=-1);
+
 	//背包剩余空位
 	int GetEmptyCount(int bag);
 	//包裹实际大小

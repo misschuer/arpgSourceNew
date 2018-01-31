@@ -253,8 +253,8 @@ public:
 	int unpack_combat_state_update (ByteArray &bytes ,uint8 &cur_state);
 	int send_combat_state_update (uint8 cur_state);
 	/*经验更新*/
-	int unpack_exp_update (ByteArray &bytes ,int32 &exp,uint8 &type,int32 &vip_exp);
-	int send_exp_update (int32 exp,uint8 type,int32 vip_exp);
+	int unpack_exp_update (ByteArray &bytes ,int32 &exp,uint8 &added);
+	int send_exp_update (int32 exp,uint8 added);
 	/*客户端释放技能*/
 	int unpack_spell_start (ByteArray &bytes ,uint32 &spell_id,uint16 &target_pos_x,uint16 &target_pos_y,uint32 &caster,uint32 &target);
 	int send_spell_start (uint32 spell_id,uint16 target_pos_x,uint16 target_pos_y,uint32 caster,uint32 target);
@@ -477,9 +477,9 @@ public:
 	/*申请幻化坐骑*/
 	int unpack_illusion_mount (ByteArray &bytes ,uint16 &illuId);
 	int send_illusion_mount (uint16 illuId);
-	/*申请骑乘*/
-	int unpack_ride_mount (ByteArray &bytes );
-	int send_ride_mount ();
+	/*坐骑骑乘操作*/
+	int unpack_ride_mount (ByteArray &bytes ,uint8 &oper);
+	int send_ride_mount (uint8 oper);
 	/*grid中的unit跳跃*/
 	int unpack_grid_unit_jump (ByteArray &bytes );
 	int send_grid_unit_jump ();
@@ -874,8 +874,8 @@ public:
 	int unpack_pick_offline_reward (ByteArray &bytes );
 	int send_pick_offline_reward ();
 	/*离线奖励结果*/
-	int unpack_offline_reward_result (ByteArray &bytes ,uint32 &reserve,uint32 &reserve2,uint32 &reserve3,uint32 &reserve4, vector< item_reward_info > &list);
-	int send_offline_reward_result (uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,const vector< item_reward_info > &list );
+	int unpack_offline_reward_result (ByteArray &bytes ,uint32 &reserve,uint32 &reserve2,uint32 &reserve3,uint32 &reserve4,uint32 &reserve5, vector< item_reward_info > &list);
+	int send_offline_reward_result (uint32 reserve,uint32 reserve2,uint32 reserve3,uint32 reserve4,uint32 reserve5,const vector< item_reward_info > &list );
 	/*熔炼装备*/
 	int unpack_smelting_equip (ByteArray &bytes ,string &pos_str);
 	int send_smelting_equip (char const*pos_str);
@@ -949,8 +949,8 @@ public:
 	int unpack_buy_mass_boss_times (ByteArray &bytes ,uint8 &cnt);
 	int send_buy_mass_boss_times (uint8 cnt);
 	/*组队副本跨服匹配*/
-	int unpack_group_instance_match (ByteArray &bytes ,uint8 &indx);
-	int send_group_instance_match (uint8 indx);
+	int unpack_group_instance_match (ByteArray &bytes ,uint8 &indx,uint8 &isGroup);
+	int send_group_instance_match (uint8 indx,uint8 isGroup);
 	/*组队副本跨服次数购买*/
 	int unpack_buy_group_instance_times (ByteArray &bytes ,uint8 &count);
 	int send_buy_group_instance_times (uint8 count);
@@ -1114,8 +1114,8 @@ public:
 	int unpack_pick_realmbreak_daily_reward (ByteArray &bytes );
 	int send_pick_realmbreak_daily_reward ();
 	/*创建队伍*/
-	int unpack_group_create (ByteArray &bytes );
-	int send_group_create ();
+	int unpack_group_create (ByteArray &bytes ,uint32 &type,uint32 &min_lev,uint32 &max_lev,uint32 &auto_flag);
+	int send_group_create (uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag);
 	/*申请加入队伍*/
 	int unpack_group_join_request (ByteArray &bytes ,string &guid);
 	int send_group_join_request (char const*guid);
@@ -1126,11 +1126,11 @@ public:
 	int unpack_group_quit (ByteArray &bytes );
 	int send_group_quit ();
 	/*移交队伍队长*/
-	int unpack_group_give_captain (ByteArray &bytes ,string &guid);
-	int send_group_give_captain (char const*guid);
+	int unpack_group_give_captain (ByteArray &bytes ,uint32 &index);
+	int send_group_give_captain (uint32 index);
 	/*踢队员*/
-	int unpack_group_kick (ByteArray &bytes ,string &guid);
-	int send_group_kick (char const*guid);
+	int unpack_group_kick (ByteArray &bytes ,uint32 &index);
+	int send_group_kick (uint32 index);
 	/*显示掉落东西*/
 	int unpack_show_loot_animate (ByteArray &bytes ,string &info);
 	int send_show_loot_animate (char const*info);
@@ -1140,6 +1140,117 @@ public:
 	/*领取闯关副本奖励*/
 	int unpack_pick_stage_instance_bonus (ByteArray &bytes ,uint32 &id);
 	int send_pick_stage_instance_bonus (uint32 id);
+	/*进入组队副本*/
+	int unpack_enter_group_exp (ByteArray &bytes ,uint8 &isGroup);
+	int send_enter_group_exp (uint8 isGroup);
+	/*队长通知进入某副本*/
+	int unpack_check_for_group_enter (ByteArray &bytes ,uint32 &instSubType);
+	int send_check_for_group_enter (uint32 instSubType);
+	/*队伍成员选择AorD*/
+	int unpack_select_group_enter (ByteArray &bytes ,uint8 &choise);
+	int send_select_group_enter (uint8 choise);
+	/*经验副本次数购买*/
+	int unpack_buy_group_exp_times (ByteArray &bytes ,uint8 &count);
+	int send_buy_group_exp_times (uint8 count);
+	/*购买鼓舞*/
+	int unpack_buy_inspiration (ByteArray &bytes ,uint8 &category);
+	int send_buy_inspiration (uint8 category);
+	/*家族战进入*/
+	int unpack_enter_faction_match_map (ByteArray &bytes );
+	int send_enter_faction_match_map ();
+	/*领取家族战盟主每日奖励*/
+	int unpack_pick_faction_match_champion_daily_reward (ByteArray &bytes );
+	int send_pick_faction_match_champion_daily_reward ();
+	/*请求家族战榜单*/
+	int unpack_query_faction_match_info (ByteArray &bytes );
+	int send_query_faction_match_info ();
+	/*返回家族战榜单*/
+	int unpack_show_faction_match_info_list (ByteArray &bytes , vector< faction_match_info > &list);
+	int send_show_faction_match_info_list (const vector< faction_match_info > &list );
+	/*领取资源副本首次通关奖励*/
+	int unpack_pick_res_instance_first_reward (ByteArray &bytes ,uint32 &id);
+	int send_pick_res_instance_first_reward (uint32 id);
+	/*发送组队邀请*/
+	int unpack_group_send_invite (ByteArray &bytes ,string &guid);
+	int send_group_send_invite (char const*guid);
+	/*显示组队邀请*/
+	int unpack_show_group_invite (ByteArray &bytes ,string &guid,string &name,uint32 &type,uint32 &level,double &force,string &sender_guid);
+	int send_show_group_invite (char const*guid,char const*name,uint32 type,uint32 level,double force,char const*sender_guid);
+	/*同意组队邀请*/
+	int unpack_group_agree_invite (ByteArray &bytes ,string &guid,string &sendGuid);
+	int send_group_agree_invite (char const*guid,char const*sendGuid);
+	/*便捷组队队伍列表*/
+	int unpack_get_group_search_info_list (ByteArray &bytes ,uint32 &type);
+	int send_get_group_search_info_list (uint32 type);
+	/*返回便捷组队队伍列表*/
+	int unpack_show_group_search_info_list (ByteArray &bytes , vector< group_search_info > &list);
+	int send_show_group_search_info_list (const vector< group_search_info > &list );
+	/*修改组队设置*/
+	int unpack_group_change_config (ByteArray &bytes ,uint32 &type,uint32 &min_lev,uint32 &max_lev,uint32 &auto_flag);
+	int send_group_change_config (uint32 type,uint32 min_lev,uint32 max_lev,uint32 auto_flag);
+	/*显示玩家入队申请*/
+	int unpack_show_group_join_request (ByteArray &bytes ,string &guid,string &name,uint32 &gender,uint32 &level,uint32 &vip,double &force);
+	int send_show_group_join_request (char const*guid,char const*name,uint32 gender,uint32 level,uint32 vip,double force);
+	/*拒绝加入队伍*/
+	int unpack_group_join_denied (ByteArray &bytes ,string &guid);
+	int send_group_join_denied (char const*guid);
+	/*拒绝邀请*/
+	int unpack_group_invite_denied (ByteArray &bytes ,string &guid);
+	int send_group_invite_denied (char const*guid);
+	/*装备法宝*/
+	int unpack_talisman_equip (ByteArray &bytes ,uint32 &id);
+	int send_talisman_equip (uint32 id);
+	/*卸下法宝*/
+	int unpack_talisman_unequip (ByteArray &bytes ,uint32 &slot_id);
+	int send_talisman_unequip (uint32 slot_id);
+	/*回满血*/
+	int unpack_fullize_hp (ByteArray &bytes ,string &guid);
+	int send_fullize_hp (char const*guid);
+	/*自动匹配*/
+	int unpack_auto_group_match (ByteArray &bytes ,uint32 &targetType);
+	int send_auto_group_match (uint32 targetType);
+	/*取消自动匹配*/
+	int unpack_cancel_auto_group_match (ByteArray &bytes );
+	int send_cancel_auto_group_match ();
+	/*组队3v3跨服匹配*/
+	int unpack_kuafu_3v3_group_match (ByteArray &bytes );
+	int send_kuafu_3v3_group_match ();
+	/*记录购买订单*/
+	int unpack_booking_money (ByteArray &bytes ,string &orderid,string &goodsname,string &money1,uint32 &goodsnum);
+	int send_booking_money (char const*orderid,char const*goodsname,char const*money1,uint32 goodsnum);
+	/*记录购买订单成功*/
+	int unpack_booking_money_result (ByteArray &bytes ,string &orderid,uint8 &result);
+	int send_booking_money_result (char const*orderid,uint8 result);
+	/*一键机器人强化*/
+	int unpack_one_step_robot_up (ByteArray &bytes ,uint32 &id);
+	int send_one_step_robot_up (uint32 id);
+	/*领取7日充值额外奖励*/
+	int unpack_get_seven_day_recharge_extra_reward (ByteArray &bytes ,uint32 &id);
+	int send_get_seven_day_recharge_extra_reward (uint32 id);
+	/*使用兑换码*/
+	int unpack_use_giftcode (ByteArray &bytes ,string &giftcode);
+	int send_use_giftcode (char const*giftcode);
+	/*显示兑换结果*/
+	int unpack_show_giftcode_reward_list (ByteArray &bytes , vector< item_reward_info > &list);
+	int send_show_giftcode_reward_list (const vector< item_reward_info > &list );
+	/*转盘抽奖*/
+	int unpack_lottery_recharge (ByteArray &bytes );
+	int send_lottery_recharge ();
+	/*转盘抽奖结果*/
+	int unpack_lottery_recharge_result (ByteArray &bytes ,uint8 &indx);
+	int send_lottery_recharge_result (uint8 indx);
+	/*通知前端释放了持续技能*/
+	int unpack_show_cast_remain_skill (ByteArray &bytes ,uint32 &id);
+	int send_show_cast_remain_skill (uint32 id);
+	/*角色创建完*/
+	int unpack_after_create_role (ByteArray &bytes ,string &serverId,string &guid,string &nickname);
+	int send_after_create_role (char const*serverId,char const*guid,char const*nickname);
+	/*记录购买订单*/
+	int unpack_booking_game2_money (ByteArray &bytes ,string &serverName,string &cpOrderId,string &productName,string &productId,string &productDesc);
+	int send_booking_game2_money (char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc);
+	/*记录购买订单成功*/
+	int unpack_booking_game2_money_result (ByteArray &bytes ,uint8 &result,uint32 &serverId,string &serverName,string &cpOrderId,string &productName,string &productId,string &productDesc,string &amount,string &extend,string &time,string &sign);
+	int send_booking_game2_money_result (uint8 result,uint32 serverId,char const*serverName,char const*cpOrderId,char const*productName,char const*productId,char const*productDesc,char const*amount,char const*extend,char const*time,char const*sign);
 };
 
 #endif
